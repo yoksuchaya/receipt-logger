@@ -45,9 +45,12 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
     const data = await fs.readFile(LOG_FILE, "utf8");
     // Each line is a JSON object
-    const receipts = data
+    let receipts = data
       .split("\n")
       .filter(Boolean)
       .map(line => {
@@ -58,6 +61,17 @@ export async function GET(req: NextRequest) {
         }
       })
       .filter(Boolean);
+
+    // Filter by date if from/to provided
+    if (from || to) {
+      receipts = receipts.filter((r: any) => {
+        if (!r.date) return false;
+        const d = new Date(r.date);
+        if (from && d < new Date(from)) return false;
+        if (to && d > new Date(to)) return false;
+        return true;
+      });
+    }
     return NextResponse.json(receipts);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to read logs" }, { status: 500 });

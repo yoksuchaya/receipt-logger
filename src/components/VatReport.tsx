@@ -1,11 +1,11 @@
 
 
 import { useState, useEffect } from "react";
-import { formatMoney } from "./utils";
 import VatBreadcrumb from "./VatBreadcrumb";
 import VatReportHeader from "./VatReportHeader";
 import VatSaleReportTable from "./VatSaleReportTable";
 import VatPurchaseReportTable from "./VatPurchaseReportTable";
+import PrintWrapper from "./PrintWrapper";
 
 export default function VatReport() {
   const [selected, setSelected] = useState<'purchase' | 'sale' | null>(null);
@@ -80,42 +80,44 @@ export default function VatReport() {
   const sumVatPurchase = filteredPurchase.reduce((sum, r) => sum + Number(r.vat), 0);
   const sumTotalPurchase = filteredPurchase.reduce((sum, r) => sum + Number(r.grand_total), 0);
 
-  // --- Main render ---
+
   if (selected === 'sale') {
     return (
       <div className="w-full max-w-full">
         <VatBreadcrumb type="sale" onBack={() => setSelected(null)} />
         <h2 className="text-xl font-bold mb-4">รายงานภาษีขาย</h2>
-        <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
-          <div className="w-full">
-            <VatReportHeader
-              month={month}
-              year={year}
-              monthOptions={monthOptions}
-              yearOptions={yearOptions}
-              onMonthChange={setMonth}
-              onYearChange={setYear}
-            />
-          </div>
-          <div className="w-full max-w-full overflow-x-auto">
-            {loading ? (
-              <div className="text-center py-8 min-w-[400px]">กำลังโหลดข้อมูล...</div>
-            ) : error ? (
-              <div className="text-center text-red-500 py-8 min-w-[400px]">{error}</div>
-            ) : (
-              <VatSaleReportTable
-                data={filtered}
-                sumExVat={sumExVat}
-                sumVat={sumVat}
-                sumTotal={sumTotal}
+        <PrintWrapper>
+          <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
+            <div className="w-full vat-header">
+              <VatReportHeader
+                month={month}
+                year={year}
+                monthOptions={monthOptions}
+                yearOptions={yearOptions}
+                onMonthChange={setMonth}
+                onYearChange={setYear}
               />
-            )}
+            </div>
+            <div className="w-full max-w-full overflow-x-auto vat-table">
+              {loading ? (
+                <div className="text-center py-8 min-w-[400px]">กำลังโหลดข้อมูล...</div>
+              ) : error ? (
+                <div className="text-center text-red-500 py-8 min-w-[400px]">{error}</div>
+              ) : (
+                <VatSaleReportTable
+                  data={filtered}
+                  sumExVat={sumExVat}
+                  sumVat={sumVat}
+                  sumTotal={sumTotal}
+                />
+              )}
+            </div>
+            <div className="mt-8 flex flex-col gap-2 text-sm vat-signature">
+              <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+              <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+            </div>
           </div>
-          <div className="mt-8 flex flex-col gap-2 text-sm">
-            <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
-            <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
-          </div>
-        </div>
+        </PrintWrapper>
       </div>
     );
   }
@@ -133,39 +135,41 @@ export default function VatReport() {
       <div className="w-full max-w-full">
         <VatBreadcrumb type="purchase" onBack={() => setSelected(null)} />
         <h2 className="text-xl font-bold mb-4">รายงานภาษีซื้อ</h2>
-        <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
-          <div className="w-full">
-            <VatReportHeader
-              month={month}
-              year={year}
-              monthOptions={monthOptions}
-              yearOptions={yearOptions}
-              onMonthChange={setMonth}
-              onYearChange={setYear}
-              // @ts-ignore
-              title="รายงานภาษีซื้อ"
-            />
-          </div>
-          {/* Table */}
-          <div className="w-full max-w-full overflow-x-auto">
-            {loading ? (
-              <div className="text-center py-8 min-w-[400px]">กำลังโหลดข้อมูล...</div>
-            ) : error ? (
-              <div className="text-center text-red-500 py-8 min-w-[400px]">{error}</div>
-            ) : (
-              <VatPurchaseReportTable
-                data={filteredPurchase}
-                sumAmount={sumAmount}
-                sumVat={sumVatPurchase}
-                sumTotal={sumTotalPurchase}
+        <PrintWrapper>
+          <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
+            <div className="w-full vat-header">
+              <VatReportHeader
+                month={month}
+                year={year}
+                monthOptions={monthOptions}
+                yearOptions={yearOptions}
+                onMonthChange={setMonth}
+                onYearChange={setYear}
+                // @ts-ignore
+                title="รายงานภาษีซื้อ"
               />
-            )}
+            </div>
+            {/* Table */}
+            <div className="w-full max-w-full overflow-x-auto vat-table">
+              {loading ? (
+                <div className="text-center py-8 min-w-[400px]">กำลังโหลดข้อมูล...</div>
+              ) : error ? (
+                <div className="text-center text-red-500 py-8 min-w-[400px]">{error}</div>
+              ) : (
+                <VatPurchaseReportTable
+                  data={filteredPurchase}
+                  sumAmount={sumAmount}
+                  sumVat={sumVatPurchase}
+                  sumTotal={sumTotalPurchase}
+                />
+              )}
+            </div>
+            <div className="mt-8 flex flex-col gap-2 text-sm vat-signature">
+              <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+              <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+            </div>
           </div>
-          <div className="mt-8 flex flex-col gap-2 text-sm">
-            <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
-            <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
-          </div>
-        </div>
+        </PrintWrapper>
       </div>
     );
   }

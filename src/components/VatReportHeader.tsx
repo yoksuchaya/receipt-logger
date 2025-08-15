@@ -23,7 +23,7 @@ const VatReportHeader: React.FC<VatReportHeaderProps> = ({
         <div>ที่อยู่: เลขที่ 100/10 หมู่ 8 ตำบลอ้อมใหญ่ อำเภอสามพราน จังหวัดนครปฐม 73160</div>
         <div>โทรศัพท์ : 02-4206075, 02-8115693</div>
         <div className="font-semibold mt-2">รายงานภาษีขาย</div>
-        <div className="flex flex-wrap justify-center gap-2 mt-2 items-center">
+        <div className="flex flex-wrap justify-center gap-2 mt-2 items-center no-print">
             <label htmlFor="month" className="font-normal">เดือน</label>
             <select
                 id="month"
