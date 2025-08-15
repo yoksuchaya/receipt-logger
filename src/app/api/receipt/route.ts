@@ -48,13 +48,13 @@ export async function POST(req: NextRequest) {
     model: "mistral-ocr-latest",
     document: isPdf
       ? {
-          type: "document_url",
-          document_url: `data:application/pdf;base64,${base64}`
-        }
+        type: "document_url",
+        document_url: `data:application/pdf;base64,${base64}`
+      }
       : {
-          type: "image_url",
-          image_url: `data:image/png;base64,${base64}`
-        },
+        type: "image_url",
+        image_url: `data:image/png;base64,${base64}`
+      },
     include_image_base64: true
   };
   const mistralRes = await fetch("https://api.mistral.ai/v1/ocr", {

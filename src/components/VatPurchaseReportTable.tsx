@@ -1,0 +1,74 @@
+import { formatMoney } from "./utils";
+
+interface Purchase {
+    date: string;
+    receipt_no: string;
+    vendor: string;
+    vendor_tax_id: string;
+    description: string;
+    vat: number;
+    grand_total: number;
+    category: string;
+    notes?: string;
+}
+
+interface Props {
+    data: Purchase[];
+    sumAmount: number;
+    sumVat: number;
+    sumTotal: number;
+}
+
+const th = "font-bold bg-gray-100 text-gray-800 text-center border border-gray-300 px-2 py-1";
+const td = "border border-gray-300 px-2 py-1 text-sm";
+const tdRight = td + " text-right";
+
+export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTotal }: Props) {
+    return (
+        <div className="w-full">
+            <div className="overflow-x-auto">
+                <table className="min-w-[900px] w-full text-[14px] border border-gray-300">
+                    <thead>
+                        <tr>
+                            <th className={th}>ลำดับที่</th>
+                            <th className={th}>วันที่</th>
+                            <th className={th}>เลขที่ใบกำกับภาษี / เลขที่ใบเสร็จ</th>
+                            <th className={th}>ชื่อผู้ขาย</th>
+                            <th className={th}>เลขประจำตัวผู้เสียภาษีผู้ขาย</th>
+                            <th className={th}>ประเภทสินค้า/บริการ</th>
+                            <th className={th}>มูลค่าสินค้า/บริการ (ไม่รวม VAT)</th>
+                            <th className={th}>ภาษีมูลค่าเพิ่ม (7%)</th>
+                            <th className={th}>จำนวนเงินรวม (รวม VAT)</th>
+                            <th className={th}>หมายเหตุ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map((row, i) => (
+                            <tr key={i}>
+                                <td className={td + " text-center"}>{i + 1}</td>
+                                <td className={td + " text-center"}>{row.date || "-"}</td>
+                                <td className={td + " text-center"}>{row.receipt_no || "-"}</td>
+                                <td className={td}>{row.vendor || "-"}</td>
+                                <td className={td + " text-center"}>{row.vendor_tax_id || "-"}</td>
+                                <td className={td}>{row.category || "-"}</td>
+                                <td className={tdRight}>{formatMoney(Number(row.grand_total) - Number(row.vat))}</td>
+                                <td className={tdRight}>{formatMoney(row.vat)}</td>
+                                <td className={tdRight}>{formatMoney(row.grand_total)}</td>
+                                <td className={td}>{row.notes || "-"}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td className={td + " text-center"} colSpan={6}>รวม</td>
+                            <td className={tdRight + " font-bold"}>{formatMoney(sumAmount)}</td>
+                            <td className={tdRight + " font-bold"}>{formatMoney(sumVat)}</td>
+                            <td className={tdRight + " font-bold"}>{formatMoney(sumTotal)}</td>
+                            <td className={td}></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    );
+}
