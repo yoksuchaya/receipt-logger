@@ -11,17 +11,30 @@ export async function POST(req: NextRequest) {
   // Accept multipart/form-data or base64 JSON
   const contentType = req.headers.get("content-type") || "";
   let base64: string | null = null;
-
+  let isPdf = false;
   if (contentType.includes("multipart/form-data")) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     const arrayBuffer = await file.arrayBuffer();
     base64 = Buffer.from(arrayBuffer).toString("base64");
+    // Log base64 string (truncate for safety)
+    if (base64) {
+      console.log('Base64: ', base64);
+    }
+    isPdf = file.type === "application/pdf";
   } else {
-    // Accept JSON: { base64: "..." }
-    const body = await req.json();
+    // Accept JSON: { base64: "...", fileType?: string }
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
     base64 = body.base64;
+    if (body.fileType && body.fileType === "application/pdf") {
+      isPdf = true;
+    }
   }
 
   if (!base64) return NextResponse.json({ error: "No image data" }, { status: 400 });
@@ -31,25 +44,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(ocrCache.get(base64));
   }
 
-  // 1. Call Mistral OCR
+  const mistralPayload = {
+    model: "mistral-ocr-latest",
+    document: isPdf
+      ? {
+          type: "document_url",
+          document_url: `data:application/pdf;base64,${base64}`
+        }
+      : {
+          type: "image_url",
+          image_url: `data:image/png;base64,${base64}`
+        },
+    include_image_base64: true
+  };
   const mistralRes = await fetch("https://api.mistral.ai/v1/ocr", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${MISTRAL_API_KEY}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      model: "mistral-ocr-latest",
-      document: {
-        type: "image_url",
-        image_url: `data:image/png;base64,${base64}`
-      }
-    })
+    body: JSON.stringify(mistralPayload)
   });
   if (!mistralRes.ok) {
-    return NextResponse.json({ error: "Mistral OCR failed" }, { status: 500 });
+    let errorText = await mistralRes.text();
+    return NextResponse.json({ error: "Mistral OCR failed", details: errorText }, { status: 500 });
   }
-  const mistralData = await mistralRes.json();
+  let mistralData;
+  try {
+    mistralData = await mistralRes.json();
+    console.log('Mistral OCR response:', JSON.stringify(mistralData, null, 2));
+  } catch (e) {
+    return NextResponse.json({ error: "Mistral OCR did not return valid JSON" }, { status: 500 });
+  }
   const markdown = mistralData.pages?.[0]?.markdown;
   if (!markdown) return NextResponse.json({ error: "No markdown from OCR" }, { status: 500 });
 

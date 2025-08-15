@@ -32,10 +32,10 @@ export default function ReceiptLogger() {
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const fileObj = e.target.files?.[0];
     if (!fileObj) return;
-    // Validate file type (allow only image/*)
     const isImage = fileObj.type.startsWith("image/");
-    if (!isImage) {
-      setApiError("Please upload an image file (JPG, PNG, etc.)");
+    const isPdf = fileObj.type === "application/pdf";
+    if (!isImage && !isPdf) {
+      setApiError("Please upload an image file (JPG, PNG, etc.) or PDF file.");
       setFile(null);
       setImage(null);
       return;
@@ -51,20 +51,22 @@ export default function ReceiptLogger() {
     setApiResult(null);
     setApiError(null);
     setApiReading(true);
-    try {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setImage(ev.target?.result as string);
+    if (isImage || isPdf) {
+      try {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setImage(ev.target?.result as string);
+          setApiReading(false);
+        };
+        reader.onerror = () => {
+          setApiError("Failed to load file");
+          setApiReading(false);
+        };
+        reader.readAsDataURL(fileObj);
+      } catch (err: any) {
+        setApiError(err.message || "Unknown error");
         setApiReading(false);
-      };
-      reader.onerror = () => {
-        setApiError("Failed to load image");
-        setApiReading(false);
-      };
-      reader.readAsDataURL(fileObj);
-    } catch (err: any) {
-      setApiError(err.message || "Unknown error");
-      setApiReading(false);
+      }
     }
   }
 
@@ -199,19 +201,35 @@ export default function ReceiptLogger() {
           id="receipt-photo-input"
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           onChange={handleImageChange}
           className="hidden"
         />
-        {image && (
+        {image && file && (
           <>
-            <img
-              src={image}
-              alt="Receipt preview"
-              className="mt-4 rounded-lg max-h-48 object-contain border border-gray-200 dark:border-neutral-700 mx-auto"
-              onClick={() => setShowPreview(true)}
-              style={{ cursor: 'pointer' }}
-            />
+            {file.type.startsWith('image/') ? (
+              <img
+                src={image}
+                alt="Receipt preview"
+                className="mt-4 rounded-lg max-h-48 object-contain border border-gray-200 dark:border-neutral-700 mx-auto"
+                onClick={() => setShowPreview(true)}
+                style={{ cursor: 'pointer' }}
+              />
+            ) : file.type === 'application/pdf' ? (
+              <div
+                className="mt-4 rounded-lg max-h-48 border border-gray-200 dark:border-neutral-700 mx-auto bg-gray-50 dark:bg-neutral-800 cursor-pointer overflow-hidden flex items-center justify-center"
+                style={{ height: '12rem', width: '100%', maxWidth: '350px' }}
+                onClick={() => setShowPreview(true)}
+                title="Click to preview PDF"
+              >
+                <iframe
+                  src={image || ''}
+                  title="PDF Thumbnail"
+                  className="w-full h-full"
+                  style={{ minHeight: '100%', minWidth: '100%', border: 'none', background: 'white' }}
+                />
+              </div>
+            ) : null}
             <div className="flex gap-2 mt-2">
               <button
                 type="button"
@@ -229,7 +247,7 @@ export default function ReceiptLogger() {
                 {apiLoading ? "Reading..." : "Read Receipt"}
               </button>
             </div>
-            {/* Modal for big image preview */}
+            {/* Modal for big preview (image or PDF) */}
             {showPreview && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" onClick={() => setShowPreview(false)}>
                 <div className="absolute top-4 right-4">
@@ -245,11 +263,20 @@ export default function ReceiptLogger() {
                   </button>
                 </div>
                 <div className="relative max-w-full max-h-full p-4" onClick={e => e.stopPropagation()}>
-                  <img
-                    src={image}
-                    alt="Receipt large preview"
-                    className="rounded-lg max-h-[80vh] max-w-[90vw] object-contain border border-white shadow-lg"
-                  />
+                  {file.type.startsWith('image/') ? (
+                    <img
+                      src={image}
+                      alt="Receipt large preview"
+                      className="rounded-lg max-h-[80vh] max-w-[90vw] object-contain border border-white shadow-lg"
+                    />
+                  ) : file.type === 'application/pdf' ? (
+                    <iframe
+                      src={image}
+                      title="PDF Preview"
+                      className="rounded-lg max-h-[80vh] max-w-[90vw] border border-white shadow-lg bg-white"
+                      style={{ width: '80vw', height: '80vh' }}
+                    />
+                  ) : null}
                 </div>
               </div>
             )}
