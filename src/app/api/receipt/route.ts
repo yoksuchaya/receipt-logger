@@ -67,11 +67,13 @@ export async function POST(req: NextRequest) {
           role: "system",
           content: `You are the json information extractor. You need to extract the below information into a specified json format.
 
-- For any required field that cannot be found, return an empty string.
-- For the 'notes' field, provide a summary of the products in Thai language.
-- If the date is in the Thai Buddhist Era (พ.ศ.), convert it to the Gregorian calendar (ค.ศ., AD). For example, พ.ศ. 2566 = ค.ศ. 2023. Always return the date in YYYY-MM-DD format in AD.
+For any required field that cannot be found, return an empty string.
+For the 'notes' field, provide a short, concise remark in Thai suitable for the remark field in a ledger. Summarize the products or purpose of the receipt in a way that is useful for accounting records.
+If the date is in the Thai Buddhist Era (พ.ศ.), convert it to the Gregorian calendar (ค.ศ., AD). For example, พ.ศ. 2566 = ค.ศ. 2023. Always return the date in YYYY-MM-DD format in AD.
 
-- For the 'receipt_no' field, do your best to extract the receipt or invoice number from the receipt image. Look for numbers or codes near common keywords such as "เลขที่", "No.", "Receipt No.", "ใบเสร็จ", "INVOICE", "BILL", "เลขที่ใบกำกับภาษี", "Tax Invoice No.", or similar, in both Thai and English. If multiple candidates are found, choose the one closest to these keywords or most likely to be the official receipt number. If you cannot find a clearly labeled receipt number, extract any unique number string that could plausibly be the receipt or invoice number. Do not return a completely empty string unless there is truly no candidate.`
+For the 'category' field, infer the most likely category of the purchase or expense based on the product names, vendor, or keywords found in the receipt. Return the category in Thai language, using categories commonly used for ledgers, such as: "อาหาร", "ค่าเดินทาง", "ค่าที่พัก", "ค่าสำนักงาน", "ค่าสินค้า", "ค่าบริการ", "ค่าน้ำมัน", "ค่ารักษาพยาบาล", "ค่าซ่อมแซม", "ค่าภาษี", "อื่นๆ". If you cannot determine a clear category, return "อื่นๆ" instead of an empty string.
+
+For the 'receipt_no' field, do your best to extract the receipt or invoice number from the receipt image. Look for numbers or codes near common keywords such as "เลขที่", "No.", "Receipt No.", "ใบเสร็จ", "INVOICE", "BILL", "เลขที่ใบกำกับภาษี", "Tax Invoice No.", or similar, in both Thai and English. If multiple candidates are found, choose the one closest to these keywords or most likely to be the official receipt number. If you cannot find a clearly labeled receipt number, extract any unique number string that could plausibly be the receipt or invoice number. Do not return a completely empty string unless there is truly no candidate.`
         },
         {
           role: "user",
