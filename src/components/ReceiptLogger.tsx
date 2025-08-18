@@ -12,7 +12,7 @@ type FormState = {
   vendor_tax_id: string;
   category: string;
   notes: string;
-  payment_type: string;
+  payment_type: string; // 'cash' | 'credit_card' | 'transfer'
   receipt_no: string;
   buyer_name: string;
   buyer_address: string;
@@ -144,10 +144,12 @@ export default function ReceiptLogger() {
           category: (data.category as string) || prev.category,
           notes: (data.notes as string) || prev.notes,
           payment_type:
-            (data.payment as { cash?: number; transfer?: number })?.cash && (data.payment as { cash?: number }).cash! > 0
+            (data.payment as { cash?: number })?.cash && (data.payment as { cash?: number }).cash! > 0
               ? "cash"
+              : (data.payment as { credit_card?: number })?.credit_card && (data.payment as { credit_card?: number }).credit_card! > 0
+              ? "credit_card"
               : (data.payment as { transfer?: number })?.transfer && (data.payment as { transfer?: number }).transfer! > 0
-              ? "transfer/credit/check"
+              ? "transfer"
               : prev.payment_type,
           receipt_no: (data.receipt_no as string) || prev.receipt_no,
           buyer_name: (data.buyer_name as string) || prev.buyer_name,
@@ -368,7 +370,8 @@ export default function ReceiptLogger() {
                       className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="cash">เงินสด</option>
-                      <option value="transfer/credit/check">โอน/บัตรเครดิต/เช็ค</option>
+                      <option value="credit_card">บัตรเครดิต</option>
+                      <option value="transfer">โอนเงิน</option>
                     </select>
                   ) : (
                     <input

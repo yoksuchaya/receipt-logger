@@ -40,8 +40,12 @@ export default function VatReport() {
   const [purchaseData, setPurchaseData] = useState<VatPurchase[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [month, setMonth] = useState("06");
-  const [year, setYear] = useState("2025");
+  // Set initial month and year to current month and year
+  const now = new Date();
+  const initialMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+  const initialYear = now.getFullYear().toString();
+  const [month, setMonth] = useState(initialMonth);
+  const [year, setYear] = useState(initialYear);
   const yearOptions = [];
   for (let y = 2020; y <= 2025; y++) yearOptions.push(y.toString());
   const monthOptions = [
