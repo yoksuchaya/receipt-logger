@@ -111,9 +111,10 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
       entries.push({ accountNumber: accBank || accCash || '', debit: amount, credit: 0 });
       entries.push({ accountNumber: accSales || '', debit: 0, credit: amount });
     }
-    // TODO: The correct COGS (ต้นทุนขาย) amount should be calculated using the FIFO method for inventory costing.
-    // This is a placeholder using the sale amount as the cost.
-    // Inventory movement for sale: Credit stock, Debit COGS
+  // TODO: The correct COGS (ต้นทุนขาย) and inventory (1100) amounts should be calculated using the FIFO method for inventory costing.
+  // The current logic uses the sale amount as a placeholder, which is not correct for inventory accounting.
+  // When implementing FIFO, ensure that the amount credited to 1100 matches the actual cost of goods sold, not the sales price.
+  // Inventory movement for sale: Credit stock, Debit COGS
     if (accStock && accCOGS) {
       entries.push({ accountNumber: accCOGS, debit: amount, credit: 0 });
       entries.push({ accountNumber: accStock, debit: 0, credit: amount });
