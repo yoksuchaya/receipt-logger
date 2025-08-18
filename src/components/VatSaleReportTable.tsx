@@ -8,6 +8,7 @@ interface VatSaleReportTableProps {
     sumTotal: number;
 }
 
+
 const VatSaleReportTable: React.FC<VatSaleReportTableProps> = ({ data, sumExVat, sumVat, sumTotal }) => (
     <table className="min-w-full text-xs md:text-sm border border-gray-300 dark:border-neutral-700">
         <thead>
@@ -39,6 +40,8 @@ const VatSaleReportTable: React.FC<VatSaleReportTableProps> = ({ data, sumExVat,
                     <td className="border px-2 py-1">{r.notes}</td>
                 </tr>
             ))}
+        </tbody>
+        <tfoot>
             <tr className="font-bold bg-gray-50 dark:bg-neutral-800">
                 <td className="border px-2 py-1 text-center" colSpan={6}>รวมทั้งสิ้น</td>
                 <td className="border px-2 py-1 text-right">{formatMoney(sumExVat)}</td>
@@ -46,7 +49,7 @@ const VatSaleReportTable: React.FC<VatSaleReportTableProps> = ({ data, sumExVat,
                 <td className="border px-2 py-1 text-right">{formatMoney(sumTotal)}</td>
                 <td className="border px-2 py-1"></td>
             </tr>
-        </tbody>
+        </tfoot>
     </table>
 );
 

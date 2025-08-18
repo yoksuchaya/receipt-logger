@@ -86,7 +86,7 @@ export default function VatReport() {
       <div className="w-full max-w-full">
         <VatBreadcrumb type="sale" onBack={() => setSelected(null)} />
         <h2 className="text-xl font-bold mb-4">รายงานภาษีขาย</h2>
-        <PrintWrapper>
+        <PrintWrapper printLabel="รายงานภาษีขาย" printButtonLabel="พิมพ์รายงานภาษีขาย">
           <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
             <div className="w-full vat-header">
               <VatReportHeader
@@ -96,6 +96,7 @@ export default function VatReport() {
                 yearOptions={yearOptions}
                 onMonthChange={setMonth}
                 onYearChange={setYear}
+                title="รายงานภาษีขาย"
               />
             </div>
             <div className="w-full max-w-full overflow-x-auto vat-table">
@@ -135,7 +136,7 @@ export default function VatReport() {
       <div className="w-full max-w-full">
         <VatBreadcrumb type="purchase" onBack={() => setSelected(null)} />
         <h2 className="text-xl font-bold mb-4">รายงานภาษีซื้อ</h2>
-        <PrintWrapper>
+        <PrintWrapper printLabel="รายงานภาษีซื้อ" printButtonLabel="พิมพ์รายงานภาษีซื้อ">
           <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
             <div className="w-full vat-header">
               <VatReportHeader

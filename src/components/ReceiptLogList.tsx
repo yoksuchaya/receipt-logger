@@ -22,12 +22,15 @@ const ReceiptLogList: React.FC = () => {
   const [editForm, setEditForm] = useState<any>({});
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  // sale/purchase filter: 'all', 'sale', 'purchase'
+  const [typeFilter, setTypeFilter] = useState<'all' | 'sale' | 'purchase'>('all');
 
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
     if (fromDate) params.append('from', fromDate);
     if (toDate) params.append('to', toDate);
+    if (typeFilter !== 'all') params.append('type', typeFilter);
     fetch(`/api/receipt-log${params.toString() ? '?' + params.toString() : ''}`)
       .then((res) => res.json())
       .then((data) => {
@@ -38,10 +41,10 @@ const ReceiptLogList: React.FC = () => {
         setError("Failed to load receipt logs");
         setLoading(false);
       });
-  }, [fromDate, toDate]);
+  }, [fromDate, toDate, typeFilter]);
 
 
-  // Filter logs by from/to date
+  // Only filter logs by from/to date (type is filtered by API)
   const filteredLogs = logs.filter(log => {
     if (!log.date) return true;
     const logDate = new Date(log.date);
@@ -106,8 +109,20 @@ const ReceiptLogList: React.FC = () => {
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ถึงวันที่</label>
           <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="rounded border px-2 py-1 text-sm" />
         </div>
-        {(fromDate || toDate) && (
-          <button onClick={() => { setFromDate(""); setToDate(""); }} className="ml-2 px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 text-xs">ล้างตัวกรอง</button>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ประเภทใบเสร็จ</label>
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value as 'all' | 'sale' | 'purchase')}
+            className="rounded border px-2 py-1 text-sm"
+          >
+            <option value="all">ทั้งหมด</option>
+            <option value="sale">ขาย (ออกใบกำกับ)</option>
+            <option value="purchase">ซื้อ (รับใบกำกับ)</option>
+          </select>
+        </div>
+        {(fromDate || toDate || typeFilter !== 'all') && (
+          <button onClick={() => { setFromDate(""); setToDate(""); setTypeFilter('all'); }} className="ml-2 px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 text-xs">ล้างตัวกรอง</button>
         )}
       </div>
       {filteredLogs.length === 0 ? (
@@ -118,6 +133,7 @@ const ReceiptLogList: React.FC = () => {
             <thead className="bg-gray-100 dark:bg-neutral-800">
               <tr>
                 <th className="px-3 py-2 text-left">วันที่</th>
+                <th className="px-3 py-2 text-left">ประเภท</th>
                 <th className="px-3 py-2 text-left">หมายเลขใบเสร็จ</th>
                 <th className="px-3 py-2 text-left">ยอดรวม</th>
                 <th className="px-3 py-2 text-left">หมายเหตุ</th>
@@ -125,24 +141,30 @@ const ReceiptLogList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.map((log, i) => (
-                <tr key={i} className="border-t border-gray-200 dark:border-neutral-700">
-                  <td className="px-3 py-2">{log.date ? log.date : '-'}</td>
-                  <td className="px-3 py-2">{log.receipt_no ? log.receipt_no : '-'}</td>
-                  <td className="px-3 py-2">{formatMoney(log.grand_total)}</td>
-                  <td className="px-3 py-2">{log.notes ? log.notes : '-'}</td>
-                  <td className="px-3 py-2 flex flex-col sm:flex-row gap-2">
-                    <button className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 w-full sm:w-auto" onClick={() => { setSelected(log); setEdit(false); }}>ดูข้อมูล</button>
-                    <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 w-full sm:w-auto" onClick={() => { setSelected(log); setEdit(true); setEditForm(log); }}>แก้ไข</button>
-                    <button className="px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 w-full sm:w-auto" onClick={async () => {
-                      if (window.confirm('Delete this receipt?')) {
-                        await fetch('/api/receipt-log/delete', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uploadedAt: log.uploadedAt }) });
-                        setLogs(logs.filter(l => l.uploadedAt !== log.uploadedAt));
-                      }
-                    }}>ลบ</button>
-                  </td>
-                </tr>
-              ))}
+              {filteredLogs.map((log, i) => {
+                let typeLabel = '-';
+                if (log.type === 'sale') typeLabel = 'ขาย';
+                else if (log.type === 'purchase') typeLabel = 'ซื้อ';
+                return (
+                  <tr key={i} className="border-t border-gray-200 dark:border-neutral-700">
+                    <td className="px-3 py-2">{log.date ? log.date : '-'}</td>
+                    <td className="px-3 py-2">{typeLabel}</td>
+                    <td className="px-3 py-2">{log.receipt_no ? log.receipt_no : '-'}</td>
+                    <td className="px-3 py-2">{formatMoney(log.grand_total)}</td>
+                    <td className="px-3 py-2">{log.notes ? log.notes : '-'}</td>
+                    <td className="px-3 py-2 flex flex-col sm:flex-row gap-2">
+                      <button className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 w-full sm:w-auto" onClick={() => { setSelected(log); setEdit(false); }}>ดูข้อมูล</button>
+                      <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 w-full sm:w-auto" onClick={() => { setSelected(log); setEdit(true); setEditForm(log); }}>แก้ไข</button>
+                      <button className="px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 w-full sm:w-auto" onClick={async () => {
+                        if (window.confirm('Delete this receipt?')) {
+                          await fetch('/api/receipt-log/delete', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ receipt_no: log.receipt_no }) });
+                          setLogs(logs.filter(l => l.receipt_no !== log.receipt_no));
+                        }
+                      }}>ลบ</button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

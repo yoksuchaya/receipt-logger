@@ -45,9 +45,10 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const from = searchParams.get('from');
-    const to = searchParams.get('to');
+  const { searchParams } = new URL(req.url);
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
+  const type = searchParams.get('type'); // 'sale' | 'purchase'
     const data = await fs.readFile(LOG_FILE, "utf8");
     // Each line is a JSON object
     let receipts = data
@@ -72,7 +73,27 @@ export async function GET(req: NextRequest) {
         return true;
       });
     }
-    return NextResponse.json(receipts);
+    // Sort by date ascending
+    receipts.sort((a: any, b: any) => {
+      if (!a.date) return -1;
+      if (!b.date) return 1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+    // Add type: 'sale' | 'purchase' | undefined
+    let receiptsWithType = receipts.map((r: any) => {
+      let typeValue = undefined;
+      if (r.vendor_tax_id === '0735559006568') {
+        typeValue = 'sale';
+      } else if (r.buyer_tax_id === '0735559006568' && r.vendor_tax_id && r.vendor_tax_id !== '0735559006568') {
+        typeValue = 'purchase';
+      }
+      return { ...r, type: typeValue };
+    });
+    // Filter by type if provided
+    if (type === 'sale' || type === 'purchase') {
+      receiptsWithType = receiptsWithType.filter((r: any) => r.type === type);
+    }
+    return NextResponse.json(receiptsWithType);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to read logs" }, { status: 500 });
   }

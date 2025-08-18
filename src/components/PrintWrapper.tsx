@@ -2,13 +2,19 @@ import React, { useRef } from "react";
 
 interface PrintWrapperProps {
   children: React.ReactNode;
+  printLabel?: string; // For print window/document title
+  printButtonLabel?: string; // For button text
 }
 
 /**
  * Wraps printable content and provides a print button and print logic with custom print CSS.
  * Usage: <PrintWrapper><div>...</div></PrintWrapper>
  */
-const PrintWrapper: React.FC<PrintWrapperProps> = ({ children }) => {
+const PrintWrapper: React.FC<PrintWrapperProps> = ({
+  children,
+  printLabel = "พิมพ์รายงาน",
+  printButtonLabel = "พิมพ์รายงาน",
+}) => {
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -16,7 +22,7 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({ children }) => {
     const printContents = printRef.current.innerHTML;
     const printWindow = window.open('', '', 'height=800,width=1200');
     if (!printWindow) return;
-    printWindow.document.write('<html><head><title>Print</title>');
+  printWindow.document.write(`<html><head><title>${printLabel}</title>`);
     printWindow.document.write(`
       <style>
         @media print {
@@ -49,10 +55,8 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({ children }) => {
             min-width: 220px !important;
             display: inline-block !important;
           }
-          .print-scale .vat-header {
-            margin-bottom: 32px !important;
-          }
           .print-scale .vat-table {
+            margin-top: 32px !important;
             margin-bottom: 40px !important;
           }
           .print-scale .vat-signature {
@@ -61,7 +65,7 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({ children }) => {
         }
         @page {
           size: A4;
-          margin: 0;
+          margin: 10mm;
         }
       </style>
     `);
@@ -81,7 +85,7 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({ children }) => {
           onClick={handlePrint}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium shadow"
         >
-          พิมพ์รายงาน
+          {printButtonLabel}
         </button>
       </div>
       <div ref={printRef} className="print-content">

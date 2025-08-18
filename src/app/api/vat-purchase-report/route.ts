@@ -28,12 +28,18 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await readPurchaseData();
-    // Filter for purchase: vendor_tax_id exists and not the main company
+    // Filter for purchase: main company is the buyer, vendor is not the main company
     const filtered = data.filter(
         (r: any) =>
             r.vendor_tax_id && r.vendor_tax_id !== '0735559006568' &&
+            r.buyer_tax_id === '0735559006568' &&
             r.date && r.date.startsWith(`${year}-${month}`)
     );
-
+    // Sort by date ascending
+    filtered.sort((a: any, b: any) => {
+        if (!a.date) return -1;
+        if (!b.date) return 1;
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
     return NextResponse.json({ purchases: filtered });
 }
