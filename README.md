@@ -4,9 +4,6 @@
 A Next.js app for accountants to take photos of receipts and add receipt details.
 
 
-## Features
-- Take or upload a photo of a receipt
-- Enter receipt details: date, amount, vendor, category, notes
 - Modern, mobile-friendly UI with Tailwind CSS
 
 ## Getting Started
@@ -21,15 +18,26 @@ A Next.js app for accountants to take photos of receipts and add receipt details
    ```
 3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Project Structure
-- `src/app` - Main Next.js app directory
-- `src/components` - React components
 - `src/styles` - Tailwind and global styles
 
-## Customization
 - Update UI and features as needed for your workflow.
+## Development Guidelines
 
----
+- Use **TypeScript** for all code.
+- Ensure all code passes Next.js and TypeScript linting (`npm run lint`).
+- Use modern, accessible, and mobile-friendly UI with Tailwind CSS.
+- Follow best practices for Next.js app structure.
+
+## Linting
+
+Run the following command to check for lint errors:
+
+```bash
+npm run lint
+```
+
+Fix all reported issues before submitting code.
+
 
 This project was bootstrapped with Next.js, TypeScript, and Tailwind CSS.
 

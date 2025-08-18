@@ -11,12 +11,14 @@ export async function PUT(req: NextRequest) {
     const data = await fs.readFile(LOG_FILE, "utf8");
     const lines = data.split("\n").filter(Boolean);
     let found = false;
+    let updatedObj = null;
     const updated = lines.map(line => {
       try {
         const obj = JSON.parse(line);
         if (String(obj.receipt_no).trim() === String(receipt_no).trim()) {
           found = true;
-          return JSON.stringify({ ...obj, ...update });
+          updatedObj = { ...obj, ...update };
+          return JSON.stringify(updatedObj);
         }
         return line;
       } catch {
@@ -27,7 +29,7 @@ export async function PUT(req: NextRequest) {
       console.warn(`No receipt found for receipt_no: '${receipt_no}'`);
     }
     await fs.writeFile(LOG_FILE, updated.join("\n") + "\n", "utf8");
-    return NextResponse.json({ success: true, found });
+    return NextResponse.json({ success: true, found, updated: updatedObj });
   } catch (err: unknown) {
     let message = 'Failed to update receipt';
     if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {

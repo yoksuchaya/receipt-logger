@@ -27,7 +27,7 @@ interface ReceiptEditFormProps {
   editForm: ReceiptEditFormData;
   setEditForm: (form: ReceiptEditFormData) => void;
   onClose?: () => void;
-  onSave?: () => void;
+  onSave?: (form: ReceiptEditFormData) => void;
 }
 
 const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ editForm, setEditForm, onClose, onSave }) => {
@@ -41,7 +41,7 @@ const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ editForm, setEditForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await setEditForm(form);
-    if (onSave) await onSave();
+    if (onSave) await onSave(form);
     if (onClose) onClose();
   };
 

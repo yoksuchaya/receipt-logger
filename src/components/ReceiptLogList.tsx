@@ -84,10 +84,10 @@ const ReceiptLogList: React.FC = () => {
             <ReceiptEditForm
               editForm={editForm}
               setEditForm={setEditForm}
-              onSave={async () => {
-                await fetch('/api/receipt-log/edit', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editForm) });
-                if ('receipt_no' in editForm && typeof editForm.receipt_no === 'string') {
-                  setLogs(logs.map(l => l.receipt_no === editForm.receipt_no ? { ...l, ...(editForm as ReceiptLog) } : l));
+              onSave={async (form) => {
+                await fetch('/api/receipt-log/edit', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+                if ('receipt_no' in form && typeof form.receipt_no === 'string') {
+                  setLogs(logs.map(l => l.receipt_no === form.receipt_no ? { ...l, ...(form as ReceiptLog) } : l));
                 }
                 setSelected(null);
                 setEdit(false);
