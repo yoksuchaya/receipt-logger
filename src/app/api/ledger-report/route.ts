@@ -111,6 +111,8 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
       entries.push({ accountNumber: accBank || accCash || '', debit: amount, credit: 0 });
       entries.push({ accountNumber: accSales || '', debit: 0, credit: amount });
     }
+    // TODO: The correct COGS (ต้นทุนขาย) amount should be calculated using the FIFO method for inventory costing.
+    // This is a placeholder using the sale amount as the cost.
     // Inventory movement for sale: Credit stock, Debit COGS
     if (accStock && accCOGS) {
       entries.push({ accountNumber: accCOGS, debit: amount, credit: 0 });

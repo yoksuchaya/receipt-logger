@@ -110,6 +110,31 @@ function generateJournalEntries(receipts: Receipt[], accounts: Account[]): Journ
         debit: 0,
         credit: vat,
       });
+  // TODO: The correct COGS (5000) amount should be calculated using the FIFO method for inventory costing.
+  // This is a placeholder using net (grand_total - vat) as the cost.
+      const cost = net;
+      if (cost && !isNaN(cost) && cost > 0) {
+        // Debit COGS (5000)
+        const cogs = getAccount("5000");
+        entries.push({
+          date: receipt.date,
+          description,
+          accountNumber: cogs.accountNumber,
+          accountName: cogs.accountName,
+          debit: cost,
+          credit: 0,
+        });
+        // Credit Inventory (1100)
+        const stock = getAccount("1100");
+        entries.push({
+          date: receipt.date,
+          description,
+          accountNumber: stock.accountNumber,
+          accountName: stock.accountName,
+          debit: 0,
+          credit: cost,
+        });
+      }
     }
   });
 
