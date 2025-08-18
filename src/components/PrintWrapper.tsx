@@ -62,6 +62,9 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
           .print-scale .vat-signature {
             margin-top: 40px !important;
           }
+          /* Ensure money columns align right and use monospace font in print */
+          .text-right { text-align: right !important; }
+          .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important; }
         }
         @page {
           size: A4;

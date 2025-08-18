@@ -30,6 +30,13 @@ const menuItems = [
       <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm3 3v12h12V6H6zm3 3h6v6H9V9z"/></svg>
     ),
   },
+  {
+    key: 'account-book',
+    label: 'สมุดบัญชี',
+    icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h8"/></svg>
+    ),
+  },
 ];
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({ open, onSelectMenu, selectedMenu }) => {

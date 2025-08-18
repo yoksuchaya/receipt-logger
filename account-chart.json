@@ -1,0 +1,42 @@
+[
+  {
+    "accountNumber": "1000",
+    "accountName": "เงินสดในร้าน",
+    "note": "เงินสดจากลูกค้า"
+  },
+  {
+    "accountNumber": "1010",
+    "accountName": "เงินฝากธนาคาร",
+    "note": "จ่ายโอนเงินซื้อทอง"
+  },
+  {
+    "accountNumber": "1100",
+    "accountName": "สต๊อกทอง",
+    "note": "ทองซื้อเข้าร้าน"
+  },
+  {
+    "accountNumber": "2000",
+    "accountName": "เจ้าหนี้การค้า",
+    "note": "ร้านทองที่ซื้อสินค้า"
+  },
+  {
+    "accountNumber": "2200",
+    "accountName": "ภาษีขายค้างชำระ (VAT Output)",
+    "note": "VAT ที่เก็บจากขาย"
+  },
+  {
+    "accountNumber": "2210",
+    "accountName": "ภาษีซื้อรอคืน (VAT Input)",
+    "note": "VAT ที่จ่ายในการซื้อสินค้า"
+  },
+  {
+    "accountNumber": "4000",
+    "accountName": "ขายทอง/สินค้า",
+    "note": "รายได้จากการขายทอง"
+  },
+  {
+    "accountNumber": "4010",
+    "accountName": "รายได้ค่าบริการ",
+    "note": "ค่ากำเหน็จ / ค่าบริการ (ถ้ามี)"
+  }
+]

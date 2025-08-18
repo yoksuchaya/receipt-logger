@@ -33,8 +33,27 @@ const ReceiptLogList: React.FC = () => {
   const [selected, setSelected] = useState<ReceiptLog | null>(null);
   const [edit, setEdit] = useState(false);
   const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
-  const [fromDate, setFromDate] = useState<string>("");
-  const [toDate, setToDate] = useState<string>("");
+  // Set initial date range: first day of current month to today (or last day of month if today is not in current month)
+  function formatLocalDate(date: Date) {
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  function getInitialDateRange() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    const todayStr = formatLocalDate(now);
+    const firstStr = formatLocalDate(first);
+    const lastStr = formatLocalDate(last);
+    return { from: firstStr, to: todayStr <= lastStr ? todayStr : lastStr };
+  }
+  const initialRange = getInitialDateRange();
+  const [fromDate, setFromDate] = useState<string>(initialRange.from);
+  const [toDate, setToDate] = useState<string>(initialRange.to);
   // sale/purchase filter: 'all', 'sale', 'purchase'
   const [typeFilter, setTypeFilter] = useState<'all' | 'sale' | 'purchase'>('all');
 
