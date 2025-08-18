@@ -1,3 +1,18 @@
+@media print {
+  .print-ledger-break {
+    display: block !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    -webkit-break-after: page !important;
+    -moz-break-after: page !important;
+  }
+  .print-ledger-break:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+    -webkit-break-after: auto !important;
+    -moz-break-after: auto !important;
+  }
+}
 @import "tailwindcss";
 
 :root {

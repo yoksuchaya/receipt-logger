@@ -2,7 +2,7 @@ import React from "react";
 
 import { useState } from "react";
 import JournalReport from "./JournalReport";
-import LedgerReport from "./LedgerReport";
+import LedgerReportContainer from "./LedgerReportContainer";
 
 const AccountBook: React.FC = () => {
   const [showJournal, setShowJournal] = useState(false);
@@ -13,7 +13,7 @@ const AccountBook: React.FC = () => {
   }
 
   if (showLedger) {
-    return <LedgerReport onBack={() => setShowLedger(false)} />;
+    return <LedgerReportContainer onBack={() => setShowLedger(false)} />;
   }
 
   return (

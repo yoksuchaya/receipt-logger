@@ -55,7 +55,7 @@ export default function Home() {
             {selectedMenu === 'log' && <ReceiptLogger />}
             {selectedMenu === 'receipts' && <ReceiptLogList key={resetList} />}
             {selectedMenu === 'vat-report' && <VatReport key={resetList} />}
-            {selectedMenu === 'account-book' && <AccountBook />}
+            {selectedMenu === 'account-book' && <AccountBook key={resetList} />}
           </div>
         </div>
       </main>

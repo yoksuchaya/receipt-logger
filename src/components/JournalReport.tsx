@@ -50,7 +50,7 @@ const fetchJournalEntries = async (month: string, year: string) => {
   const params = new URLSearchParams();
   if (month) params.append('month', month);
   if (year) params.append('year', year);
-  const url = `/api/ledger-report?${params.toString()}`;
+  const url = `/api/journal-report?${params.toString()}`;
   const res = await fetch(url);
   if (!res.ok) return [];
   return await res.json();

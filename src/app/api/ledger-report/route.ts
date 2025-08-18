@@ -1,167 +1,213 @@
-import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { NextRequest, NextResponse } from 'next/server';
+import path from 'path';
+import fs from 'fs/promises';
 
-// Types
-// (Repeat the types from JournalReport for backend use)
-type Receipt = {
-  date: string;
-  grand_total: string;
-  vat: string;
-  vendor: string;
-  buyer_name: string;
-  category: string;
-  payment_type: "cash" | "transfer";
-  notes: string;
-  [key: string]: any;
-};
-
-type Account = {
+interface Account {
   accountNumber: string;
   accountName: string;
   note: string;
-};
+}
 
-type JournalEntry = {
+interface Receipt {
+  date: string; // YYYY-MM-DD
+  grand_total: string;
+  vat: string;
+  vendor: string;
+  vendor_tax_id: string;
+  category: string;
+  notes: string;
+  payment_type: string;
+  receipt_no: string;
+  buyer_name: string;
+  buyer_address: string;
+  buyer_tax_id: string;
+  item: string;
+  weight_grams?: number;
+  weight_baht?: number;
+  purity: string;
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  uploadedAt: string;
+}
+
+interface LedgerEntry {
   date: string;
   description: string;
-  accountNumber: string;
-  accountName: string;
+  reference: string;
   debit: number;
   credit: number;
-};
+  runningBalance: number;
+}
 
-const RECEIPT_LOG_FILE = path.join(process.cwd(), "receipt-uploads.jsonl");
-const ACCOUNT_CHART_FILE = path.join(process.cwd(), "account-chart.json");
+interface LedgerAccount {
+  accountNumber: string;
+  accountName: string;
+  openingBalance: number;
+  entries: LedgerEntry[];
+}
 
-function generateJournalEntries(receipts: Receipt[], accounts: Account[]): JournalEntry[] {
-  const getAccount = (number: string) =>
-    accounts.find((a) => a.accountNumber === number) || { accountNumber: number, accountName: "Unknown", note: "" };
+const RECEIPT_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
+const ACCOUNT_FILE = path.join(process.cwd(), 'account-chart.json');
 
-  const entries: JournalEntry[] = [];
+function parseMonth(date: string) {
+  return date.slice(0, 7);
+}
 
-  receipts.forEach((receipt) => {
-    const isPurchase = receipt.category.startsWith("ซื้อ");
-    const isSale = receipt.category.startsWith("ขาย");
-    const grandTotal = parseFloat(receipt.grand_total);
-    const vat = parseFloat(receipt.vat);
-    const net = grandTotal - vat;
-    const description = receipt.notes;
+function getAccountMap(accounts: Account[]) {
+  const map: Record<string, Account> = {};
+  for (const acc of accounts) {
+    map[acc.accountNumber] = acc;
+  }
+  return map;
+}
 
-    if (isPurchase) {
-      // Debit สต๊อกทอง (1100) with (grand_total - vat)
-      const stock = getAccount("1100");
-      entries.push({
-        date: receipt.date,
-        description,
-        accountNumber: stock.accountNumber,
-        accountName: stock.accountName,
-        debit: net,
-        credit: 0,
-      });
-      // Debit VAT Input (2210) with vat
-      const vatInput = getAccount("2210");
-      entries.push({
-        date: receipt.date,
-        description,
-        accountNumber: vatInput.accountNumber,
-        accountName: vatInput.accountName,
-        debit: vat,
-        credit: 0,
-      });
-      // Credit เงินสดในร้าน (1000) or เงินฝากธนาคาร (1010)
-      const paymentAcc = getAccount(receipt.payment_type === "cash" ? "1000" : "1010");
-      entries.push({
-        date: receipt.date,
-        description,
-        accountNumber: paymentAcc.accountNumber,
-        accountName: paymentAcc.accountName,
-        debit: 0,
-        credit: grandTotal,
-      });
-    } else if (isSale) {
-      // Debit เงินสดในร้าน (1000) or เงินฝากธนาคาร (1010) with grand_total
-      const paymentAcc = getAccount(receipt.payment_type === "cash" ? "1000" : "1010");
-      entries.push({
-        date: receipt.date,
-        description,
-        accountNumber: paymentAcc.accountNumber,
-        accountName: paymentAcc.accountName,
-        debit: grandTotal,
-        credit: 0,
-      });
-      // Credit ขายทอง/สินค้า (4000) with (grand_total - vat)
-      const sales = getAccount("4000");
-      entries.push({
-        date: receipt.date,
-        description,
-        accountNumber: sales.accountNumber,
-        accountName: sales.accountName,
-        debit: 0,
-        credit: net,
-      });
-      // Credit VAT Output (2200) with vat
-      const vatOutput = getAccount("2200");
-      entries.push({
-        date: receipt.date,
-        description,
-        accountNumber: vatOutput.accountNumber,
-        accountName: vatOutput.accountName,
-        debit: 0,
-        credit: vat,
-      });
+
+// Helper to get account number by name keyword
+function findAccountNumber(accounts: Account[], keyword: string): string | undefined {
+  const acc = accounts.find(a => a.accountName.includes(keyword));
+  return acc?.accountNumber;
+}
+
+// Real logic: determine debit/credit accounts based on receipt type and account chart
+function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
+  const amount = Number(receipt.grand_total);
+  const vatAmount = Number(receipt.vat || 0);
+  const isPurchase = receipt.category.startsWith('ซื้อ');
+  const isSale = receipt.category.startsWith('ขาย');
+
+  // Find relevant accounts
+  const accStock = findAccountNumber(accounts, 'สต๊อกทอง');
+  const accBank = findAccountNumber(accounts, 'เงินฝากธนาคาร');
+  const accCash = findAccountNumber(accounts, 'เงินสดในร้าน');
+  const accSales = findAccountNumber(accounts, 'ขายทอง');
+  const accVatInput = findAccountNumber(accounts, 'VAT Input');
+  const accVatOutput = findAccountNumber(accounts, 'VAT Output');
+  const accCOGS = findAccountNumber(accounts, 'ต้นทุนขาย'); // COGS (Cost of Goods Sold)
+
+  const entries: { accountNumber: string; debit: number; credit: number }[] = [];
+
+  if (isPurchase && accStock && (accBank || accCash)) {
+    // Purchase: Debit stock, Credit bank/cash, VAT input if present
+    entries.push({ accountNumber: accStock, debit: amount, credit: 0 });
+    if (vatAmount > 0 && accVatInput) {
+      entries.push({ accountNumber: accVatInput, debit: vatAmount, credit: 0 });
+      // Credit bank/cash for total (amount + vat)
+      const total = amount + vatAmount;
+      entries.push({ accountNumber: accBank || accCash || '', debit: 0, credit: total });
+    } else {
+      entries.push({ accountNumber: accBank || accCash || '', debit: 0, credit: amount });
     }
-  });
-
+  } else if (isSale && (accBank || accCash) && accSales) {
+    // Sale: Debit cash/bank, Credit sales, VAT output if present
+    if (vatAmount > 0 && accVatOutput) {
+      // Debit cash/bank for total (amount + vat)
+      const total = amount + vatAmount;
+      entries.push({ accountNumber: accBank || accCash || '', debit: total, credit: 0 });
+      entries.push({ accountNumber: accSales || '', debit: 0, credit: amount });
+      entries.push({ accountNumber: accVatOutput || '', debit: 0, credit: vatAmount });
+    } else {
+      entries.push({ accountNumber: accBank || accCash || '', debit: amount, credit: 0 });
+      entries.push({ accountNumber: accSales || '', debit: 0, credit: amount });
+    }
+    // Inventory movement for sale: Credit stock, Debit COGS
+    if (accStock && accCOGS) {
+      entries.push({ accountNumber: accCOGS, debit: amount, credit: 0 });
+      entries.push({ accountNumber: accStock, debit: 0, credit: amount });
+    }
+  }
+  // You can add more logic for other types if needed
   return entries;
 }
 
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const month = searchParams.get('month');
+  const accountNumber = searchParams.get('accountNumber');
+
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+    return NextResponse.json({ error: 'Invalid or missing month' }, { status: 400 });
+  }
+
+  // Read accounts
+  let accounts: Account[] = [];
   try {
-    const { searchParams } = new URL(req.url);
-    const month = searchParams.get('month'); // 1-12
-    const year = searchParams.get('year'); // 4-digit year
+    const accRaw = await fs.readFile(ACCOUNT_FILE, 'utf-8');
+    accounts = JSON.parse(accRaw);
+  } catch (e) {
+    return NextResponse.json({ error: 'Cannot read account chart' }, { status: 500 });
+  }
+  const accountMap = getAccountMap(accounts);
 
-    // Read receipts
-    const data = await fs.readFile(RECEIPT_LOG_FILE, "utf8");
-    let receipts: Receipt[] = data
-      .split("\n")
-      .filter(Boolean)
-      .map(line => {
-        try {
-          return JSON.parse(line);
-        } catch {
-          return null;
-        }
-      })
-      .filter((r): r is Receipt => r !== null);
+  // Read receipts
+  let receipts: Receipt[] = [];
+  try {
+    const lines = (await fs.readFile(RECEIPT_FILE, 'utf-8')).split('\n').filter(Boolean);
+    receipts = lines.map(line => JSON.parse(line));
+  } catch (e) {
+    return NextResponse.json({ error: 'Cannot read receipts' }, { status: 500 });
+  }
 
-    // Filter by month/year if provided
-    if (month && year) {
-      const m = parseInt(month, 10);
-      const y = parseInt(year, 10);
-      receipts = receipts.filter((r) => {
-        if (typeof r.date !== 'string') return false;
-        const d = new Date(r.date);
-        return d.getFullYear() === y && (d.getMonth() + 1) === m;
+  // Build ledger per account
+  const ledger: Record<string, LedgerAccount> = {};
+  for (const acc of accounts) {
+    ledger[acc.accountNumber] = {
+      accountNumber: acc.accountNumber,
+      accountName: acc.accountName,
+      openingBalance: 0,
+      entries: [],
+    };
+  }
+
+  // Calculate opening balances (sum of all transactions before the month)
+  for (const receipt of receipts) {
+    const rMonth = parseMonth(receipt.date);
+    if (rMonth >= month) continue;
+    for (const acc of getAccountsForReceipt(receipt, accounts)) {
+      if (!ledger[acc.accountNumber]) continue;
+      ledger[acc.accountNumber].openingBalance += acc.debit - acc.credit;
+    }
+  }
+
+  // Add transactions for the month
+  for (const receipt of receipts) {
+    const rMonth = parseMonth(receipt.date);
+    if (rMonth !== month) continue;
+    for (const acc of getAccountsForReceipt(receipt, accounts)) {
+      if (!ledger[acc.accountNumber]) continue;
+      ledger[acc.accountNumber].entries.push({
+        date: receipt.date,
+        description: receipt.notes,
+        reference: receipt.receipt_no,
+        debit: acc.debit,
+        credit: acc.credit,
+        runningBalance: 0, // will fill later
       });
     }
-
-    // Read accounts
-    const accountsData = await fs.readFile(ACCOUNT_CHART_FILE, "utf8");
-    const accounts: Account[] = JSON.parse(accountsData);
-
-    // Generate journal entries
-    const journalEntries = generateJournalEntries(receipts, accounts);
-    // Sort by date ascending
-    journalEntries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    return NextResponse.json(journalEntries);
-  } catch (err: unknown) {
-    let message = 'Failed to generate journal report';
-    if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {
-      message = (err as { message?: string }).message as string;
-    }
-    return NextResponse.json({ error: message }, { status: 500 });
   }
+
+  // Compute running balances
+  for (const accNum in ledger) {
+    let bal = ledger[accNum].openingBalance;
+    ledger[accNum].entries.sort((a, b) => a.date.localeCompare(b.date));
+    for (const entry of ledger[accNum].entries) {
+      bal += entry.debit - entry.credit;
+      entry.runningBalance = bal;
+    }
+  }
+
+  // Filter by accountNumber if provided
+  let result: LedgerAccount[] = Object.values(ledger);
+  if (accountNumber) {
+    if (!ledger[accountNumber]) {
+      return NextResponse.json({ error: 'Invalid accountNumber' }, { status: 400 });
+    }
+    result = [ledger[accountNumber]];
+  }
+
+  // Remove accounts with no activity and zero opening balance
+  result = result.filter(acc => acc.openingBalance !== 0 || acc.entries.length > 0);
+
+  return NextResponse.json({ month, ledger: result });
 }
