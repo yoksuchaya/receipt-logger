@@ -5,10 +5,16 @@ import VatBreadcrumb from "./VatBreadcrumb";
 import VatReportHeader from "./VatReportHeader";
 import VatSaleReportTable from "./VatSaleReportTable";
 import VatPurchaseReportTable from "./VatPurchaseReportTable";
+import ReceiptDetail from "./ReceiptDetail";
+import ReceiptEditForm, { type ReceiptEditFormData } from "./ReceiptEditForm";
+import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
 import PrintWrapper from "./PrintWrapper";
 
 export default function VatReport() {
   const [selected, setSelected] = useState<'purchase' | 'sale' | null>(null);
+  const [selectedRow, setSelectedRow] = useState<any | null>(null);
+  const [edit, setEdit] = useState(false);
+  const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
   interface VatSale {
     date: string;
     receipt_no: string;
@@ -103,9 +109,59 @@ export default function VatReport() {
 
 
   if (selected === 'sale') {
+    if (selectedRow) {
+      return (
+        <div className="w-full max-w-full">
+          <VatBreadcrumb
+            type={selected}
+            edit={edit}
+            onBack={() => { setSelectedRow(null); setEdit(false); }}
+            onRoot={() => {
+              setEdit(false);
+              setSelectedRow(null);
+              setEditForm({} as ReceiptEditFormData);
+              setSelected(null);
+            }}
+          />
+          <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
+            {edit ? (
+              <ReceiptEditForm
+                editForm={editForm}
+                setEditForm={setEditForm}
+                onSave={async () => {
+                  setSelectedRow(null);
+                  setEdit(false);
+                }}
+                onClose={() => { setSelectedRow(null); setEdit(false); }}
+              />
+            ) : (
+              <ReceiptDetail
+                selected={selectedRow}
+                onEdit={() => { setEdit(true); setEditForm(selectedRow); }}
+                onDelete={async () => {
+                  if (window.confirm('Delete this receipt?')) {
+                    setSelectedRow(null);
+                    setEdit(false);
+                  }
+                }}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="w-full max-w-full">
-        <VatBreadcrumb type="sale" onBack={() => setSelected(null)} />
+        <VatBreadcrumb
+          type="sale"
+          onBack={() => setSelected(null)}
+          onRoot={() => {
+            setEdit(false);
+            setSelectedRow(null);
+            setEditForm({} as ReceiptEditFormData);
+            setSelected(null);
+          }}
+        />
         <h2 className="text-xl font-bold mb-4">รายงานภาษีขาย</h2>
         <PrintWrapper printLabel="รายงานภาษีขาย" printButtonLabel="พิมพ์รายงานภาษีขาย">
           <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
@@ -131,6 +187,11 @@ export default function VatReport() {
                   sumExVat={sumExVat}
                   sumVat={sumVat}
                   sumTotal={sumTotal}
+                  onRowAction={(row, isEdit) => {
+                    setSelectedRow(row);
+                    setEdit(!!isEdit);
+                    setEditForm(row);
+                  }}
                 />
               )}
             </div>
@@ -145,6 +206,42 @@ export default function VatReport() {
   }
 
   if (selected === 'purchase') {
+    if (selectedRow) {
+      return (
+        <div className="w-full max-w-full">
+          <VatBreadcrumb
+            type={selected}
+            edit={edit}
+            onBack={() => { setSelectedRow(null); setEdit(false); }}
+            onRoot={() => { setSelected(null); setSelectedRow(null); setEdit(false); }}
+          />
+          <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
+            {edit ? (
+              <ReceiptEditForm
+                editForm={editForm}
+                setEditForm={setEditForm}
+                onSave={async () => {
+                  setSelectedRow(null);
+                  setEdit(false);
+                }}
+                onClose={() => { setSelectedRow(null); setEdit(false); }}
+              />
+            ) : (
+              <ReceiptDetail
+                selected={selectedRow}
+                onEdit={() => { setEdit(true); setEditForm(selectedRow); }}
+                onDelete={async () => {
+                  if (window.confirm('Delete this receipt?')) {
+                    setSelectedRow(null);
+                    setEdit(false);
+                  }
+                }}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
   // const company = {
   //   name: "ชื่อบริษัท",
   //   address: "[ที่อยู่บริษัท]",
@@ -155,7 +252,16 @@ export default function VatReport() {
   // const printDate = today.toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" });
     return (
       <div className="w-full max-w-full">
-        <VatBreadcrumb type="purchase" onBack={() => setSelected(null)} />
+        <VatBreadcrumb
+          type="purchase"
+          onBack={() => setSelected(null)}
+          onRoot={() => {
+            setEdit(false);
+            setSelectedRow(null);
+            setEditForm({} as ReceiptEditFormData);
+            setSelected(null);
+          }}
+        />
         <h2 className="text-xl font-bold mb-4">รายงานภาษีซื้อ</h2>
         <PrintWrapper printLabel="รายงานภาษีซื้อ" printButtonLabel="พิมพ์รายงานภาษีซื้อ">
           <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
@@ -183,6 +289,11 @@ export default function VatReport() {
                   sumAmount={sumAmount}
                   sumVat={sumVatPurchase}
                   sumTotal={sumTotalPurchase}
+                  onRowAction={(row, isEdit) => {
+                    setSelectedRow(row);
+                    setEdit(!!isEdit);
+                    setEditForm(row);
+                  }}
                 />
               )}
             </div>
