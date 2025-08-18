@@ -9,8 +9,29 @@ import PrintWrapper from "./PrintWrapper";
 
 export default function VatReport() {
   const [selected, setSelected] = useState<'purchase' | 'sale' | null>(null);
-  const [salesData, setSalesData] = useState<any[]>([]);
-  const [purchaseData, setPurchaseData] = useState<any[]>([]);
+  interface VatSale {
+    date: string;
+    receipt_no: string;
+    buyer_name: string;
+    buyer_tax_id: string;
+    buyer_address: string;
+    grand_total: number;
+    vat: number;
+    notes?: string;
+  }
+  interface VatPurchase {
+    date: string;
+    receipt_no: string;
+    vendor: string;
+    vendor_tax_id: string;
+    description: string;
+    grand_total: number;
+    vat: number;
+    category: string;
+    notes?: string;
+  }
+  const [salesData, setSalesData] = useState<VatSale[]>([]);
+  const [purchaseData, setPurchaseData] = useState<VatPurchase[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [month, setMonth] = useState("06");
@@ -124,14 +145,14 @@ export default function VatReport() {
   }
 
   if (selected === 'purchase') {
-    const company = {
-      name: "ชื่อบริษัท",
-      address: "[ที่อยู่บริษัท]",
-      taxId: "[เลขผู้เสียภาษี]"
-    };
-    const monthLabel = monthOptions.find((m) => m.value === month)?.label || month;
-    const today = new Date();
-    const printDate = today.toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" });
+  // const company = {
+  //   name: "ชื่อบริษัท",
+  //   address: "[ที่อยู่บริษัท]",
+  //   taxId: "[เลขผู้เสียภาษี]"
+  // };
+  // const monthLabel = monthOptions.find((m) => m.value === month)?.label || month;
+  // const today = new Date();
+  // const printDate = today.toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" });
     return (
       <div className="w-full max-w-full">
         <VatBreadcrumb type="purchase" onBack={() => setSelected(null)} />
@@ -146,7 +167,7 @@ export default function VatReport() {
                 yearOptions={yearOptions}
                 onMonthChange={setMonth}
                 onYearChange={setYear}
-                // @ts-ignore
+                //
                 title="รายงานภาษีซื้อ"
               />
             </div>

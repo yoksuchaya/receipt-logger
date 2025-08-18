@@ -3,14 +3,27 @@ import { formatMoney } from "./utils";
 import React, { useEffect, useState } from "react";
 import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
 import ReceiptDetail from "./ReceiptDetail";
-import ReceiptEditForm from "./ReceiptEditForm";
+import ReceiptEditForm, { type ReceiptEditFormData } from "./ReceiptEditForm";
+
 
 interface ReceiptLog {
   fileName: string;
   fileType: string;
   fileSize: number;
   uploadedAt: string;
-  [key: string]: any;
+  receipt_no?: string;
+  date?: string;
+  category?: string;
+  vendor?: string;
+  vendor_tax_id?: string;
+  buyer_name?: string;
+  buyer_address?: string;
+  buyer_tax_id?: string;
+  grand_total?: number | string;
+  vat?: number | string;
+  payment_type?: string;
+  notes?: string;
+  type?: 'sale' | 'purchase' | undefined;
 }
 
 const ReceiptLogList: React.FC = () => {
@@ -19,7 +32,7 @@ const ReceiptLogList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReceiptLog | null>(null);
   const [edit, setEdit] = useState(false);
-  const [editForm, setEditForm] = useState<any>({});
+  const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   // sale/purchase filter: 'all', 'sale', 'purchase'
@@ -37,10 +50,10 @@ const ReceiptLogList: React.FC = () => {
         setLogs(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch((err) => {
-        setError("Failed to load receipt logs");
-        setLoading(false);
-      });
+      .catch(() => {
+          setError("Failed to load receipt logs");
+          setLoading(false);
+        });
   }, [fromDate, toDate, typeFilter]);
 
 
@@ -73,7 +86,9 @@ const ReceiptLogList: React.FC = () => {
               setEditForm={setEditForm}
               onSave={async () => {
                 await fetch('/api/receipt-log/edit', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editForm) });
-                setLogs(logs.map(l => l.uploadedAt === editForm.uploadedAt ? { ...l, ...editForm } : l));
+                if ('receipt_no' in editForm && typeof editForm.receipt_no === 'string') {
+                  setLogs(logs.map(l => l.receipt_no === editForm.receipt_no ? { ...l, ...(editForm as ReceiptLog) } : l));
+                }
                 setSelected(null);
                 setEdit(false);
               }}

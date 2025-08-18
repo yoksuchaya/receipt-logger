@@ -1,19 +1,41 @@
 import React, { useState } from "react";
 import ReceiptPreview from "./ReceiptPreview";
 
+
+export interface ReceiptEditFormData {
+  image_path?: string;
+  fileUrl?: string;
+  image_type?: string;
+  fileType?: string;
+  image_name?: string;
+  fileName?: string;
+  receipt_no?: string;
+  date?: string;
+  category?: string;
+  vendor?: string;
+  vendor_tax_id?: string;
+  buyer_name?: string;
+  buyer_address?: string;
+  buyer_tax_id?: string;
+  grand_total?: number | string;
+  vat?: number | string;
+  payment_type?: string;
+  notes?: string;
+}
+
 interface ReceiptEditFormProps {
-  editForm: any;
-  setEditForm: (form: any) => void;
+  editForm: ReceiptEditFormData;
+  setEditForm: (form: ReceiptEditFormData) => void;
   onClose?: () => void;
   onSave?: () => void;
 }
 
 const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ editForm, setEditForm, onClose, onSave }) => {
-  const [form, setForm] = useState(editForm);
+  const [form, setForm] = useState<ReceiptEditFormData>(editForm);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prev: any) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,7 +50,7 @@ const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ editForm, setEditForm
       {(form.image_path || form.fileUrl || editForm.image_path || editForm.fileUrl) && (
         <div className="mb-4 flex justify-center">
           <ReceiptPreview
-            fileUrl={form.image_path || form.fileUrl || editForm.image_path || editForm.fileUrl}
+            fileUrl={form.image_path || form.fileUrl || editForm.image_path || editForm.fileUrl || ''}
             fileType={form.image_type || form.fileType || editForm.image_type || editForm.fileType || 'image/png'}
             fileName={form.image_name || form.fileName || editForm.image_name || editForm.fileName || ''}
             className="mt-2 mb-6"

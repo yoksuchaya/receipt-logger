@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { formatMoney } from "./utils";
 import ReceiptDetail from "./ReceiptDetail";
-import ReceiptEditForm from "./ReceiptEditForm";
+import ReceiptEditForm, { type ReceiptEditFormData } from "./ReceiptEditForm";
 
 interface Purchase {
     date: string;
@@ -27,9 +27,9 @@ const td = "border border-gray-300 px-2 py-1 text-sm";
 const tdRight = td + " text-right";
 
 export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTotal }: Props) {
-    const [selected, setSelected] = useState<any | null>(null);
+    const [selected, setSelected] = useState<Purchase | null>(null);
     const [edit, setEdit] = useState(false);
-    const [editForm, setEditForm] = useState<any>({});
+    const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
 
     if (selected) {
         return (

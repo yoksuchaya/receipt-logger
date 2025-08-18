@@ -28,7 +28,11 @@ export async function PUT(req: NextRequest) {
     }
     await fs.writeFile(LOG_FILE, updated.join("\n") + "\n", "utf8");
     return NextResponse.json({ success: true, found });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to update receipt" }, { status: 500 });
+  } catch (err: unknown) {
+    let message = 'Failed to update receipt';
+    if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {
+      message = (err as { message?: string }).message as string;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -30,15 +30,15 @@ export async function GET(req: NextRequest) {
     const data = await readPurchaseData();
     // Filter for purchase: main company is the buyer, vendor is not the main company
     const filtered = data.filter(
-        (r: any) =>
-            r.vendor_tax_id && r.vendor_tax_id !== '0735559006568' &&
+        (r: Record<string, unknown>) =>
+            typeof r.vendor_tax_id === 'string' && r.vendor_tax_id !== '0735559006568' &&
             r.buyer_tax_id === '0735559006568' &&
-            r.date && r.date.startsWith(`${year}-${month}`)
+            typeof r.date === 'string' && r.date.startsWith(`${year}-${month}`)
     );
     // Sort by date ascending
-    filtered.sort((a: any, b: any) => {
-        if (!a.date) return -1;
-        if (!b.date) return 1;
+    filtered.sort((a, b) => {
+        if (typeof a.date !== 'string') return -1;
+        if (typeof b.date !== 'string') return 1;
         return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
     return NextResponse.json({ purchases: filtered });

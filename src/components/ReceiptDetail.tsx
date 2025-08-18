@@ -2,19 +2,44 @@ import React, { useState } from "react";
 import { formatMoney } from "./utils";
 import ReceiptPreview from "./ReceiptPreview";
 
+
+interface ReceiptDetailData {
+  fileUrl?: string;
+  fileType?: string;
+  fileName?: string;
+  receipt_no?: string;
+  date?: string;
+  category?: string;
+  vendor?: string;
+  vendor_tax_id?: string;
+  buyer_name?: string;
+  buyer_address?: string;
+  buyer_tax_id?: string;
+  grand_total?: number | string;
+  vat?: number | string;
+  payment_type?: string;
+  notes?: string;
+  uploadedAt?: string;
+}
+
 interface ReceiptDetailProps {
-  selected: any;
+  selected: ReceiptDetailData;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
 
 const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelete }) => {
-  const [showZoom, setShowZoom] = useState(false);
+  // const [showZoom, setShowZoom] = useState(false);
   return (
     <div className="max-w-xl mx-auto bg-white dark:bg-neutral-900 rounded-xl shadow-lg p-6 md:p-8 text-base border border-gray-100 dark:border-neutral-800">
       {/* File Preview */}
-      <ReceiptPreview fileUrl={selected.fileUrl} fileType={selected.fileType} fileName={selected.fileName} className="mt-2 mb-6" />
+      <ReceiptPreview
+        fileUrl={selected.fileUrl ?? ''}
+        fileType={selected.fileType ?? ''}
+        fileName={selected.fileName ?? ''}
+        className="mt-2 mb-6"
+      />
 
       {/* Receipt Details */}
       <div className="mb-4">
@@ -75,7 +100,9 @@ const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelet
           </div>
         </div>
       </div>
-  <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-right">อัปโหลดเมื่อ: {new Date(selected.uploadedAt).toLocaleString()}</div>
+  <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-right">
+    อัปโหลดเมื่อ: {selected.uploadedAt ? new Date(selected.uploadedAt).toLocaleString() : "-"}
+  </div>
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-2 mt-6">

@@ -9,7 +9,7 @@ const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 export async function POST(req: NextRequest) {
   try {
     const contentType = req.headers.get("content-type") || "";
-    let log: any = {};
+  let log: Record<string, unknown> = {};
     let fileUrl = null;
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
@@ -38,8 +38,12 @@ export async function POST(req: NextRequest) {
     log.uploadedAt = new Date().toISOString();
     await fs.appendFile(LOG_FILE, JSON.stringify(log) + "\n", "utf8");
     return NextResponse.json({ success: true, fileUrl });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to log receipt upload" }, { status: 500 });
+  } catch (err: unknown) {
+    let message = 'Failed to log receipt upload';
+    if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {
+      message = (err as { message?: string }).message as string;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -56,17 +60,17 @@ export async function GET(req: NextRequest) {
       .filter(Boolean)
       .map(line => {
         try {
-          return JSON.parse(line);
+          return JSON.parse(line) as Record<string, unknown>;
         } catch {
           return null;
         }
       })
-      .filter(Boolean);
+      .filter((r): r is Record<string, unknown> => r !== null);
 
     // Filter by date if from/to provided
     if (from || to) {
-      receipts = receipts.filter((r: any) => {
-        if (!r.date) return false;
+      receipts = receipts.filter((r) => {
+        if (typeof r.date !== 'string') return false;
         const d = new Date(r.date);
         if (from && d < new Date(from)) return false;
         if (to && d > new Date(to)) return false;
@@ -74,14 +78,14 @@ export async function GET(req: NextRequest) {
       });
     }
     // Sort by date ascending
-    receipts.sort((a: any, b: any) => {
-      if (!a.date) return -1;
-      if (!b.date) return 1;
+    receipts.sort((a, b) => {
+      if (typeof a.date !== 'string') return -1;
+      if (typeof b.date !== 'string') return 1;
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
     // Add type: 'sale' | 'purchase' | undefined
-    let receiptsWithType = receipts.map((r: any) => {
-      let typeValue = undefined;
+    let receiptsWithType = receipts.map((r) => {
+      let typeValue: 'sale' | 'purchase' | undefined = undefined;
       if (r.vendor_tax_id === '0735559006568') {
         typeValue = 'sale';
       } else if (r.buyer_tax_id === '0735559006568' && r.vendor_tax_id && r.vendor_tax_id !== '0735559006568') {
@@ -91,10 +95,14 @@ export async function GET(req: NextRequest) {
     });
     // Filter by type if provided
     if (type === 'sale' || type === 'purchase') {
-      receiptsWithType = receiptsWithType.filter((r: any) => r.type === type);
+      receiptsWithType = receiptsWithType.filter((r) => r.type === type);
     }
     return NextResponse.json(receiptsWithType);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to read logs" }, { status: 500 });
+  } catch (err: unknown) {
+    let message = 'Failed to read logs';
+    if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {
+      message = (err as { message?: string }).message as string;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

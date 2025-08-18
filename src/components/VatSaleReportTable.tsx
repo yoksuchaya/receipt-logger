@@ -1,11 +1,23 @@
 import React from "react";
 import { formatMoney } from "./utils";
 
+
+interface VatSale {
+    date: string;
+    receipt_no: string;
+    buyer_name: string;
+    buyer_tax_id: string;
+    buyer_address: string;
+    grand_total: number;
+    vat: number;
+    notes?: string;
+}
+
 interface VatSaleReportTableProps {
-    data: any[];
-    sumExVat: number;
-    sumVat: number;
-    sumTotal: number;
+        data: VatSale[];
+        sumExVat: number;
+        sumVat: number;
+        sumTotal: number;
 }
 
 

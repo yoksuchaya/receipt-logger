@@ -5,7 +5,7 @@ const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY!;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY!;
 
 // Simple in-memory cache for base64 image to result
-const ocrCache = new Map<string, any>();
+const ocrCache = new Map<string, unknown>();
 
 export async function POST(req: NextRequest) {
   // Accept multipart/form-data or base64 JSON
@@ -66,17 +66,20 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify(mistralPayload)
   });
   if (!mistralRes.ok) {
-    let errorText = await mistralRes.text();
-    return NextResponse.json({ error: "Mistral OCR failed", details: errorText }, { status: 500 });
+  const errorText = await mistralRes.text();
+  return NextResponse.json({ error: "Mistral OCR failed", details: errorText }, { status: 500 });
   }
-  let mistralData;
+  let mistralData: unknown;
   try {
     mistralData = await mistralRes.json();
-    console.log('Mistral OCR response:', JSON.stringify(mistralData, null, 2));
-  } catch (e) {
+    // console.log('Mistral OCR response:', JSON.stringify(mistralData, null, 2));
+  } catch {
     return NextResponse.json({ error: "Mistral OCR did not return valid JSON" }, { status: 500 });
   }
-  const markdown = mistralData.pages?.[0]?.markdown;
+  // Type guard for mistralData
+  const markdown = (typeof mistralData === 'object' && mistralData !== null && 'pages' in mistralData && Array.isArray((mistralData as { pages: unknown[] }).pages))
+    ? ((mistralData as { pages: Array<{ markdown?: string }> }).pages?.[0]?.markdown)
+    : undefined;
   if (!markdown) return NextResponse.json({ error: "No markdown from OCR" }, { status: 500 });
 
   // 2. Call OpenRouter for JSON extraction
@@ -180,10 +183,10 @@ For the 'receipt_no' field, do your best to extract the receipt or invoice numbe
   }
   const openRouterData = await openRouterRes.json();
   // The result is in openRouterData.choices[0].message.content (as JSON string)
-  let result;
+  let result: unknown;
   try {
     result = JSON.parse(openRouterData.choices[0].message.content);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Invalid JSON from OpenRouter" }, { status: 500 });
   }
   // Store in cache
