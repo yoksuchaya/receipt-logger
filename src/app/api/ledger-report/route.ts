@@ -113,13 +113,12 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
       entries.push({ accountNumber: accBank || accCash || '', debit: amount, credit: 0 });
       entries.push({ accountNumber: accSales || '', debit: 0, credit: amount });
     }
-  // TODO: The correct COGS (ต้นทุนขาย) and inventory (1100) amounts should be calculated using the FIFO method for inventory costing.
-  // The current logic uses the sale amount as a placeholder, which is not correct for inventory accounting.
-  // When implementing FIFO, ensure that the amount credited to 1100 matches the actual cost of goods sold, not the sales price.
-  // Inventory movement for sale: Credit stock, Debit COGS
+    // Weighted average COGS and inventory (1100) using stock-movement API
+    // This is async, so we will patch the main GET to inject the correct COGS per receipt
+    // For now, push a placeholder, will be replaced in GET
     if (accStock && accCOGS) {
-      entries.push({ accountNumber: accCOGS, debit: amount, credit: 0 });
-      entries.push({ accountNumber: accStock, debit: 0, credit: amount });
+      entries.push({ accountNumber: accCOGS, debit: -1, credit: 0 }); // -1 means to be filled in GET
+      entries.push({ accountNumber: accStock, debit: 0, credit: -1 });
     }
   }
   // You can add more logic for other types if needed
@@ -128,11 +127,23 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const month = searchParams.get('month');
+  const monthParam = searchParams.get('month');
   const accountNumber = searchParams.get('accountNumber');
 
-  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
-    return NextResponse.json({ error: 'Invalid or missing month' }, { status: 400 });
+    if (!monthParam || !/^\d{4}-\d{2}$/.test(monthParam)) {
+      return NextResponse.json({ error: 'Invalid or missing month' }, { status: 400 });
+  }
+
+  // Fetch stock-movement for the month for COGS calculation
+  let stockMovements: any[] = [];
+  let y = 0, m = 0;
+  [y, m] = monthParam.split('-').map(Number);
+  if (y && m) {
+    const stockMovementUrl = `${req.nextUrl.origin}/api/stock-movement?month=${m}&year=${y}`;
+    const res = await fetch(stockMovementUrl);
+    if (res.ok) {
+      stockMovements = await res.json();
+    }
   }
 
   // Read accounts
@@ -167,9 +178,31 @@ export async function GET(req: NextRequest) {
 
   // Calculate opening balances (sum of all transactions before the month)
   for (const receipt of receipts) {
-    const rMonth = parseMonth(receipt.date);
-    if (rMonth >= month) continue;
-    for (const acc of getAccountsForReceipt(receipt, accounts)) {
+  const rMonth = parseMonth(receipt.date);
+  if (rMonth >= monthParam) continue;
+    // Patch: inject weighted avg COGS for sales
+    let accs = getAccountsForReceipt(receipt, accounts);
+    if (isSale(receipt) && receipt.receipt_no && stockMovements.length > 0) {
+      const outs = stockMovements.filter((m: any) => m.type === 'out' && m.desc && m.desc.includes('เอกสารเลขที่'))
+        .filter((m: any) => {
+          const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
+          return match && match[1] === receipt.receipt_no;
+        });
+      const cogs = outs.reduce((sum: number, m: any) => {
+        const qty = parseFloat(m.qty);
+        const avgCost = parseFloat(m.balanceAvgCost);
+        if (!isNaN(qty) && !isNaN(avgCost)) {
+          return sum + qty * avgCost;
+        }
+        return sum;
+      }, 0);
+      accs = accs.map(acc => {
+        if (acc.debit === -1) return { ...acc, debit: cogs };
+        if (acc.credit === -1) return { ...acc, credit: cogs };
+        return acc;
+      });
+    }
+    for (const acc of accs) {
       if (!ledger[acc.accountNumber]) continue;
       ledger[acc.accountNumber].openingBalance += acc.debit - acc.credit;
     }
@@ -177,13 +210,35 @@ export async function GET(req: NextRequest) {
 
   // Add transactions for the month
   for (const receipt of receipts) {
-    const rMonth = parseMonth(receipt.date);
-    if (rMonth !== month) continue;
-    for (const acc of getAccountsForReceipt(receipt, accounts)) {
+  const rMonth = parseMonth(receipt.date);
+  if (rMonth !== monthParam) continue;
+    // Patch: inject weighted avg COGS for sales
+    let accs2 = getAccountsForReceipt(receipt, accounts);
+    if (isSale(receipt) && receipt.receipt_no && stockMovements.length > 0) {
+      const outs = stockMovements.filter((m: any) => m.type === 'out' && m.desc && m.desc.includes('เอกสารเลขที่'))
+        .filter((m: any) => {
+          const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
+          return match && match[1] === receipt.receipt_no;
+        });
+      const cogs = outs.reduce((sum: number, m: any) => {
+        const qty = parseFloat(m.qty);
+        const avgCost = parseFloat(m.balanceAvgCost);
+        if (!isNaN(qty) && !isNaN(avgCost)) {
+          return sum + qty * avgCost;
+        }
+        return sum;
+      }, 0);
+      accs2 = accs2.map(acc => {
+        if (acc.debit === -1) return { ...acc, debit: cogs };
+        if (acc.credit === -1) return { ...acc, credit: cogs };
+        return acc;
+      });
+    }
+    for (const acc of accs2) {
       if (!ledger[acc.accountNumber]) continue;
       ledger[acc.accountNumber].entries.push({
         date: receipt.date,
-        description: receipt.notes,
+        description: acc.accountNumber === "5000" || acc.accountNumber === "1100" ? "ต้นทุนทองที่ขาย" : receipt.notes,
         reference: receipt.receipt_no,
         debit: acc.debit,
         credit: acc.credit,
@@ -214,5 +269,5 @@ export async function GET(req: NextRequest) {
   // Remove accounts with no activity and zero opening balance
   result = result.filter(acc => acc.openingBalance !== 0 || acc.entries.length > 0);
 
-  return NextResponse.json({ month, ledger: result });
+  return NextResponse.json({ month: monthParam, ledger: result });
 }
