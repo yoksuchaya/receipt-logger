@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import { isPurchase, isSale } from "@/components/utils";
 
 // Types
 // (Repeat the types from JournalReport for backend use)
@@ -13,6 +14,8 @@ type Receipt = {
   category: string;
   payment_type: "cash" | "transfer";
   notes: string;
+  vendor_tax_id?: string;
+  buyer_tax_id?: string;
   [key: string]: any;
 };
 
@@ -41,14 +44,15 @@ function generateJournalEntries(receipts: Receipt[], accounts: Account[]): Journ
   const entries: JournalEntry[] = [];
 
   receipts.forEach((receipt) => {
-    const isPurchase = receipt.category.startsWith("ซื้อ");
-    const isSale = receipt.category.startsWith("ขาย");
+  // Use the same logic as receipt-log API for purchase/sale
+  const sale = isSale(receipt);
+  const purchase = isPurchase(receipt);
     const grandTotal = parseFloat(receipt.grand_total);
     const vat = parseFloat(receipt.vat);
     const net = grandTotal - vat;
     const description = receipt.notes;
 
-    if (isPurchase) {
+  if (purchase) {
       // Debit สต๊อกทอง (1100) with (grand_total - vat)
       const stock = getAccount("1100");
       entries.push({
@@ -79,7 +83,7 @@ function generateJournalEntries(receipts: Receipt[], accounts: Account[]): Journ
         debit: 0,
         credit: grandTotal,
       });
-    } else if (isSale) {
+  } else if (sale) {
       // Debit เงินสดในร้าน (1000) or เงินฝากธนาคาร (1010) with grand_total
       const paymentAcc = getAccount(receipt.payment_type === "cash" ? "1000" : "1010");
       entries.push({

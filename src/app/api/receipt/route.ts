@@ -18,10 +18,6 @@ export async function POST(req: NextRequest) {
     if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     const arrayBuffer = await file.arrayBuffer();
     base64 = Buffer.from(arrayBuffer).toString("base64");
-    // Log base64 string (truncate for safety)
-    if (base64) {
-      console.log('Base64: ', base64);
-    }
     isPdf = file.type === "application/pdf";
   } else {
     // Accept JSON: { base64: "...", fileType?: string }
@@ -82,6 +78,8 @@ export async function POST(req: NextRequest) {
     : undefined;
   if (!markdown) return NextResponse.json({ error: "No markdown from OCR" }, { status: 500 });
 
+  console.log('Mistral OCR markdown:', markdown);
+  
   // 2. Call OpenRouter for JSON extraction
   const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -102,7 +100,12 @@ If the date is in the Thai Buddhist Era (พ.ศ.), convert it to the Gregorian 
 
 For the 'category' field, infer the most likely category of the purchase or expense based on the product names, vendor, or keywords found in the receipt. Return the category in Thai language, using categories commonly used for ledgers, such as: "อาหาร", "ค่าเดินทาง", "ค่าที่พัก", "ค่าสำนักงาน", "ค่าสินค้า", "ค่าบริการ", "ค่าน้ำมัน", "ค่ารักษาพยาบาล", "ค่าซ่อมแซม", "ค่าภาษี", "อื่นๆ". If you cannot determine a clear category, return "อื่นๆ" instead of an empty string.
 
-For the 'receipt_no' field, do your best to extract the receipt or invoice number from the receipt image. Look for numbers or codes near common keywords such as "เลขที่", "No.", "Receipt No.", "ใบเสร็จ", "INVOICE", "BILL", "เลขที่ใบกำกับภาษี", "Tax Invoice No.", or similar, in both Thai and English. If multiple candidates are found, choose the one closest to these keywords or most likely to be the official receipt number. If you cannot find a clearly labeled receipt number, extract any unique number string that could plausibly be the receipt or invoice number. Do not return a completely empty string unless there is truly no candidate.`
+For the 'receipt_no' field, do your best to extract the receipt or invoice number from the receipt image. Look for numbers or codes near common keywords such as "เลขที่", "No.", "Receipt No.", "ใบเสร็จ", "INVOICE", "BILL", "เลขที่ใบกำกับภาษี", "Tax Invoice No.", or similar, in both Thai and English. If multiple candidates are found, choose the one closest to these keywords or most likely to be the official receipt number. If you cannot find a clearly labeled receipt number, extract any unique number string that could plausibly be the receipt or invoice number. Do not return a completely empty string unless there is truly no candidate.
+
+For the 'payment' field, always include all three keys: 'cash', 'credit_card', and 'transfer'. If a payment type is not present on the receipt, set its value to 0.
+
+If the receipt is a purchase receipt from "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)", always set the 'buyer_name' to "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)" and the 'vendor' to the seller's name as found in the receipt (for example, "ปริญญา ภูมิเชียน"). If the markdown is ambiguous, use these values for buyer and vendor as the default for this company.
+`
         },
         {
           role: "user",
@@ -118,8 +121,8 @@ For the 'receipt_no' field, do your best to extract the receipt or invoice numbe
               date: { description: "Date of the receipt image", type: "string", format: "date" },
               grand_total: { description: "Grand total of the receipt image", type: "number" },
               vat: { description: "Vat of the receipt image", type: "number" },
-              vendor: { description: "Vendor or shop name from the receipt", type: "string" },
-              vendor_tax_id: { description: "Tax payer ID of the vendor/shop from the receipt image", type: "string" },
+              vendor: { description: "Vendor or shop name or seller from the receipt", type: "string" },
+              vendor_tax_id: { description: "Tax payer ID of the vendor/shop or seller from the receipt image", type: "string" },
               buyer_name: { description: "Name of the buyer from the receipt image", type: "string" },
               buyer_address: { description: "Address of the buyer from the receipt image", type: "string" },
               buyer_tax_id: { description: "Tax payer ID of the buyer from the receipt image", type: "string" },
@@ -143,11 +146,13 @@ For the 'receipt_no' field, do your best to extract the receipt or invoice numbe
               },
               payment: {
                 type: "object",
+                description: "Object with all payment types and their amounts. Keys are 'cash', 'credit_card', 'transfer'. If a type is not present, set its value to 0.",
                 properties: {
                   cash: { title: "เงินสด", type: "number" },
+                  credit_card: { title: "บัตรเครดิต", type: "number" },
                   transfer: { title: "เงินโอน", type: "number" }
                 },
-                required: ["cash", "transfer"],
+                required: ["cash", "credit_card", "transfer"],
                 additionalProperties: false
               },
               notes: { description: "A short description for ledger (in Thai)", type: "string" },

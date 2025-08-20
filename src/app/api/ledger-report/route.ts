@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
+import { isPurchase, isSale } from '@/components/utils';
 
 interface Account {
   accountNumber: string;
@@ -74,8 +75,9 @@ function findAccountNumber(accounts: Account[], keyword: string): string | undef
 function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
   const amount = Number(receipt.grand_total);
   const vatAmount = Number(receipt.vat || 0);
-  const isPurchase = receipt.category.startsWith('ซื้อ');
-  const isSale = receipt.category.startsWith('ขาย');
+  // Use the same logic as receipt-log API for purchase/sale
+  const sale = isSale(receipt);
+  const purchase = isPurchase(receipt);
 
   // Find relevant accounts
   const accStock = findAccountNumber(accounts, 'สต๊อกทอง');
@@ -88,7 +90,7 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
 
   const entries: { accountNumber: string; debit: number; credit: number }[] = [];
 
-  if (isPurchase && accStock && (accBank || accCash)) {
+  if (purchase && accStock && (accBank || accCash)) {
     // Purchase: Debit stock, Credit bank/cash, VAT input if present
     entries.push({ accountNumber: accStock, debit: amount, credit: 0 });
     if (vatAmount > 0 && accVatInput) {
@@ -99,7 +101,7 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
     } else {
       entries.push({ accountNumber: accBank || accCash || '', debit: 0, credit: amount });
     }
-  } else if (isSale && (accBank || accCash) && accSales) {
+  } else if (sale && (accBank || accCash) && accSales) {
     // Sale: Debit cash/bank, Credit sales, VAT output if present
     if (vatAmount > 0 && accVatOutput) {
       // Debit cash/bank for total (amount + vat)

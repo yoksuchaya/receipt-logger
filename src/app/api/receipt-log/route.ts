@@ -15,7 +15,17 @@ export async function POST(req: NextRequest) {
       const formData = await req.formData();
       // Metadata fields
       for (const [key, value] of formData.entries()) {
-        if (key !== "file") log[key] = value;
+        if (key !== "file") {
+          if ((key === "products" || key === "payment") && typeof value === "string") {
+            try {
+              log[key] = JSON.parse(value);
+            } catch {
+              log[key] = value;
+            }
+          } else {
+            log[key] = value;
+          }
+        }
       }
       // File
       const file = formData.get("file");

@@ -2,6 +2,14 @@ import React, { useState } from "react";
 import ReceiptPreview from "./ReceiptPreview";
 
 
+export interface Product {
+  name: string;
+  weight: string;
+  quantity: string;
+  pricePerItem: string;
+  price: string;
+}
+
 export interface ReceiptEditFormData {
   image_path?: string;
   fileUrl?: string;
@@ -21,6 +29,7 @@ export interface ReceiptEditFormData {
   vat?: number | string;
   payment_type?: string;
   notes?: string;
+  products?: Product[];
 }
 
 interface ReceiptEditFormProps {
@@ -32,6 +41,33 @@ interface ReceiptEditFormProps {
 
 const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ editForm, setEditForm, onClose, onSave }) => {
   const [form, setForm] = useState<ReceiptEditFormData>(editForm);
+
+  // Product handlers
+  const handleProductChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => {
+      const products = prev.products ? [...prev.products] : [];
+      products[idx] = { ...products[idx], [name]: value };
+      return { ...prev, products };
+    });
+  };
+
+  const handleAddProduct = () => {
+    setForm((prev) => ({
+      ...prev,
+      products: [
+        ...(prev.products || []),
+        { name: "", weight: "", quantity: "1", pricePerItem: "", price: "" },
+      ],
+    }));
+  };
+
+  const handleRemoveProduct = (idx: number) => {
+    setForm((prev) => ({
+      ...prev,
+      products: (prev.products || []).filter((_, i) => i !== idx),
+    }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -185,7 +221,114 @@ const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ editForm, setEditForm
           />
         </div>
       </div>
-      <div className="flex justify-end gap-2">
+      {/* Products Section */}
+      <div className="w-full bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-4 mt-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <span className="font-semibold text-gray-800 dark:text-gray-100 text-base">รายการสินค้า/บริการ</span>
+          <button
+            type="button"
+            onClick={handleAddProduct}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium text-sm hover:bg-green-100 border border-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 dark:border-green-800 transition"
+          >
+            <span className="text-lg leading-none">＋</span> เพิ่มสินค้า
+          </button>
+        </div>
+        {(!form.products || form.products.length === 0) ? (
+          <div className="text-center text-gray-400 py-4 text-sm">ไม่มีสินค้า</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700 text-sm">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-neutral-800">
+                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ชื่อสินค้า</th>
+                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">น้ำหนัก</th>
+                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">จำนวน</th>
+                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ราคาต่อหน่วย</th>
+                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ราคารวม</th>
+                  <th className="px-3 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {form.products && form.products.map((product, idx) => (
+                  <tr key={idx} className={idx % 2 === 0 ? "bg-white dark:bg-neutral-900" : "bg-gray-50 dark:bg-neutral-800"}>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        name="name"
+                        value={product.name}
+                        onChange={e => handleProductChange(idx, e)}
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="ชื่อสินค้า"
+                        required
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        name="weight"
+                        value={product.weight}
+                        onChange={e => handleProductChange(idx, e)}
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="น้ำหนัก"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        name="quantity"
+                        value={product.quantity}
+                        onChange={e => handleProductChange(idx, e)}
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        min="1"
+                        step="1"
+                        inputMode="numeric"
+                        placeholder="จำนวน"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        name="pricePerItem"
+                        value={product.pricePerItem}
+                        onChange={e => handleProductChange(idx, e)}
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        min="0"
+                        step="any"
+                        inputMode="decimal"
+                        placeholder="ราคาต่อหน่วย"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        name="price"
+                        value={product.price}
+                        onChange={e => handleProductChange(idx, e)}
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        min="0"
+                        step="any"
+                        inputMode="decimal"
+                        placeholder="ราคารวม"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveProduct(idx)}
+                        className="px-2 py-1 rounded bg-red-50 text-red-600 font-medium text-xs hover:bg-red-100 border border-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 dark:border-red-800 transition"
+                        aria-label="ลบสินค้า"
+                      >
+                        ลบ
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <div className="flex justify-end gap-2 mt-6">
         <button
           type="submit"
           className="rounded-md bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-sm font-medium shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

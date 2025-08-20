@@ -5,13 +5,14 @@ import ReceiptLogger from "@/components/ReceiptLogger";
 import ReceiptLogList from "@/components/ReceiptLogList";
 import VatReport from "@/components/VatReport";
 import AccountBook from "@/components/AccountBook";
+import StockMovementReport from "@/components/StockMovementReport";
 import { useState } from "react";
 import HamburgerButton from "@/components/HamburgerButton";
 import SidebarMenu from "@/components/SidebarMenu";
 import MenuOverlay from "@/components/MenuOverlay";
 
 
-type MenuKey = 'log' | 'receipts' | 'vat-report' | 'account-book';
+type MenuKey = 'log' | 'receipts' | 'vat-report' | 'account-book' | 'stock-movement';
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -49,6 +50,7 @@ export default function Home() {
               {selectedMenu === 'receipts' && 'รายการใบเสร็จที่อัพโหลด'}
               {selectedMenu === 'vat-report' && 'รายงานภาษีมูลค่าเพิ่ม'}
               {selectedMenu === 'account-book' && 'สมุดบัญชี'}
+              {selectedMenu === 'stock-movement' && 'ความเคลื่อนไหวสต๊อก'}
             </h2>
           </div>
           <div className="flex-1 w-full flex flex-col items-center justify-start px-4 pb-8 overflow-auto">
@@ -56,6 +58,7 @@ export default function Home() {
             {selectedMenu === 'receipts' && <ReceiptLogList key={resetList} />}
             {selectedMenu === 'vat-report' && <VatReport key={resetList} />}
             {selectedMenu === 'account-book' && <AccountBook key={resetList} />}
+            {selectedMenu === 'stock-movement' && <StockMovementReport />}
           </div>
         </div>
       </main>

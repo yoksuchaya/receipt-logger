@@ -4,6 +4,20 @@ import React, { useRef, useState } from "react";
 import ReceiptPreview from "./ReceiptPreview";
 import { formatMoney } from "./utils";
 
+type PaymentMap = {
+  cash?: string;
+  credit_card?: string;
+  transfer?: string;
+};
+
+type Product = {
+  name: string;
+  weight: string;
+  quantity: string;
+  pricePerItem: string;
+  price: string;
+};
+
 type FormState = {
   date: string;
   grand_total: string;
@@ -12,11 +26,12 @@ type FormState = {
   vendor_tax_id: string;
   category: string;
   notes: string;
-  payment_type: string; // 'cash' | 'credit_card' | 'transfer'
+  payment: PaymentMap;
   receipt_no: string;
   buyer_name: string;
   buyer_address: string;
   buyer_tax_id: string;
+  products: Product[];
 };
 
 type ApiResult = Record<string, unknown> | null;
@@ -26,7 +41,6 @@ type FormField = {
   label: string;
   type: "text" | "date" | "number" | "textarea" | "select";
   required: boolean;
-  step?: string;
   min?: string;
   colSpan?: number;
 };
@@ -49,11 +63,12 @@ export default function ReceiptLogger() {
     vendor_tax_id: "",
     category: "",
     notes: "",
-    payment_type: "cash",
+    payment: { cash: "" },
     receipt_no: "",
     buyer_name: "",
     buyer_address: "",
     buyer_tax_id: "",
+    products: [],
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,7 +78,7 @@ export default function ReceiptLogger() {
   const [apiError, setApiError] = useState<string | null>(null);
 
   // Just preview the original image, do not scan
-  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) { 
     const fileObj = e.target.files?.[0];
     if (!fileObj) return;
     const isImage = fileObj.type.startsWith("image/");
@@ -81,6 +96,7 @@ export default function ReceiptLogger() {
       setImage(null);
       return;
     }
+  
     setFile(fileObj);
     setApiResult(null);
     setApiError(null);
@@ -98,6 +114,19 @@ export default function ReceiptLogger() {
       reader.readAsDataURL(fileObj);
     } catch (err) {
       if (err instanceof Error) {
+        for (const [i, p] of form.products.entries()) {
+          if (
+            !p.name.trim() ||
+            !p.weight.trim() ||
+            !p.quantity.trim() ||
+            !p.pricePerItem.trim() ||
+            !p.price.trim()
+          ) {
+            setApiError(`กรุณากรอกข้อมูลสินค้าทุกช่องให้ครบ (แถวที่ ${i + 1})`);
+            return;
+          }
+        }
+
         setApiError(err.message);
       } else {
         setApiError("Unknown error");
@@ -143,18 +172,24 @@ export default function ReceiptLogger() {
           vendor_tax_id: (data.vendor_tax_id as string) || prev.vendor_tax_id,
           category: (data.category as string) || prev.category,
           notes: (data.notes as string) || prev.notes,
-          payment_type:
-            (data.payment as { cash?: number })?.cash && (data.payment as { cash?: number }).cash! > 0
-              ? "cash"
-              : (data.payment as { credit_card?: number })?.credit_card && (data.payment as { credit_card?: number }).credit_card! > 0
-              ? "credit_card"
-              : (data.payment as { transfer?: number })?.transfer && (data.payment as { transfer?: number }).transfer! > 0
-              ? "transfer"
-              : prev.payment_type,
+          payment: {
+            cash: (data.payment as { cash?: string })?.cash || "",
+            credit_card: (data.payment as { credit_card?: string })?.credit_card || "",
+            transfer: (data.payment as { transfer?: string })?.transfer || "",
+          },
           receipt_no: (data.receipt_no as string) || prev.receipt_no,
           buyer_name: (data.buyer_name as string) || prev.buyer_name,
           buyer_address: (data.buyer_address as string) || prev.buyer_address,
           buyer_tax_id: (data.buyer_tax_id as string) || prev.buyer_tax_id,
+          products: Array.isArray(data.products)
+            ? (data.products as any[]).map((p: any) => ({
+                name: String(p.name ?? ""),
+                weight: String(p.weight ?? ""),
+                quantity: String(p.quantity ?? ""),
+                pricePerItem: String(p.pricePerItem ?? ""),
+                price: String(p.price ?? ""),
+              }))
+            : prev.products,
         }));
       }
     } catch (err) {
@@ -170,7 +205,41 @@ export default function ReceiptLogger() {
 
   function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name.startsWith("payment.")) {
+      const key = name.split(".")[1];
+      setForm((prev) => ({ ...prev, payment: { ...prev.payment, [key]: value } }));
+    } else if (name.startsWith("product.")) {
+      // handled in handleProductChange
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+  }
+
+  function handleProductChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setForm((prev) => {
+      const products = prev.products.map((p, i) =>
+        i === index ? { ...p, [name]: value } : p
+      );
+      return { ...prev, products };
+    });
+  }
+
+  function handleAddProduct() {
+    setForm((prev) => ({
+      ...prev,
+      products: [
+        ...prev.products,
+        { name: "", weight: "", quantity: "1", pricePerItem: "", price: "" },
+      ],
+    }));
+  }
+
+  function handleRemoveProduct(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      products: prev.products.filter((_, i) => i !== index),
+    }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -181,10 +250,33 @@ export default function ReceiptLogger() {
       setApiError("Please upload a receipt image.");
       return;
     }
-    const uploadLog = { ...form };
+
+    // Validation: sum of product prices === grand_total
+    const sumProduct = form.products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
+    const grandTotal = parseFloat(form.grand_total) || 0;
+    if (form.products.length > 0 && Math.abs(sumProduct - grandTotal) > 0.01) {
+      setApiError("ผลรวมราคารวมของสินค้าทั้งหมดไม่ตรงกับยอดรวมทั้งสิ้น");
+      return;
+    }
+
+    // Validation: sum of payment types === grand_total
+    const sumPayment = (["cash", "credit_card", "transfer"] as (keyof PaymentMap)[]).reduce(
+      (sum, type) => sum + (parseFloat(form.payment[type] || "0") || 0),
+      0
+    );
+    if (Math.abs(sumPayment - grandTotal) > 0.01) {
+      setApiError("ผลรวมช่องทางการชำระเงินไม่ตรงกับยอดรวมทั้งสิ้น");
+      return;
+    }
+
+    const uploadLog = { ...form, payment: { ...form.payment }, products: form.products };
     const formData = new FormData();
     Object.entries(uploadLog).forEach(([key, value]) => {
-      formData.append(key, value);
+      if (key === "payment" || key === "products") {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value as string);
+      }
     });
     formData.append("file", file);
     try {
@@ -205,11 +297,12 @@ export default function ReceiptLogger() {
       vendor_tax_id: "",
       category: "",
       notes: "",
-      payment_type: "cash",
+      payment: { cash: "" },
       receipt_no: "",
       buyer_name: "",
       buyer_address: "",
       buyer_tax_id: "",
+      products: [],
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
@@ -244,9 +337,8 @@ export default function ReceiptLogger() {
     {
       title: "ยอดรวมและการชำระเงิน",
       fields: [
-        { name: "grand_total", label: "ยอดรวมทั้งสิ้น", type: "number", required: true, step: "0.01", min: "0" },
-        { name: "vat", label: "ภาษีมูลค่าเพิ่ม (VAT)", type: "number", required: true, step: "0.01", min: "0" },
-        { name: "payment_type", label: "วิธีการชำระเงิน", type: "select", colSpan: 3, required: true },
+        { name: "grand_total", label: "ยอดรวมทั้งสิ้น", type: "number", required: true, min: "0" },
+        { name: "vat", label: "ภาษีมูลค่าเพิ่ม (VAT)", type: "number", required: true, min: "0" },
       ],
       grid: "grid-cols-1 sm:grid-cols-3 sm:grid-cols-2",
     },
@@ -354,47 +446,177 @@ export default function ReceiptLogger() {
                     <textarea
                       id={field.name}
                       name={field.name}
-                      value={form[field.name]}
+                      value={form[field.name] as string}
                       onChange={handleFormChange}
                       required={field.required}
                       className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={2}
                     />
-                  ) : field.type === "select" ? (
-                    <select
+                  ) : field.name === "grand_total" || field.name === "vat" ? (
+                    <input
                       id={field.name}
                       name={field.name}
-                      value={form[field.name]}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm((prev) => ({ ...prev, payment_type: e.target.value }))}
+                      value={form[field.name] as string}
+                      onChange={handleFormChange}
                       required={field.required}
                       className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="cash">เงินสด</option>
-                      <option value="credit_card">บัตรเครดิต</option>
-                      <option value="transfer">โอนเงิน</option>
-                    </select>
+                      type="number"
+                      min={field.min}
+                      step="any"
+                      inputMode="decimal"
+                      style={{ MozAppearance: 'textfield' }}
+                      onWheel={e => (e.target as HTMLInputElement).blur()}
+                    />
                   ) : (
                     <input
                       id={field.name}
                       name={field.name}
-                      value={
-                        field.name === "grand_total" || field.name === "vat"
-                          ? formatMoney(form[field.name])
-                          : form[field.name]
-                      }
+                      value={form[field.name] as string}
                       onChange={handleFormChange}
                       required={field.required}
                       className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       type={field.type}
-                      step={field.step}
                       min={field.min}
                     />
                   )}
                 </div>
               );
             })}
+            {/* Payment type multi-input */}
+            {section.title === "ยอดรวมและการชำระเงิน" && (
+              <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                {(["cash", "credit_card", "transfer"] as const).map((type) => (
+                  <div key={type}>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor={`payment.${type}`}>
+                      {type === "cash" ? "เงินสด" : type === "credit_card" ? "บัตรเครดิต" : "โอนเงิน"}
+                    </label>
+                    <input
+                      id={`payment.${type}`}
+                      name={`payment.${type}`}
+                      type="number"
+                      min="0"
+                      step="any"
+                      inputMode="decimal"
+                      style={{ MozAppearance: 'textfield' }}
+                      onWheel={e => (e.target as HTMLInputElement).blur()}
+                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={form.payment[type] || ""}
+                      onChange={handleFormChange}
+                      placeholder="0.00"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
+
+        {/* Products Section - Consistent UI */}
+        <div className="w-full bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-4 mt-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <span className="font-semibold text-gray-800 dark:text-gray-100 text-base">รายการสินค้า/บริการ</span>
+            <button
+              type="button"
+              onClick={handleAddProduct}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium text-sm hover:bg-green-100 border border-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 dark:border-green-800 transition"
+            >
+              <span className="text-lg leading-none">＋</span> เพิ่มสินค้า
+            </button>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {form.products.length === 0 && (
+              <div className="text-center text-gray-400 py-4 text-sm">ไม่มีสินค้า</div>
+            )}
+            {form.products.map((product, idx) => (
+              <div key={idx} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 border border-gray-100 dark:border-neutral-800 relative">
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-name-${idx}`}>ชื่อสินค้า</label>
+                  <input
+                    id={`product-name-${idx}`}
+                    type="text"
+                    name="name"
+                    value={product.name}
+                    onChange={e => handleProductChange(idx, e)}
+                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="ชื่อสินค้า"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-weight-${idx}`}>น้ำหนัก</label>
+                  <input
+                    id={`product-weight-${idx}`}
+                    type="number"
+                    name="weight"
+                    value={product.weight}
+                    onChange={e => handleProductChange(idx, e)}
+                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="น้ำหนัก"
+                    min="0"
+                    step="any"
+                    inputMode="decimal"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-quantity-${idx}`}>จำนวน</label>
+                  <input
+                    id={`product-quantity-${idx}`}
+                    type="number"
+                    name="quantity"
+                    value={product.quantity}
+                    onChange={e => handleProductChange(idx, e)}
+                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="จำนวน"
+                    min="1"
+                    step="1"
+                    inputMode="numeric"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-pricePerItem-${idx}`}>ราคาต่อหน่วย</label>
+                  <input
+                    id={`product-pricePerItem-${idx}`}
+                    type="number"
+                    name="pricePerItem"
+                    value={product.pricePerItem}
+                    onChange={e => handleProductChange(idx, e)}
+                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="ราคาต่อหน่วย"
+                    min="0"
+                    step="any"
+                    inputMode="decimal"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-price-${idx}`}>ราคารวม</label>
+                  <input
+                    id={`product-price-${idx}`}
+                    type="number"
+                    name="price"
+                    value={product.price}
+                    onChange={e => handleProductChange(idx, e)}
+                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="ราคารวม"
+                    min="0"
+                    step="any"
+                    inputMode="decimal"
+                  />
+                </div>
+                <div className="flex flex-col items-center justify-end h-full">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveProduct(idx)}
+                    className="mt-5 sm:mt-0 px-3 py-2 rounded-lg bg-red-50 text-red-600 font-medium text-xs hover:bg-red-100 border border-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 dark:border-red-800 transition"
+                    aria-label="ลบสินค้า"
+                  >
+                    ลบ
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <button
           type="submit"
           className="mt-4 w-full py-3 rounded-lg bg-blue-600 text-white font-semibold text-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
