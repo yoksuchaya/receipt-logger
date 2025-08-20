@@ -7,6 +7,7 @@ interface Account {
   accountNumber: string;
   accountName: string;
   note: string;
+  type?: 'asset' | 'liability' | 'revenue' | 'expense' | string;
 }
 
 interface Receipt {
@@ -176,10 +177,10 @@ export async function GET(req: NextRequest) {
     };
   }
 
-  // Calculate opening balances (sum of all transactions before the month)
+  // Calculate opening balances (sum of all transactions before the month), using account type
   for (const receipt of receipts) {
-  const rMonth = parseMonth(receipt.date);
-  if (rMonth >= monthParam) continue;
+    const rMonth = parseMonth(receipt.date);
+    if (rMonth >= monthParam) continue;
     // Patch: inject weighted avg COGS for sales
     let accs = getAccountsForReceipt(receipt, accounts);
     if (isSale(receipt) && receipt.receipt_no && stockMovements.length > 0) {
@@ -204,7 +205,12 @@ export async function GET(req: NextRequest) {
     }
     for (const acc of accs) {
       if (!ledger[acc.accountNumber]) continue;
-      ledger[acc.accountNumber].openingBalance += acc.debit - acc.credit;
+      const accType = accountMap[acc.accountNumber]?.type;
+      if (accType === 'liability' || accType === 'revenue') {
+        ledger[acc.accountNumber].openingBalance += acc.credit - acc.debit;
+      } else {
+        ledger[acc.accountNumber].openingBalance += acc.debit - acc.credit;
+      }
     }
   }
 
@@ -242,17 +248,23 @@ export async function GET(req: NextRequest) {
         reference: receipt.receipt_no,
         debit: acc.debit,
         credit: acc.credit,
-        runningBalance: 0, // will fill later
+        runningBalance: 0
       });
     }
   }
 
-  // Compute running balances
+  // Compute running balances using account type
   for (const accNum in ledger) {
     let bal = ledger[accNum].openingBalance;
+    const accType = accountMap[accNum]?.type;
     ledger[accNum].entries.sort((a, b) => a.date.localeCompare(b.date));
     for (const entry of ledger[accNum].entries) {
-      bal += entry.debit - entry.credit;
+      if (accType === 'liability' || accType === 'revenue') {
+        bal += entry.credit - entry.debit;
+      } else {
+        // asset, expense, or unknown (default to debit-credit)
+        bal += entry.debit - entry.credit;
+      }
       entry.runningBalance = bal;
     }
   }
