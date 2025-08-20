@@ -85,7 +85,7 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
     <div className="w-full">
       <AccountBreadcrumb onBack={onBack} onRoot={onBack} current="สมุดรายวันทั่วไป" />
       <PrintWrapper printLabel="สมุดรายวันทั่วไป" printButtonLabel="พิมพ์สมุดรายวันทั่วไป">
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-full">
           <VatReportHeader
             month={month}
             year={year}
@@ -95,7 +95,7 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
             onYearChange={setYear}
             title="สมุดรายวันทั่วไป"
           />
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto vat-table">
             {loading ? (
               <div className="text-center py-4">กำลังโหลดข้อมูล...</div>
             ) : (

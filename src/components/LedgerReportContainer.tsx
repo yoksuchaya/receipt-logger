@@ -91,7 +91,7 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
     <div className="w-full">
       <AccountBreadcrumb onBack={onBack} onRoot={onBack} current="สมุดบัญชีแยกประเภท" />
       <PrintWrapper printLabel="สมุดบัญชีแยกประเภท" printButtonLabel="พิมพ์สมุดบัญชีแยกประเภท">
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-full">
           <h2 className="text-xl font-bold mb-4">สมุดบัญชีแยกประเภท</h2>
           <form className="mb-4 no-print">
             <div className="flex flex-wrap gap-2 items-end justify-center">

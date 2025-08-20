@@ -116,7 +116,7 @@ export default function StockMovementReport() {
         {error && <div className="text-red-500">{error}</div>}
         {!loading && !error && (
           <>
-            <div className="overflow-x-auto w-full">
+            <div className="overflow-x-auto w-full vat-table">
               <table className="min-w-full text-sm border">
                 <thead>
                   <tr className="bg-gray-100 dark:bg-neutral-800">
@@ -155,7 +155,7 @@ export default function StockMovementReport() {
             </div>
             {/* Per-type summary tables below main table */}
             {typeSummaries.map((summary) => (
-              <div key={summary.type} className="w-full max-w-lg mt-8">
+              <div key={summary.type} className="w-full max-w-lg mt-8 vat-table">
                 <div className="font-bold mb-2">สรุปประเภท: {summary.type}</div>
                 <table className="w-full border text-sm">
                   <thead>

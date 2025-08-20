@@ -35,7 +35,16 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
             background: white;
             font-size: 60% !important;
           }
-          .no-print { display: none !important; }
+          /* Always hide .no-print in print, with highest specificity */
+          .no-print, .no-print * {
+            display: none !important;
+          }
+          /* Print-safe flex utility: only apply to .print-flex, not all .flex */
+          .print-flex {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 0.5rem !important;
+          }
           .print-scale table,
           .print-scale th,
           .print-scale td {

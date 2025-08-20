@@ -40,7 +40,7 @@ const LedgerTable: React.FC<LedgerTableProps> = ({ acc, month, year, monthOption
     <div className="font-semibold text-lg mb-2 print:hidden">
       {acc.accountNumber} - {acc.accountName}
     </div>
-    <table className="min-w-full border text-sm">
+    <table className="min-w-full border text-sm vat-table">
       <thead className="bg-gray-100 dark:bg-neutral-800">
         <tr>
           <th className="border px-2 py-1">วันที่</th>
