@@ -200,8 +200,10 @@ export default function VatReport() {
               )}
             </div>
             <div className="mt-8 flex flex-col gap-2 text-sm vat-signature">
-              <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
-              <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+              <div className="print:block hidden mt-8 flex flex-col gap-2 text-sm vat-signature">
+                <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+                <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+              </div>
             </div>
           </div>
         </PrintWrapper>
@@ -302,8 +304,10 @@ export default function VatReport() {
               )}
             </div>
             <div className="mt-8 flex flex-col gap-2 text-sm vat-signature">
-              <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
-              <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+              <div className="print:block hidden mt-8 flex flex-col gap-2 text-sm vat-signature">
+                <div>ผู้จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+                <div>วันที่จัดทำ <span className="inline-block min-w-[120px] border-b border-dashed border-gray-400 align-middle">&nbsp;</span></div>
+              </div>
             </div>
           </div>
         </PrintWrapper>
