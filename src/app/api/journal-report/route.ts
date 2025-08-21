@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { isPurchase, isSale } from "@/components/utils/utils";
 
 // Types
 // (Repeat the types from JournalReport for backend use)
@@ -36,18 +35,6 @@ type JournalEntry = {
 
 const RECEIPT_LOG_FILE = path.join(process.cwd(), "receipt-uploads.jsonl");
 const ACCOUNT_CHART_FILE = path.join(process.cwd(), "account-chart.json");
-
-function generateJournalEntries(receipts: Receipt[], accounts: Account[]): JournalEntry[] {
-  const getAccount = (number: string) =>
-    accounts.find((a) => a.accountNumber === number) || { accountNumber: number, accountName: "Unknown", note: "" };
-
-  const entries: JournalEntry[] = [];
-
-  // We'll need to fetch COGS for each sale from the stock-movement API
-  // We'll do this outside the loop for all sales in the current month
-  // This function is now async
-  throw new Error('This function must be replaced with an async version that fetches COGS from stock-movement API. See below.');
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -99,8 +86,8 @@ export async function GET(req: NextRequest) {
     // Generate journal entries (async, inlined here)
     const entries: JournalEntry[] = [];
     for (const receipt of receipts) {
-      const sale = isSale(receipt);
-      const purchase = isPurchase(receipt);
+      const sale = receipt.type === 'sale';
+      const purchase = receipt.type === 'purchase';
       const grandTotal = parseFloat(receipt.grand_total);
       const vat = parseFloat(receipt.vat);
       const net = grandTotal - vat;

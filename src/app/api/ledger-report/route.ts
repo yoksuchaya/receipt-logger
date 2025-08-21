@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
-import { isPurchase, isSale } from '@/components/utils/utils';
 
 interface Account {
   accountNumber: string;
@@ -12,6 +11,7 @@ interface Account {
 
 interface Receipt {
   date: string; // YYYY-MM-DD
+  type: string;
   grand_total: string;
   vat: string;
   vendor: string;
@@ -77,8 +77,8 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
   const amount = Number(receipt.grand_total);
   const vatAmount = Number(receipt.vat || 0);
   // Use the same logic as receipt-log API for purchase/sale
-  const sale = isSale(receipt);
-  const purchase = isPurchase(receipt);
+  const sale = receipt.type === 'sale';
+  const purchase = receipt.type === 'purchase';
 
   // Find relevant accounts
   const accStock = findAccountNumber(accounts, 'สต๊อกทอง');
@@ -183,7 +183,7 @@ export async function GET(req: NextRequest) {
     if (rMonth >= monthParam) continue;
     // Patch: inject weighted avg COGS for sales
     let accs = getAccountsForReceipt(receipt, accounts);
-    if (isSale(receipt) && receipt.receipt_no && stockMovements.length > 0) {
+    if (receipt.type === 'sale' && receipt.receipt_no && stockMovements.length > 0) {
       const outs = stockMovements.filter((m: any) => m.type === 'out' && m.desc && m.desc.includes('เอกสารเลขที่'))
         .filter((m: any) => {
           const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
@@ -220,7 +220,7 @@ export async function GET(req: NextRequest) {
   if (rMonth !== monthParam) continue;
     // Patch: inject weighted avg COGS for sales
     let accs2 = getAccountsForReceipt(receipt, accounts);
-    if (isSale(receipt) && receipt.receipt_no && stockMovements.length > 0) {
+    if (receipt.type === 'sale' && receipt.receipt_no && stockMovements.length > 0) {
       const outs = stockMovements.filter((m: any) => m.type === 'out' && m.desc && m.desc.includes('เอกสารเลขที่'))
         .filter((m: any) => {
           const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import fs from 'fs/promises';
 import path from 'path';
-import { isSale, isPurchase } from '@/components/utils/utils';
 
 const RECEIPT_LOG_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
 
@@ -25,11 +24,6 @@ function getMovementsWithOpening(receipts: any[], month: number, year: number) {
     const d = new Date(date);
     if (d.getFullYear() > year || (d.getFullYear() === year && d.getMonth() + 1 >= month)) continue;
     let type = r.type;
-    if (!type) {
-      if (isSale(r)) type = 'sale';
-      else if (isPurchase(r)) type = 'purchase';
-      else type = 'unknown';
-    }
     const products = r.products || [];
     for (const p of products) {
       const name = p.name;
@@ -78,11 +72,6 @@ function getMovementsWithOpening(receipts: any[], month: number, year: number) {
     const d = new Date(date);
     if (!(d.getFullYear() === year && d.getMonth() + 1 === month)) continue;
     let type = r.type;
-    if (!type) {
-      if (isSale(r)) type = 'sale';
-      else if (isPurchase(r)) type = 'purchase';
-      else type = 'unknown';
-    }
     const products = r.products || [];
     for (const p of products) {
       const name = p.name;

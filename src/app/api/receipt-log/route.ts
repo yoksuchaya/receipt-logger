@@ -46,6 +46,16 @@ export async function POST(req: NextRequest) {
       // Fallback: accept JSON only
       log = await req.json();
     }
+    // Add type: 'sale' | 'purchase' if possible
+    let typeValue: 'sale' | 'purchase' | undefined = undefined;
+    if (isSale(log)) {
+      typeValue = 'sale';
+    } else if (isPurchase(log)) {
+      typeValue = 'purchase';
+    }
+    if (typeValue) {
+      log.type = typeValue;
+    }
     log.uploadedAt = new Date().toISOString();
     await fs.appendFile(LOG_FILE, JSON.stringify(log) + "\n", "utf8");
     return NextResponse.json({ success: true, fileUrl });
