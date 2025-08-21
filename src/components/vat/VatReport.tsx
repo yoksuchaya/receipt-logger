@@ -8,6 +8,7 @@ import VatPurchaseReportTable from "./VatPurchaseReportTable";
 import ReceiptDetail from "../receipt/ReceiptDetail";
 import ReceiptEditForm, { type ReceiptEditFormData } from "../receipt/ReceiptEditForm";
 import PrintWrapper from "../layout/PrintWrapper";
+import { isPurchaseType, isSaleType } from "../utils/utils";
 
 interface VatReportProps {
   type: 'purchase' | 'sale';
@@ -53,7 +54,7 @@ export default function VatReport({ type }: VatReportProps) {
   // Month/year options are now handled by ReportHeader
 
   useEffect(() => {
-    if (type === 'sale') {
+    if (isSaleType(type)) {
       setLoading(true);
       setError("");
       fetch(`/api/vat-sale-report?month=${month}&year=${year}`)
@@ -69,7 +70,7 @@ export default function VatReport({ type }: VatReportProps) {
           setError(err.message || "เกิดข้อผิดพลาดในการดึงข้อมูล");
           setLoading(false);
         });
-    } else if (type === 'purchase') {
+    } else if (isPurchaseType(type)) {
       setLoading(true);
       setError("");
       fetch(`/api/vat-purchase-report?month=${month}&year=${year}`)
@@ -101,7 +102,7 @@ export default function VatReport({ type }: VatReportProps) {
   const sumTotalPurchase = filteredPurchase.reduce((sum, r) => sum + Number(r.grand_total), 0);
 
 
-  if (type === 'sale') {
+  if (isSaleType(type)) {
     if (selectedRow) {
       return (
         <div className="w-full max-w-full">
@@ -181,7 +182,7 @@ export default function VatReport({ type }: VatReportProps) {
     );
   }
 
-  if (type === 'purchase') {
+  if (isPurchaseType(type)) {
     if (selectedRow) {
       return (
         <div className="w-full max-w-full">

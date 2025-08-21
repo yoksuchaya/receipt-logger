@@ -1,3 +1,4 @@
+import { isSaleType, isPurchaseType, isCapitalType } from "@/components/utils/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
@@ -86,9 +87,9 @@ export async function GET(req: NextRequest) {
     // Generate journal entries (async, inlined here)
     const entries: JournalEntry[] = [];
     for (const receipt of receipts) {
-      const sale = receipt.type === 'sale';
-      const purchase = receipt.type === 'purchase';
-      const capital = receipt.type === 'capital';
+      const sale = isSaleType(receipt.type);
+      const purchase = isPurchaseType(receipt.type);
+      const capital = isCapitalType(receipt.type);
       const grandTotal = parseFloat(receipt.grand_total);
       const vat = parseFloat(receipt.vat);
       const net = grandTotal - vat;
@@ -159,7 +160,7 @@ export async function GET(req: NextRequest) {
         let cost = 0;
         if (receipt.receipt_no && stockMovements.length > 0) {
           // Find all 'out' movements for this receipt_no
-          const outs = stockMovements.filter((m: any) => m.type === 'sale' && m.desc && m.desc.includes('เอกสารเลขที่'))
+          const outs = stockMovements.filter((m: any) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
             .filter((m: any) => {
               const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
               return match && match[1] === receipt.receipt_no;

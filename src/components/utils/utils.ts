@@ -10,6 +10,19 @@ export function isSale(receipt: { vendor_tax_id?: string }) {
 export function isPurchase(receipt: { buyer_tax_id?: string, vendor_tax_id?: string }) {
   return receipt.buyer_tax_id === COMPANY_TAX_ID && receipt.vendor_tax_id && receipt.vendor_tax_id !== COMPANY_TAX_ID;
 }
+
+// Utility to determine if a receipt is a sale (by type)
+export function isSaleType(type?: string | undefined) {
+  return type && type === 'sale';
+}
+
+export function isPurchaseType(type?: string | undefined) {
+  return type && type === 'purchase';
+}
+
+export function isCapitalType(type?: string | undefined) {
+  return type && type === 'capital';
+}
 // Utility for formatting money values
 export function formatMoney(val: number | string | null | undefined, defaultValue: string = ""): string {
   if (val === undefined || val === null || val === "") return defaultValue;

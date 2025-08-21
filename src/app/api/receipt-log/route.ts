@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { isSale, isPurchase } from "@/components/utils/utils";
+import { isSale, isPurchase, isSaleType } from "@/components/utils/utils";
 
 const LOG_FILE = path.join(process.cwd(), "receipt-uploads.jsonl");
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
       return { ...r, type: typeValue };
     });
     // Filter by type if provided
-    if (type === 'sale' || type === 'purchase') {
+    if (isSaleType(type) || isPurchaseType(type)) {
       receiptsWithType = receiptsWithType.filter((r) => r.type === type);
     }
     return NextResponse.json(receiptsWithType);

@@ -1,5 +1,5 @@
 "use client";
-import { formatMoney } from "../utils/utils";
+import { formatMoney, isCapitalType, isPurchaseType, isSaleType } from "../utils/utils";
 import React, { useEffect, useState } from "react";
 import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
 import ReceiptDetail from "./ReceiptDetail";
@@ -177,9 +177,9 @@ const ReceiptLogList: React.FC = () => {
             <tbody>
               {filteredLogs.map((log, i) => {
                 let typeLabel = '-';
-                if (log.type === 'sale') typeLabel = 'ขาย';
-                else if (log.type === 'purchase') typeLabel = 'ซื้อ';
-                else if (log.type === 'capital') typeLabel = 'เงินลงทุน';
+                if (isSaleType(log.type)) typeLabel = 'ขาย';
+                else if (isPurchaseType(log.type)) typeLabel = 'ซื้อ';
+                else if (isCapitalType(log.type)) typeLabel = 'เงินลงทุน';
                 return (
                   <tr key={i} className="border-t border-gray-200 dark:border-neutral-700">
                     <td className="px-3 py-2">{log.date ? log.date : '-'}</td>

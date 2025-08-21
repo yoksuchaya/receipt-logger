@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
+import { isCapitalType, isPurchaseType, isSaleType } from '@/components/utils/utils';
 
 interface Account {
   accountNumber: string;
@@ -77,9 +78,9 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
   const amount = Number(receipt.grand_total);
   const vatAmount = Number(receipt.vat || 0);
   // Use the same logic as receipts API for purchase/sale/capital
-  const sale = receipt.type === 'sale';
-  const purchase = receipt.type === 'purchase';
-  const capital = receipt.type === 'capital';
+  const sale = isSaleType(receipt.type);
+  const purchase = isPurchaseType(receipt.type);
+  const capital = isCapitalType(receipt.type);
 
   // Find relevant accounts
   const accStock = findAccountNumber(accounts, 'สต๊อกทอง');
@@ -189,8 +190,8 @@ export async function GET(req: NextRequest) {
     if (rMonth >= monthParam) continue;
     // Patch: inject weighted avg COGS for sales
     let accs = getAccountsForReceipt(receipt, accounts);
-    if (receipt.type === 'sale' && receipt.receipt_no && stockMovements.length > 0) {
-  const outs = stockMovements.filter((m: any) => m.type === 'sale' && m.desc && m.desc.includes('เอกสารเลขที่'))
+    if (isSaleType(receipt.type) && receipt.receipt_no && stockMovements.length > 0) {
+      const outs = stockMovements.filter((m: any) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
         .filter((m: any) => {
           const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
           return match && match[1] === receipt.receipt_no;
@@ -226,8 +227,8 @@ export async function GET(req: NextRequest) {
   if (rMonth !== monthParam) continue;
     // Patch: inject weighted avg COGS for sales
     let accs2 = getAccountsForReceipt(receipt, accounts);
-    if (receipt.type === 'sale' && receipt.receipt_no && stockMovements.length > 0) {
-  const outs = stockMovements.filter((m: any) => m.type === 'sale' && m.desc && m.desc.includes('เอกสารเลขที่'))
+    if (isSaleType(receipt.type) && receipt.receipt_no && stockMovements.length > 0) {
+      const outs = stockMovements.filter((m: any) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
         .filter((m: any) => {
           const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
           return match && match[1] === receipt.receipt_no;

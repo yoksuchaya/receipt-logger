@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import fs from 'fs/promises';
 import path from 'path';
+import { isPurchase, isPurchaseType, isSale, isSaleType } from '@/components/utils/utils';
 
 const RECEIPT_LOG_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
 
@@ -23,7 +24,7 @@ function getMovementsWithOpening(receipts: any[], month: number, year: number) {
   }: {
     inv: any, type: string, qty: number, price: number, date: string | null, r: any, name: string, isMovement: boolean
   }) {
-    if (type === 'purchase') {
+    if (isPurchaseType(type)) {
       inv.qty = round3(inv.qty + qty);
       inv.total = round3(inv.total + price);
       inv.avgCost = inv.qty ? round3(inv.total / inv.qty) : 0;
@@ -41,7 +42,7 @@ function getMovementsWithOpening(receipts: any[], month: number, year: number) {
           product: name
         });
       }
-    } else if (type === 'sale') {
+    } else if (isSaleType(type)) {
       const cogs = round3(qty * inv.avgCost);
       inv.qty = round3(inv.qty - qty);
       inv.total = round3(inv.total - cogs);
