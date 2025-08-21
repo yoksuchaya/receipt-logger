@@ -1,6 +1,6 @@
 import React from "react";
 import { formatMoney } from "../utils/utils";
-import VatReportHeader from "../vat/VatReportHeader";
+import ReportHeader from "../common/ReportHeader";
 
 interface LedgerEntry {
   date: string;
@@ -27,9 +27,9 @@ interface LedgerTableProps {
 const LedgerTable: React.FC<LedgerTableProps> = ({ acc, month, year }) => {
   return (
     <>
-      {/* Print-only header using VatReportHeader */}
+      {/* Print-only header using ReportHeader */}
       <div className="mb-2 print:mb-1 hidden print:block">
-        <VatReportHeader
+        <ReportHeader
           month={month}
           year={year}
           onMonthChange={() => {}}

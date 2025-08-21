@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { isPurchase } from '@/components/utils/utils';
 
 async function readPurchaseData() {
     const filePath = path.join(process.cwd(), 'receipt-uploads.jsonl');
@@ -31,8 +32,7 @@ export async function GET(req: NextRequest) {
     // Filter for purchase: main company is the buyer, vendor is not the main company
     const filtered = data.filter(
         (r: Record<string, unknown>) =>
-            typeof r.vendor_tax_id === 'string' && r.vendor_tax_id !== '0735559006568' &&
-            r.buyer_tax_id === '0735559006568' &&
+            isPurchase(r) &&
             typeof r.date === 'string' && r.date.startsWith(`${year}-${month}`)
     );
     // Sort by date ascending

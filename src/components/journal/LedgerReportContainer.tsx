@@ -3,7 +3,7 @@ import LedgerReport from "./LedgerReport";
 import PrintWrapper from "../layout/PrintWrapper";
 import MonthYearSelector from "../common/MonthYearSelector";
 
-// Month/year options are now handled by VatReportHeader or child components
+// Month/year options are now handled by ReportHeader or child components
 
 function getCurrentMonthYear() {
   const now = new Date();
@@ -70,7 +70,7 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
       });
   }, [month, year, accountNumber]);
 
-  // Generate year options is now handled by VatReportHeader or child components
+  // Generate year options is now handled by ReportHeader or child components
 
   return (
     <div className="w-full">

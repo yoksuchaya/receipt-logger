@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import VatBreadcrumb from "./VatBreadcrumb";
-import VatReportHeader from "./VatReportHeader";
+import ReportHeader from "../common/ReportHeader";
 import VatSaleReportTable from "./VatSaleReportTable";
 import VatPurchaseReportTable from "./VatPurchaseReportTable";
 import ReceiptDetail from "../receipt/ReceiptDetail";
@@ -50,7 +50,7 @@ export default function VatReport({ type }: VatReportProps) {
   const initialYear = now.getFullYear().toString();
   const [month, setMonth] = useState(initialMonth);
   const [year, setYear] = useState(initialYear);
-  // Month/year options are now handled by VatReportHeader
+  // Month/year options are now handled by ReportHeader
 
   useEffect(() => {
     if (type === 'sale') {
@@ -142,7 +142,7 @@ export default function VatReport({ type }: VatReportProps) {
         <PrintWrapper printLabel="รายงานภาษีขาย" printButtonLabel="พิมพ์รายงานภาษีขาย">
           <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
             <div className="w-full vat-header">
-              <VatReportHeader
+              <ReportHeader
                 month={month}
                 year={year}
                 onMonthChange={setMonth}
@@ -222,7 +222,7 @@ export default function VatReport({ type }: VatReportProps) {
         <PrintWrapper printLabel="รายงานภาษีซื้อ" printButtonLabel="พิมพ์รายงานภาษีซื้อ">
           <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
             <div className="w-full vat-header">
-              <VatReportHeader
+              <ReportHeader
                 month={month}
                 year={year}
                 onMonthChange={setMonth}

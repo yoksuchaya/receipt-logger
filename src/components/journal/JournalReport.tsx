@@ -1,7 +1,7 @@
 
 
 import React, { useEffect, useState } from "react";
-import VatReportHeader from "../vat/VatReportHeader";
+import ReportHeader from "../common/ReportHeader";
 import PrintWrapper from "../layout/PrintWrapper";
 import { formatMoney } from "../utils/utils";
 
@@ -20,7 +20,7 @@ type JournalEntry = {
 };
 
 
-// Month/year options are now handled by VatReportHeader
+// Month/year options are now handled by ReportHeader
 
 function getCurrentMonthYear() {
   const now = new Date();
@@ -49,7 +49,7 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
   const { month: initialMonth, year: initialYear } = getCurrentMonthYear();
   const [month, setMonth] = useState<string>(initialMonth);
   const [year, setYear] = useState<string>(initialYear);
-  // Generate year options is now handled by VatReportHeader
+  // Generate year options is now handled by ReportHeader
 
 
 
@@ -66,7 +66,7 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
     <div className="w-full">
       <PrintWrapper printLabel="สมุดรายวันทั่วไป" printButtonLabel="พิมพ์สมุดรายวันทั่วไป">
         <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-full">
-          <VatReportHeader
+          <ReportHeader
             month={month}
             year={year}
             onMonthChange={setMonth}

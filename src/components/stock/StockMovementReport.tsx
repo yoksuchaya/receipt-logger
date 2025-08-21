@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import VatReportHeader from "../vat/VatReportHeader";
+import ReportHeader from "../common/ReportHeader";
 import { formatMoney } from "../utils/utils";
 import PrintWrapper from "../layout/PrintWrapper";
 
@@ -41,7 +41,7 @@ export default function StockMovementReport() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Month/year options and labels are now handled by VatReportHeader and monthLabels util
+  // Month/year options and labels are now handled by ReportHeader and monthLabels util
 
   useEffect(() => {
     setLoading(true);
@@ -87,7 +87,7 @@ export default function StockMovementReport() {
   return (
     <PrintWrapper printLabel="รายงานความเคลื่อนไหวสต๊อก" printButtonLabel="พิมพ์รายงานสต๊อก">
       <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
-        <VatReportHeader
+        <ReportHeader
           month={month}
           year={year}
           onMonthChange={setMonth}

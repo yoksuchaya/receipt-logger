@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import { isSale, isPurchase } from "@/components/utils/utils";
 
 const LOG_FILE = path.join(process.cwd(), "receipt-uploads.jsonl");
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
@@ -96,9 +97,9 @@ export async function GET(req: NextRequest) {
     // Add type: 'sale' | 'purchase' | undefined
     let receiptsWithType = receipts.map((r) => {
       let typeValue: 'sale' | 'purchase' | undefined = undefined;
-      if (r.vendor_tax_id === '0735559006568') {
+      if (isSale(r)) {
         typeValue = 'sale';
-      } else if (r.buyer_tax_id === '0735559006568' && r.vendor_tax_id && r.vendor_tax_id !== '0735559006568') {
+      } else if (isPurchase(r)) {
         typeValue = 'purchase';
       }
       return { ...r, type: typeValue };
