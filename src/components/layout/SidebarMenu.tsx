@@ -11,6 +11,10 @@ import {
   ArrowPathIcon,
   BanknotesIcon,
   ChevronRightIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  CalculatorIcon,
+  ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/outline";
 
 
@@ -36,6 +40,11 @@ const menuGroups = [
         key: 'receipt-list',
         label: 'รายการใบเสร็จ (Receipt List)',
         icon: ListBulletIcon,
+      },
+      {
+        key: 'issue-document',
+        label: 'ออกเอกสาร',
+        icon: DocumentTextIcon,
       },
     ],
   },
@@ -81,12 +90,22 @@ const menuGroups = [
       {
         key: 'vat-purchase',
         label: 'รายงานภาษีซื้อ (VAT Purchase Report)',
-        icon: ChartBarIcon,
+        icon: ArrowTrendingDownIcon, // Purchase = expense
       },
       {
         key: 'vat-sales',
         label: 'รายงานภาษีขาย (VAT Sales Report)',
-        icon: ChartBarIcon,
+        icon: ArrowTrendingUpIcon, // Sales = income
+      },
+      {
+        key: 'vat-summary',
+        label: 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)',
+        icon: ClipboardDocumentCheckIcon, // Summary/report
+      },
+      {
+        key: 'trial-balance',
+        label: 'งบทดลอง (ประจำเดือน)',
+        icon: CalculatorIcon, // Calculation/balance
       },
     ],
   },

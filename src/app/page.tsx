@@ -18,12 +18,15 @@ import MobileCloseButton from "@/components/layout/MobileCloseButton";
 type MenuKey =
   | 'upload-receipt'
   | 'receipt-list'
+  | 'issue-document'
   | 'stock-overview'
   | 'stock-movement'
   | 'journal'
   | 'ledger'
   | 'vat-purchase'
-  | 'vat-sales';
+  | 'vat-sales'
+  | 'vat-summary'
+  | 'trial-balance';
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -61,17 +64,25 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mb-4 text-center text-gray-900 dark:text-white">
               {selectedMenu === 'upload-receipt' && 'อัพโหลดใบเสร็จ'}
               {selectedMenu === 'receipt-list' && 'รายการใบเสร็จ'}
+              {selectedMenu === 'issue-document' && 'ออกเอกสาร'}
               {selectedMenu === 'stock-overview' && 'ภาพรวมสต็อก'}
               {selectedMenu === 'stock-movement' && 'ความเคลื่อนไหวสต็อก'}
               {selectedMenu === 'journal' && 'สมุดรายวันทั่วไป'}
               {selectedMenu === 'ledger' && 'สมุดบัญชีแยกประเภท'}
               {selectedMenu === 'vat-purchase' && 'รายงานภาษีซื้อ'}
               {selectedMenu === 'vat-sales' && 'รายงานภาษีขาย'}
+              {selectedMenu === 'vat-summary' && 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)'}
+              {selectedMenu === 'trial-balance' && 'Trial Balance (ประจำเดือน)'}
             </h2>
           </div>
           <div className="flex-1 w-full flex flex-col items-center justify-start px-4 pb-8 overflow-auto">
             {selectedMenu === 'upload-receipt' && <ReceiptLogger />}
             {selectedMenu === 'receipt-list' && <ReceiptLogList key={resetList} />}
+            {selectedMenu === 'issue-document' && (
+              <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
+                <p>ยังไม่มีหน้าออกเอกสารในระบบ</p>
+              </div>
+            )}
             {selectedMenu === 'stock-overview' && (
               <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
                 <p>ยังไม่มีข้อมูลภาพรวมสต็อก</p>
@@ -82,6 +93,16 @@ export default function Home() {
             {selectedMenu === 'ledger' && <LedgerReportContainer key={resetList} onBack={() => {}} />}
             {selectedMenu === 'vat-purchase' && <VatReport key={resetList} type="purchase" />}
             {selectedMenu === 'vat-sales' && <VatReport key={resetList} type="sale" />}
+            {selectedMenu === 'vat-summary' && (
+              <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
+                <p>ยังไม่มีหน้าสรุปภาษีมูลค่าเพิ่ม (VAT Summary)</p>
+              </div>
+            )}
+            {selectedMenu === 'trial-balance' && (
+              <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
+                <p>ยังไม่มีหน้างบทดลอง (ประจำเดือน)</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
