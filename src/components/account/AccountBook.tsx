@@ -1,8 +1,8 @@
 import React from "react";
 
 import { useState } from "react";
-import JournalReport from "./JournalReport";
-import LedgerReportContainer from "./LedgerReportContainer";
+import JournalReport from "../journal/JournalReport";
+import LedgerReportContainer from "../journal/LedgerReportContainer";
 
 const AccountBook: React.FC = () => {
   const [showJournal, setShowJournal] = useState(false);

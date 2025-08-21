@@ -1,15 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import ReceiptLogger from "@/components/ReceiptLogger";
-import ReceiptLogList from "@/components/ReceiptLogList";
-import VatReport from "@/components/VatReport";
-import AccountBook from "@/components/AccountBook";
-import StockMovementReport from "@/components/StockMovementReport";
+import ReceiptLogger from "@/components/receipt/ReceiptLogger";
+import ReceiptLogList from "@/components/receipt/ReceiptLogList";
+import VatReport from "@/components/vat/VatReport";
+import AccountBook from "@/components/account/AccountBook";
+import StockMovementReport from "@/components/stock/StockMovementReport";
 import { useState } from "react";
-import HamburgerButton from "@/components/HamburgerButton";
-import SidebarMenu from "@/components/SidebarMenu";
-import MenuOverlay from "@/components/MenuOverlay";
+import HamburgerButton from "@/components/layout/HamburgerButton";
+import SidebarMenu from "@/components/layout/SidebarMenu";
+import MenuOverlay from "@/components/layout/MenuOverlay";
 
 
 type MenuKey = 'log' | 'receipts' | 'vat-report' | 'account-book' | 'stock-movement';

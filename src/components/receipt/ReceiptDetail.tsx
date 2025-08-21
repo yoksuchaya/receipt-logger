@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { formatMoney } from "./utils";
+import { formatMoney } from "../utils/utils";
 import ReceiptPreview from "./ReceiptPreview";
 
 

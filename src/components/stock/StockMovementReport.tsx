@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import VatReportHeader from "./VatReportHeader";
-import { formatMoney } from "./utils";
-import PrintWrapper from "./PrintWrapper";
+import VatReportHeader from "../vat/VatReportHeader";
+import { formatMoney } from "../utils/utils";
+import PrintWrapper from "../layout/PrintWrapper";
 
 // Helper to get current month/year as string
 function getCurrentMonthYear() {
@@ -41,23 +41,7 @@ export default function StockMovementReport() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Month/year options (same as VatReport)
-  const yearOptions = [];
-  for (let y = 2020; y <= 2025; y++) yearOptions.push(y.toString());
-  const monthOptions = [
-    { value: "01", label: "มกราคม" },
-    { value: "02", label: "กุมภาพันธ์" },
-    { value: "03", label: "มีนาคม" },
-    { value: "04", label: "เมษายน" },
-    { value: "05", label: "พฤษภาคม" },
-    { value: "06", label: "มิถุนายน" },
-    { value: "07", label: "กรกฎาคม" },
-    { value: "08", label: "สิงหาคม" },
-    { value: "09", label: "กันยายน" },
-    { value: "10", label: "ตุลาคม" },
-    { value: "11", label: "พฤศจิกายน" },
-    { value: "12", label: "ธันวาคม" },
-  ];
+  // Month/year options and labels are now handled by VatReportHeader and monthLabels util
 
   useEffect(() => {
     setLoading(true);
@@ -106,8 +90,6 @@ export default function StockMovementReport() {
         <VatReportHeader
           month={month}
           year={year}
-          monthOptions={monthOptions}
-          yearOptions={yearOptions}
           onMonthChange={setMonth}
           onYearChange={setYear}
           title="รายงานความเคลื่อนไหวสต๊อก"

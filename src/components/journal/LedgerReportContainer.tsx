@@ -1,22 +1,9 @@
 import React, { useEffect, useState } from "react";
 import LedgerReport from "./LedgerReport";
-import AccountBreadcrumb from "./AccountBreadcrumb";
-import PrintWrapper from "./PrintWrapper";
+import AccountBreadcrumb from "../account/AccountBreadcrumb";
+import PrintWrapper from "../layout/PrintWrapper";
 
-const monthOptions = [
-  { value: "01", label: "มกราคม" },
-  { value: "02", label: "กุมภาพันธ์" },
-  { value: "03", label: "มีนาคม" },
-  { value: "04", label: "เมษายน" },
-  { value: "05", label: "พฤษภาคม" },
-  { value: "06", label: "มิถุนายน" },
-  { value: "07", label: "กรกฎาคม" },
-  { value: "08", label: "สิงหาคม" },
-  { value: "09", label: "กันยายน" },
-  { value: "10", label: "ตุลาคม" },
-  { value: "11", label: "พฤศจิกายน" },
-  { value: "12", label: "ธันวาคม" },
-];
+// Month/year options are now handled by VatReportHeader or child components
 
 function getCurrentMonthYear() {
   const now = new Date();
@@ -83,9 +70,7 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
       });
   }, [month, year, accountNumber]);
 
-  // Generate year options (current year +/- 5)
-  const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 11 }, (_, i) => (currentYear - 5 + i).toString());
+  // Generate year options is now handled by VatReportHeader or child components
 
   return (
     <div className="w-full">
@@ -94,32 +79,6 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
         <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-full">
           <h2 className="text-xl font-bold mb-4">สมุดบัญชีแยกประเภท</h2>
           <form className="mb-4 no-print">
-            <div className="flex flex-wrap gap-2 items-end justify-center">
-              <div className="flex items-center gap-2">
-                <label htmlFor="month" className="font-normal">เดือน</label>
-                <select
-                  id="month"
-                  className="border rounded px-2 py-1 dark:bg-neutral-800"
-                  value={month}
-                  onChange={e => setMonth(e.target.value)}
-                >
-                  {monthOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-                <label htmlFor="year" className="font-normal">ปี</label>
-                <select
-                  id="year"
-                  className="border rounded px-2 py-1 dark:bg-neutral-800"
-                  value={year}
-                  onChange={e => setYear(e.target.value)}
-                >
-                  {yearOptions.map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
             <div className="flex flex-wrap gap-2 items-end justify-center mt-2">
               <div>
                 <label className="block text-sm font-medium mb-1">บัญชี</label>
@@ -145,7 +104,7 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
           ) : ledgers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">ไม่พบข้อมูลสำหรับเดือนที่เลือก</div>
           ) : (
-            <LedgerReport ledgers={ledgers} month={month} year={year} monthOptions={monthOptions} />
+            <LedgerReport ledgers={ledgers} month={month} year={year} />
           )}
         </div>
       </PrintWrapper>

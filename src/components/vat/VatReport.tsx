@@ -5,10 +5,10 @@ import VatBreadcrumb from "./VatBreadcrumb";
 import VatReportHeader from "./VatReportHeader";
 import VatSaleReportTable from "./VatSaleReportTable";
 import VatPurchaseReportTable from "./VatPurchaseReportTable";
-import ReceiptDetail from "./ReceiptDetail";
-import ReceiptEditForm, { type ReceiptEditFormData } from "./ReceiptEditForm";
-import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
-import PrintWrapper from "./PrintWrapper";
+import ReceiptDetail from "../receipt/ReceiptDetail";
+import ReceiptEditForm, { type ReceiptEditFormData } from "../receipt/ReceiptEditForm";
+import ReceiptBreadcrumb from "../receipt/ReceiptBreadcrumb";
+import PrintWrapper from "../layout/PrintWrapper";
 
 export default function VatReport() {
   const [selected, setSelected] = useState<'purchase' | 'sale' | null>(null);
@@ -46,22 +46,7 @@ export default function VatReport() {
   const initialYear = now.getFullYear().toString();
   const [month, setMonth] = useState(initialMonth);
   const [year, setYear] = useState(initialYear);
-  const yearOptions = [];
-  for (let y = 2020; y <= 2025; y++) yearOptions.push(y.toString());
-  const monthOptions = [
-    { value: "01", label: "มกราคม" },
-    { value: "02", label: "กุมภาพันธ์" },
-    { value: "03", label: "มีนาคม" },
-    { value: "04", label: "เมษายน" },
-    { value: "05", label: "พฤษภาคม" },
-    { value: "06", label: "มิถุนายน" },
-    { value: "07", label: "กรกฎาคม" },
-    { value: "08", label: "สิงหาคม" },
-    { value: "09", label: "กันยายน" },
-    { value: "10", label: "ตุลาคม" },
-    { value: "11", label: "พฤศจิกายน" },
-    { value: "12", label: "ธันวาคม" },
-  ];
+  // Month/year options are now handled by VatReportHeader
 
   useEffect(() => {
     if (selected === 'sale') {
@@ -173,8 +158,6 @@ export default function VatReport() {
               <VatReportHeader
                 month={month}
                 year={year}
-                monthOptions={monthOptions}
-                yearOptions={yearOptions}
                 onMonthChange={setMonth}
                 onYearChange={setYear}
                 title="รายงานภาษีขาย"
@@ -275,11 +258,8 @@ export default function VatReport() {
               <VatReportHeader
                 month={month}
                 year={year}
-                monthOptions={monthOptions}
-                yearOptions={yearOptions}
                 onMonthChange={setMonth}
                 onYearChange={setYear}
-                //
                 title="รายงานภาษีซื้อ"
               />
             </div>

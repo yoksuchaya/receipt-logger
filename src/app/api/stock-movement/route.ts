@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import fs from 'fs/promises';
 import path from 'path';
-import { isSale, isPurchase } from '@/components/utils';
+import { isSale, isPurchase } from '@/components/utils/utils';
 
 const RECEIPT_LOG_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
 

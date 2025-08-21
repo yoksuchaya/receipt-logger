@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { isPurchase, isSale } from "@/components/utils";
+import { isPurchase, isSale } from "@/components/utils/utils";
 
 // Types
 // (Repeat the types from JournalReport for backend use)

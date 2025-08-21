@@ -1,9 +1,9 @@
 
 import React, { useState } from "react";
-import { formatMoney } from "./utils";
-import ReceiptDetail from "./ReceiptDetail";
-import ReceiptEditForm, { type ReceiptEditFormData } from "./ReceiptEditForm";
-import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
+import { formatMoney } from "../utils/utils";
+import ReceiptDetail from "../receipt/ReceiptDetail";
+import ReceiptEditForm, { type ReceiptEditFormData } from "../receipt/ReceiptEditForm";
+import ReceiptBreadcrumb from "../receipt/ReceiptBreadcrumb";
 
 interface VatSale {
     date: string;

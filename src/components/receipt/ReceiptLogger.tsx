@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import ReceiptPreview from "./ReceiptPreview";
-import { formatMoney } from "./utils";
+import { formatMoney } from "../utils/utils";
 
 type PaymentMap = {
   cash?: string;

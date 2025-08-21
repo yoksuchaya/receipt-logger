@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
-import { isPurchase, isSale } from '@/components/utils';
+import { isPurchase, isSale } from '@/components/utils/utils';
 
 interface Account {
   accountNumber: string;

@@ -1,5 +1,5 @@
 "use client";
-import { formatMoney } from "./utils";
+import { formatMoney } from "../utils/utils";
 import React, { useEffect, useState } from "react";
 import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
 import ReceiptDetail from "./ReceiptDetail";

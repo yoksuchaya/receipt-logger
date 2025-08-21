@@ -1,10 +1,10 @@
 
 
 import React, { useEffect, useState } from "react";
-import AccountBreadcrumb from "./AccountBreadcrumb";
-import VatReportHeader from "./VatReportHeader";
-import PrintWrapper from "./PrintWrapper";
-import { formatMoney } from "./utils";
+import AccountBreadcrumb from "../account/AccountBreadcrumb";
+import VatReportHeader from "../vat/VatReportHeader";
+import PrintWrapper from "../layout/PrintWrapper";
+import { formatMoney } from "../utils/utils";
 
 
 interface JournalReportProps {
@@ -21,23 +21,7 @@ type JournalEntry = {
 };
 
 
-const monthNames = [
-  "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
-];
-const monthOptions = [
-  { value: "01", label: "มกราคม" },
-  { value: "02", label: "กุมภาพันธ์" },
-  { value: "03", label: "มีนาคม" },
-  { value: "04", label: "เมษายน" },
-  { value: "05", label: "พฤษภาคม" },
-  { value: "06", label: "มิถุนายน" },
-  { value: "07", label: "กรกฎาคม" },
-  { value: "08", label: "สิงหาคม" },
-  { value: "09", label: "กันยายน" },
-  { value: "10", label: "ตุลาคม" },
-  { value: "11", label: "พฤศจิกายน" },
-  { value: "12", label: "ธันวาคม" },
-];
+// Month/year options are now handled by VatReportHeader
 
 function getCurrentMonthYear() {
   const now = new Date();
@@ -66,9 +50,7 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
   const { month: initialMonth, year: initialYear } = getCurrentMonthYear();
   const [month, setMonth] = useState<string>(initialMonth);
   const [year, setYear] = useState<string>(initialYear);
-  // Generate year options (current year +/- 5)
-  const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 11 }, (_, i) => (currentYear - 5 + i).toString());
+  // Generate year options is now handled by VatReportHeader
 
 
 
@@ -89,8 +71,6 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
           <VatReportHeader
             month={month}
             year={year}
-            monthOptions={monthOptions}
-            yearOptions={yearOptions}
             onMonthChange={setMonth}
             onYearChange={setYear}
             title="สมุดรายวันทั่วไป"
