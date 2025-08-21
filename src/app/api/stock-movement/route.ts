@@ -1,3 +1,4 @@
+import type { StockMovement } from "@/types/StockMovement";
 import { NextRequest, NextResponse } from 'next/server';
 
 import fs from 'fs/promises';
@@ -7,22 +8,44 @@ import { isPurchase, isPurchaseType, isSale, isSaleType } from '@/components/uti
 const RECEIPT_LOG_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
 
 
-function getMovementsWithOpening(receipts: any[], month: number, year: number) {
+type Product = {
+  name: string;
+  weight?: string;
+  quantity?: string;
+  price?: string;
+};
+
+type Receipt = {
+  date: string;
+  type: string;
+  products?: Product[];
+  receipt_no?: string;
+  category?: string;
+};
+
+function getMovementsWithOpening(receipts: Receipt[], month: number, year: number) {
   const round3 = (n: number) => Math.round(n * 1000) / 1000;
   receipts = receipts.slice().sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const inventories: Record<string, {
     qty: number;
     total: number;
     avgCost: number;
-    movements: any[];
+    movements: StockMovement[];
   }> = {};
-  const rows: any[] = [];
+  const rows: StockMovement[] = [];
 
   // Helper to update inventory and optionally push a movement
   function updateInventory({
     inv, type, qty, price, date, r, name, isMovement
   }: {
-    inv: any, type: string, qty: number, price: number, date: string | null, r: any, name: string, isMovement: boolean
+    inv: { qty: number; total: number; avgCost: number; movements: StockMovement[] },
+    type: string,
+    qty: number,
+    price: number,
+    date: string | null,
+    r: Receipt,
+    name: string,
+    isMovement: boolean
   }) {
     if (isPurchaseType(type)) {
       inv.qty = round3(inv.qty + qty);
@@ -126,6 +149,10 @@ function getMovementsWithOpening(receipts: any[], month: number, year: number) {
   rows.sort((a, b) => {
     if (a.type === 'opening') return -1;
     if (b.type === 'opening') return 1;
+    // Handle null dates (opening balance)
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return -1;
+    if (!b.date) return 1;
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
   return rows;
@@ -139,8 +166,8 @@ export async function GET(req: NextRequest) {
     if (!month || !year) return NextResponse.json([], { status: 400 });
     const data = await fs.readFile(RECEIPT_LOG_FILE, 'utf8');
     const receipts = data.split('\n').filter(Boolean).map(line => {
-      try { return JSON.parse(line); } catch { return null; }
-    }).filter((r): r is any => r !== null);
+      try { return JSON.parse(line) as Receipt; } catch { return null; }
+  }).filter((r): r is Receipt => r !== null);
   const rows = getMovementsWithOpening(receipts, month, year);
     return NextResponse.json(rows);
   } catch (err) {

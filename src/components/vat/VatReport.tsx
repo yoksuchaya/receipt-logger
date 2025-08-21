@@ -17,7 +17,8 @@ interface VatReportProps {
 export default function VatReport({ type }: VatReportProps) {
   // Remove menu selection state
   // const [selected, setSelected] = useState<'purchase' | 'sale' | null>(null);
-  const [selectedRow, setSelectedRow] = useState<any | null>(null);
+  type SelectedRow = VatSale | VatPurchase | null;
+  const [selectedRow, setSelectedRow] = useState<SelectedRow>(null);
   const [edit, setEdit] = useState(false);
   const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
   interface VatSale {

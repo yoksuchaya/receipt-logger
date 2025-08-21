@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { isSale, isPurchase, isSaleType } from "@/components/utils/utils";
+import { isSale, isPurchase, isSaleType, isPurchaseType } from "@/components/utils/utils";
 
 const LOG_FILE = path.join(process.cwd(), "receipt-uploads.jsonl");
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
@@ -47,12 +47,11 @@ export async function POST(req: NextRequest) {
       log = await req.json();
     }
     // Add type: 'sale' | 'purchase' if possible
-    let typeValue: 'sale' | 'purchase' | undefined = undefined;
-    if (isSale(log)) {
-      typeValue = 'sale';
-    } else if (isPurchase(log)) {
-      typeValue = 'purchase';
-    }
+    const typeValue: 'sale' | 'purchase' | undefined = isSale(log)
+      ? 'sale'
+      : isPurchase(log)
+      ? 'purchase'
+      : undefined;
     if (typeValue) {
       log.type = typeValue;
     }
@@ -106,7 +105,7 @@ export async function GET(req: NextRequest) {
     });
     // Add type: 'sale' | 'purchase' | undefined
     let receiptsWithType = receipts.map((r) => {
-      let typeValue = r.type as 'sale' | 'purchase' | undefined;
+      const typeValue = r.type as 'sale' | 'purchase' | undefined;
       return { ...r, type: typeValue };
     });
     // Filter by type if provided

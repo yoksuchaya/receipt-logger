@@ -12,15 +12,15 @@ export function isPurchase(receipt: { buyer_tax_id?: string, vendor_tax_id?: str
 }
 
 // Utility to determine if a receipt is a sale (by type)
-export function isSaleType(type?: string | undefined) {
+export function isSaleType(type: string | null | undefined) {
   return type && type === 'sale';
 }
 
-export function isPurchaseType(type?: string | undefined) {
+export function isPurchaseType(type: string | null | undefined) {
   return type && type === 'purchase';
 }
 
-export function isCapitalType(type?: string | undefined) {
+export function isCapitalType(type: string | null | undefined) {
   return type && type === 'capital';
 }
 // Utility for formatting money values

@@ -182,7 +182,7 @@ export default function ReceiptLogger() {
           buyer_address: (data.buyer_address as string) || prev.buyer_address,
           buyer_tax_id: (data.buyer_tax_id as string) || prev.buyer_tax_id,
           products: Array.isArray(data.products)
-            ? (data.products as any[]).map((p: any) => ({
+            ? (data.products as Product[]).map((p) => ({
                 name: String(p.name ?? ""),
                 weight: String(p.weight ?? ""),
                 quantity: String(p.quantity ?? ""),

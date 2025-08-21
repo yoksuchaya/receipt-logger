@@ -12,12 +12,8 @@ function getCurrentMonthYear() {
   return { month, year };
 }
 
-interface LedgerAccount {
-  accountNumber: string;
-  accountName: string;
-  openingBalance: number;
-  entries: any[];
-}
+
+import type { LedgerAccount } from "./LedgerTable";
 
 interface Account {
   accountNumber: string;

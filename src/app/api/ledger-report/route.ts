@@ -2,37 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
 import { isCapitalType, isPurchaseType, isSaleType } from '@/components/utils/utils';
+import type { Receipt } from "@/types/Receipt";
+import type { StockMovement } from "@/types/StockMovement";
 
 interface Account {
   accountNumber: string;
   accountName: string;
   note: string;
   type?: 'asset' | 'liability' | 'revenue' | 'expense' | string;
-}
-
-interface Receipt {
-  date: string; // YYYY-MM-DD
-  type: string;
-  grand_total: string;
-  vat: string;
-  vendor: string;
-  vendor_tax_id: string;
-  category: string;
-  notes: string;
-  payment_type: string;
-  receipt_no: string;
-  buyer_name: string;
-  buyer_address: string;
-  buyer_tax_id: string;
-  item: string;
-  weight_grams?: number;
-  weight_baht?: number;
-  purity: string;
-  fileUrl: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  uploadedAt: string;
 }
 
 interface LedgerEntry {
@@ -143,7 +120,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Fetch stock-movement for the month for COGS calculation
-  let stockMovements: any[] = [];
+  let stockMovements: StockMovement[] = [];
   let y = 0, m = 0;
   [y, m] = monthParam.split('-').map(Number);
   if (y && m) {
@@ -191,14 +168,14 @@ export async function GET(req: NextRequest) {
     // Patch: inject weighted avg COGS for sales
     let accs = getAccountsForReceipt(receipt, accounts);
     if (isSaleType(receipt.type) && receipt.receipt_no && stockMovements.length > 0) {
-      const outs = stockMovements.filter((m: any) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
-        .filter((m: any) => {
-          const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
+      const outs = stockMovements.filter((m) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
+        .filter((m) => {
+          const match = m.desc?.match(/เอกสารเลขที่\s*(\S+)/);
           return match && match[1] === receipt.receipt_no;
         });
-      const cogs = outs.reduce((sum: number, m: any) => {
-        const qty = parseFloat(m.qty);
-        const avgCost = parseFloat(m.balanceAvgCost);
+      const cogs = outs.reduce((sum, m) => {
+        const qty = parseFloat(m.qty ?? '0');
+        const avgCost = parseFloat(m.balanceAvgCost ?? '0');
         if (!isNaN(qty) && !isNaN(avgCost)) {
           return sum + qty * avgCost;
         }
@@ -228,14 +205,14 @@ export async function GET(req: NextRequest) {
     // Patch: inject weighted avg COGS for sales
     let accs2 = getAccountsForReceipt(receipt, accounts);
     if (isSaleType(receipt.type) && receipt.receipt_no && stockMovements.length > 0) {
-      const outs = stockMovements.filter((m: any) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
-        .filter((m: any) => {
-          const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
+      const outs = stockMovements.filter((m) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
+        .filter((m) => {
+          const match = m.desc?.match(/เอกสารเลขที่\s*(\S+)/);
           return match && match[1] === receipt.receipt_no;
         });
-      const cogs = outs.reduce((sum: number, m: any) => {
-        const qty = parseFloat(m.qty);
-        const avgCost = parseFloat(m.balanceAvgCost);
+      const cogs = outs.reduce((sum, m) => {
+        const qty = parseFloat(m.qty ?? '0');
+        const avgCost = parseFloat(m.balanceAvgCost ?? '0');
         if (!isNaN(qty) && !isNaN(avgCost)) {
           return sum + qty * avgCost;
         }
@@ -252,7 +229,7 @@ export async function GET(req: NextRequest) {
       ledger[acc.accountNumber].entries.push({
         date: receipt.date,
         description: acc.accountNumber === "5000" || acc.accountNumber === "1100" ? "ต้นทุนทองที่ขาย" : receipt.notes,
-        reference: receipt.receipt_no,
+        reference: receipt.receipt_no || '',
         debit: acc.debit,
         credit: acc.credit,
         runningBalance: 0

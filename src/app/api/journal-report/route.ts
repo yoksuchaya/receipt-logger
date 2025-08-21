@@ -1,23 +1,9 @@
+import type { StockMovement } from "@/types/StockMovement";
 import { isSaleType, isPurchaseType, isCapitalType } from "@/components/utils/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-
-// Types
-// (Repeat the types from JournalReport for backend use)
-type Receipt = {
-  date: string;
-  grand_total: string;
-  vat: string;
-  vendor: string;
-  buyer_name: string;
-  category: string;
-  payment_type: "cash" | "transfer";
-  notes: string;
-  vendor_tax_id?: string;
-  buyer_tax_id?: string;
-  [key: string]: any;
-};
+import type { Receipt } from "@/types/Receipt";
 
 type Account = {
   accountNumber: string;
@@ -75,7 +61,7 @@ export async function GET(req: NextRequest) {
     // Fetch COGS from stock-movement API for the current month
     // We'll use the same month/year as the filter
     // Fetch stock-movement rows for the month for COGS calculation
-    let stockMovements: any[] = [];
+  let stockMovements: StockMovement[] = [];
     if (month && year) {
       const stockMovementUrl = `${req.nextUrl.origin}/api/stock-movement?month=${month}&year=${year}`;
       const res = await fetch(stockMovementUrl);
@@ -160,15 +146,15 @@ export async function GET(req: NextRequest) {
         let cost = 0;
         if (receipt.receipt_no && stockMovements.length > 0) {
           // Find all 'out' movements for this receipt_no
-          const outs = stockMovements.filter((m: any) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
-            .filter((m: any) => {
-              const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
+          const outs = stockMovements.filter((m) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
+            .filter((m) => {
+              const match = m.desc?.match(/เอกสารเลขที่\s*(\S+)/);
               return match && match[1] === receipt.receipt_no;
             });
           // For each, use qty * balanceAvgCost (both as numbers)
-          cost = outs.reduce((sum: number, m: any) => {
-            const qty = parseFloat(m.qty);
-            const avgCost = parseFloat(m.balanceAvgCost);
+          cost = outs.reduce((sum, m) => {
+            const qty = parseFloat(m.qty ?? '0');
+            const avgCost = parseFloat(m.balanceAvgCost ?? '0');
             if (!isNaN(qty) && !isNaN(avgCost)) {
               return sum + qty * avgCost;
             }
