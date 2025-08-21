@@ -160,7 +160,7 @@ const ReceiptLogList: React.FC = () => {
         )}
       </div>
       {filteredLogs.length === 0 ? (
-        <div className="text-gray-600">ไม่มีใบเสร็จที่อัพโหลด</div>
+        <div className="text-gray-600">ไม่มีเอกสารหลักฐานการเงิน</div>
       ) : (
         <div className="w-full max-w-full overflow-x-auto">
           <table className="min-w-full text-xs md:text-sm border border-gray-300 dark:border-neutral-700">
@@ -179,6 +179,7 @@ const ReceiptLogList: React.FC = () => {
                 let typeLabel = '-';
                 if (log.type === 'sale') typeLabel = 'ขาย';
                 else if (log.type === 'purchase') typeLabel = 'ซื้อ';
+                else if (log.type === 'capital') typeLabel = 'เงินลงทุน';
                 return (
                   <tr key={i} className="border-t border-gray-200 dark:border-neutral-700">
                     <td className="px-3 py-2">{log.date ? log.date : '-'}</td>

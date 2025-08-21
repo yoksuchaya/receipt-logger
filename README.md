@@ -62,12 +62,12 @@ GET /api/account-chart
 
 ---
 
-### 2. `/api/receipt` (POST)
+### 2. `/api/receipt-reader` (POST)
 Uploads a receipt image (photo or PDF) and extracts structured data using OCR and LLMs. Accepts `multipart/form-data` or JSON with base64 image.
 
 **Example:**
 ```http
-POST /api/receipt
+POST /api/receipt-reader
 Content-Type: multipart/form-data | application/json
 ```
 

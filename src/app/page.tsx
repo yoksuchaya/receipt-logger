@@ -17,7 +17,7 @@ import MobileCloseButton from "@/components/layout/MobileCloseButton";
 
 type MenuKey =
   | 'upload-receipt'
-  | 'receipt-list'
+  | 'financial-doc-list'
   | 'issue-document'
   | 'stock-overview'
   | 'stock-movement'
@@ -63,8 +63,8 @@ export default function Home() {
             />
             <h2 className="text-2xl font-semibold mb-4 text-center text-gray-900 dark:text-white">
               {selectedMenu === 'upload-receipt' && 'อัพโหลดใบเสร็จ'}
-              {selectedMenu === 'receipt-list' && 'รายการใบเสร็จ'}
-              {selectedMenu === 'issue-document' && 'ออกเอกสาร'}
+              {selectedMenu === 'financial-doc-list' && 'รายการหลักฐานการเงิน'}
+              {selectedMenu === 'issue-document' && 'ออกเอกสารหลักฐานการเงิน'}
               {selectedMenu === 'stock-overview' && 'ภาพรวมสต็อก'}
               {selectedMenu === 'stock-movement' && 'ความเคลื่อนไหวสต็อก'}
               {selectedMenu === 'journal' && 'สมุดรายวันทั่วไป'}
@@ -77,7 +77,7 @@ export default function Home() {
           </div>
           <div className="flex-1 w-full flex flex-col items-center justify-start px-4 pb-8 overflow-auto">
             {selectedMenu === 'upload-receipt' && <ReceiptLogger />}
-            {selectedMenu === 'receipt-list' && <ReceiptLogList key={resetList} />}
+            {selectedMenu === 'financial-doc-list' && <ReceiptLogList key={resetList} />}
             {selectedMenu === 'issue-document' && (
               <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
                 <p>ยังไม่มีหน้าออกเอกสารในระบบ</p>

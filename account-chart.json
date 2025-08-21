@@ -52,5 +52,11 @@
     "accountName": "ต้นทุนขาย",
     "note": "ต้นทุนสินค้าที่ขาย",
     "type": "expense"
+  },
+  {
+    "accountNumber": "3000",
+    "accountName": "เงินลงทุนผู้ถือหุ้น",
+    "note": "เงินลงทุนจากผู้ถือหุ้น",
+    "type": "equity"
   }
 ]

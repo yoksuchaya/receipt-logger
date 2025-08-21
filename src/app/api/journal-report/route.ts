@@ -88,6 +88,7 @@ export async function GET(req: NextRequest) {
     for (const receipt of receipts) {
       const sale = receipt.type === 'sale';
       const purchase = receipt.type === 'purchase';
+      const capital = receipt.type === 'capital';
       const grandTotal = parseFloat(receipt.grand_total);
       const vat = parseFloat(receipt.vat);
       const net = grandTotal - vat;
@@ -123,7 +124,7 @@ export async function GET(req: NextRequest) {
           debit: 0,
           credit: grandTotal,
         });
-      } else if (sale) {
+  } else if (sale) {
         // Debit เงินสดในร้าน (1000) or เงินฝากธนาคาร (1010) with grand_total
         const paymentAcc = accounts.find((a) => a.accountNumber === (receipt.payment_type === "cash" ? "1000" : "1010")) || { accountNumber: receipt.payment_type === "cash" ? "1000" : "1010", accountName: "Unknown", note: "" };
         entries.push({
@@ -158,7 +159,7 @@ export async function GET(req: NextRequest) {
         let cost = 0;
         if (receipt.receipt_no && stockMovements.length > 0) {
           // Find all 'out' movements for this receipt_no
-          const outs = stockMovements.filter((m: any) => m.type === 'out' && m.desc && m.desc.includes('เอกสารเลขที่'))
+          const outs = stockMovements.filter((m: any) => m.type === 'sale' && m.desc && m.desc.includes('เอกสารเลขที่'))
             .filter((m: any) => {
               const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
               return match && match[1] === receipt.receipt_no;
@@ -195,6 +196,26 @@ export async function GET(req: NextRequest) {
             credit: cost,
           });
         }
+      } else if (capital) {
+        // Capital injection: Debit เงินฝากธนาคาร (1010), Credit เงินลงทุนผู้ถือหุ้น (3000)
+        const bank = accounts.find((a) => a.accountNumber === "1010") || { accountNumber: "1010", accountName: "Unknown", note: "" };
+        const equity = accounts.find((a) => a.accountNumber === "3000") || { accountNumber: "3000", accountName: "Unknown", note: "" };
+        entries.push({
+          date: receipt.date,
+          description,
+          accountNumber: bank.accountNumber,
+          accountName: bank.accountName,
+          debit: grandTotal,
+          credit: 0,
+        });
+        entries.push({
+          date: receipt.date,
+          description,
+          accountNumber: equity.accountNumber,
+          accountName: equity.accountName,
+          debit: 0,
+          credit: grandTotal,
+        });
       }
     }
     // Sort by date ascending

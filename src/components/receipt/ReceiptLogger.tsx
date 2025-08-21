@@ -153,7 +153,7 @@ export default function ReceiptLogger() {
       }
       const formData = new FormData();
       formData.append("file", origFile);
-      const apiRes = await fetch("/api/receipt", {
+      const apiRes = await fetch("/api/receipt-reader", {
         method: "POST",
         body: formData,
       });

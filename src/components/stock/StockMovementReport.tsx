@@ -57,8 +57,8 @@ export default function StockMovementReport() {
   }, [month, year]);
 
   // Calculate summary values
-  const totalIn = rows.filter(r => r.type === 'in').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
-  const totalOut = rows.filter(r => r.type === 'out').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
+  const totalIn = rows.filter(r => r.type === 'purchase').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
+  const totalOut = rows.filter(r => r.type === 'sale').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
   // Find last row for ending balance
   const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
   const endingValue = lastRow ? (typeof lastRow.balanceTotal === 'number' ? lastRow.balanceTotal : parseFloat(lastRow.balanceTotal || 0)) : 0;
@@ -76,8 +76,8 @@ export default function StockMovementReport() {
     typeGroups[type].push(row);
   });
   const typeSummaries = Object.entries(typeGroups).map(([type, groupRows]) => {
-    const totalIn = groupRows.filter(r => r.type === 'in').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
-    const totalOut = groupRows.filter(r => r.type === 'out').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
+    const totalIn = groupRows.filter(r => r.type === 'purchase').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
+    const totalOut = groupRows.filter(r => r.type === 'sale').reduce((sum, r) => sum + (typeof r.total === 'number' ? r.total : parseFloat(r.total || 0)), 0);
     const lastRow = groupRows.length > 0 ? groupRows[groupRows.length - 1] : null;
     const endingValue = lastRow ? (typeof lastRow.balanceTotal === 'number' ? lastRow.balanceTotal : parseFloat(lastRow.balanceTotal || 0)) : 0;
     const endingAvgCost = lastRow ? (typeof lastRow.balanceAvgCost === 'number' ? lastRow.balanceAvgCost : parseFloat(lastRow.balanceAvgCost || 0)) : 0;
@@ -122,7 +122,7 @@ export default function StockMovementReport() {
                     <tr key={i}>
                       <td className="border px-2 py-1 whitespace-nowrap">{row.date}</td>
                       <td className="border px-2 py-1">{row.product}</td>
-                      <td className="border px-2 py-1">{row.type === 'in' ? 'ซื้อ' : row.type === 'out' ? 'ขาย' : row.type === 'opening' ? 'ยกมา' : row.type}</td>
+                      <td className="border px-2 py-1">{row.type === 'purchase' ? 'ซื้อ' : row.type === 'sale' ? 'ขาย' : row.type === 'opening' ? 'ยกมา' : row.type}</td>
                       <td className="border px-2 py-1 text-right">{formatMoney(row.qty, "-")}</td>
                       <td className="border px-2 py-1 text-right">{formatMoney(row.unitCost, "-")}</td>
                       <td className="border px-2 py-1 text-right">{formatMoney(row.total, "-")}</td>

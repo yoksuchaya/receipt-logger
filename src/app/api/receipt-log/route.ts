@@ -106,12 +106,7 @@ export async function GET(req: NextRequest) {
     });
     // Add type: 'sale' | 'purchase' | undefined
     let receiptsWithType = receipts.map((r) => {
-      let typeValue: 'sale' | 'purchase' | undefined = undefined;
-      if (isSale(r)) {
-        typeValue = 'sale';
-      } else if (isPurchase(r)) {
-        typeValue = 'purchase';
-      }
+      let typeValue = r.type as 'sale' | 'purchase' | undefined;
       return { ...r, type: typeValue };
     });
     // Filter by type if provided

@@ -76,9 +76,10 @@ function findAccountNumber(accounts: Account[], keyword: string): string | undef
 function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
   const amount = Number(receipt.grand_total);
   const vatAmount = Number(receipt.vat || 0);
-  // Use the same logic as receipt-log API for purchase/sale
+  // Use the same logic as receipts API for purchase/sale/capital
   const sale = receipt.type === 'sale';
   const purchase = receipt.type === 'purchase';
+  const capital = receipt.type === 'capital';
 
   // Find relevant accounts
   const accStock = findAccountNumber(accounts, 'สต๊อกทอง');
@@ -88,6 +89,7 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
   const accVatInput = findAccountNumber(accounts, 'VAT Input');
   const accVatOutput = findAccountNumber(accounts, 'VAT Output');
   const accCOGS = findAccountNumber(accounts, 'ต้นทุนขาย'); // COGS (Cost of Goods Sold)
+  const accEquity = findAccountNumber(accounts, 'เงินลงทุนผู้ถือหุ้น');
 
   const entries: { accountNumber: string; debit: number; credit: number }[] = [];
 
@@ -121,6 +123,10 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
       entries.push({ accountNumber: accCOGS, debit: -1, credit: 0 }); // -1 means to be filled in GET
       entries.push({ accountNumber: accStock, debit: 0, credit: -1 });
     }
+  } else if (capital && accBank && accEquity) {
+    // Capital injection: Debit เงินฝากธนาคาร (1010), Credit เงินลงทุนผู้ถือหุ้น (3000)
+    entries.push({ accountNumber: accBank, debit: amount, credit: 0 });
+    entries.push({ accountNumber: accEquity, debit: 0, credit: amount });
   }
   // You can add more logic for other types if needed
   return entries;
@@ -184,7 +190,7 @@ export async function GET(req: NextRequest) {
     // Patch: inject weighted avg COGS for sales
     let accs = getAccountsForReceipt(receipt, accounts);
     if (receipt.type === 'sale' && receipt.receipt_no && stockMovements.length > 0) {
-      const outs = stockMovements.filter((m: any) => m.type === 'out' && m.desc && m.desc.includes('เอกสารเลขที่'))
+  const outs = stockMovements.filter((m: any) => m.type === 'sale' && m.desc && m.desc.includes('เอกสารเลขที่'))
         .filter((m: any) => {
           const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
           return match && match[1] === receipt.receipt_no;
@@ -206,7 +212,7 @@ export async function GET(req: NextRequest) {
     for (const acc of accs) {
       if (!ledger[acc.accountNumber]) continue;
       const accType = accountMap[acc.accountNumber]?.type;
-      if (accType === 'liability' || accType === 'revenue') {
+      if (accType === 'liability' || accType === 'revenue' || accType === 'equity') {
         ledger[acc.accountNumber].openingBalance += acc.credit - acc.debit;
       } else {
         ledger[acc.accountNumber].openingBalance += acc.debit - acc.credit;
@@ -221,7 +227,7 @@ export async function GET(req: NextRequest) {
     // Patch: inject weighted avg COGS for sales
     let accs2 = getAccountsForReceipt(receipt, accounts);
     if (receipt.type === 'sale' && receipt.receipt_no && stockMovements.length > 0) {
-      const outs = stockMovements.filter((m: any) => m.type === 'out' && m.desc && m.desc.includes('เอกสารเลขที่'))
+  const outs = stockMovements.filter((m: any) => m.type === 'sale' && m.desc && m.desc.includes('เอกสารเลขที่'))
         .filter((m: any) => {
           const match = m.desc.match(/เอกสารเลขที่\s*(\S+)/);
           return match && match[1] === receipt.receipt_no;
@@ -259,7 +265,7 @@ export async function GET(req: NextRequest) {
     const accType = accountMap[accNum]?.type;
     ledger[accNum].entries.sort((a, b) => a.date.localeCompare(b.date));
     for (const entry of ledger[accNum].entries) {
-      if (accType === 'liability' || accType === 'revenue') {
+      if (accType === 'liability' || accType === 'revenue' || accType === 'equity') {
         bal += entry.credit - entry.debit;
       } else {
         // asset, expense, or unknown (default to debit-credit)

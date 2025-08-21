@@ -27,8 +27,8 @@ interface SidebarMenuProps {
 
 const menuGroups = [
   {
-    key: 'receipts',
-    label: 'ใบเสร็จ (Receipts)',
+    key: 'financial-docs',
+    label: 'หลักฐานการเงิน',
     icon: DocumentTextIcon,
     items: [
       {
@@ -37,13 +37,13 @@ const menuGroups = [
         icon: ArrowUpTrayIcon,
       },
       {
-        key: 'receipt-list',
-        label: 'รายการใบเสร็จ (Receipt List)',
+        key: 'financial-doc-list',
+        label: 'รายการหลักฐานการเงิน',
         icon: ListBulletIcon,
       },
       {
         key: 'issue-document',
-        label: 'ออกเอกสาร',
+        label: 'ออกเอกสารหลักฐานการเงิน',
         icon: DocumentTextIcon,
       },
     ],
