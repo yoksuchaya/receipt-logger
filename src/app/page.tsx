@@ -80,8 +80,8 @@ export default function Home() {
             {selectedMenu === 'stock-movement' && <StockMovementReport />}
             {selectedMenu === 'journal' && <JournalReport key={resetList} onBack={() => {}} />}
             {selectedMenu === 'ledger' && <LedgerReportContainer key={resetList} onBack={() => {}} />}
-            {selectedMenu === 'vat-purchase' && <VatReport key={resetList} />}
-            {selectedMenu === 'vat-sales' && <VatReport key={resetList} />}
+            {selectedMenu === 'vat-purchase' && <VatReport key={resetList} type="purchase" />}
+            {selectedMenu === 'vat-sales' && <VatReport key={resetList} type="sale" />}
           </div>
         </div>
       </main>

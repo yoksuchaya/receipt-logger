@@ -16,7 +16,7 @@ const ReceiptBreadcrumb: React.FC<ReceiptBreadcrumbProps> = ({ edit, onBack, onE
           onClick={onBack}
         >
           <ArrowLeftIcon className="w-4 h-4 mr-1" />
-          รายการใบเสร็จที่อัพโหลด
+          รายการใบเสร็จ
         </button>
       </li>
       <li>

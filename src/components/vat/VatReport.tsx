@@ -7,11 +7,15 @@ import VatSaleReportTable from "./VatSaleReportTable";
 import VatPurchaseReportTable from "./VatPurchaseReportTable";
 import ReceiptDetail from "../receipt/ReceiptDetail";
 import ReceiptEditForm, { type ReceiptEditFormData } from "../receipt/ReceiptEditForm";
-import ReceiptBreadcrumb from "../receipt/ReceiptBreadcrumb";
 import PrintWrapper from "../layout/PrintWrapper";
 
-export default function VatReport() {
-  const [selected, setSelected] = useState<'purchase' | 'sale' | null>(null);
+interface VatReportProps {
+  type: 'purchase' | 'sale';
+}
+
+export default function VatReport({ type }: VatReportProps) {
+  // Remove menu selection state
+  // const [selected, setSelected] = useState<'purchase' | 'sale' | null>(null);
   const [selectedRow, setSelectedRow] = useState<any | null>(null);
   const [edit, setEdit] = useState(false);
   const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
@@ -49,7 +53,7 @@ export default function VatReport() {
   // Month/year options are now handled by VatReportHeader
 
   useEffect(() => {
-    if (selected === 'sale') {
+    if (type === 'sale') {
       setLoading(true);
       setError("");
       fetch(`/api/vat-sale-report?month=${month}&year=${year}`)
@@ -65,7 +69,7 @@ export default function VatReport() {
           setError(err.message || "เกิดข้อผิดพลาดในการดึงข้อมูล");
           setLoading(false);
         });
-    } else if (selected === 'purchase') {
+    } else if (type === 'purchase') {
       setLoading(true);
       setError("");
       fetch(`/api/vat-purchase-report?month=${month}&year=${year}`)
@@ -82,7 +86,7 @@ export default function VatReport() {
           setLoading(false);
         });
     }
-  }, [selected, month, year]);
+  }, [type, month, year]);
 
   // --- Sale report sums ---
   const filtered = salesData;
@@ -97,20 +101,14 @@ export default function VatReport() {
   const sumTotalPurchase = filteredPurchase.reduce((sum, r) => sum + Number(r.grand_total), 0);
 
 
-  if (selected === 'sale') {
+  if (type === 'sale') {
     if (selectedRow) {
       return (
         <div className="w-full max-w-full">
           <VatBreadcrumb
-            type={selected}
+            type={type}
             edit={edit}
             onBack={() => { setSelectedRow(null); setEdit(false); }}
-            onRoot={() => {
-              setEdit(false);
-              setSelectedRow(null);
-              setEditForm({} as ReceiptEditFormData);
-              setSelected(null);
-            }}
           />
           <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
             {edit ? (
@@ -141,19 +139,8 @@ export default function VatReport() {
     }
     return (
       <div className="w-full max-w-full">
-        <VatBreadcrumb
-          type="sale"
-          onBack={() => setSelected(null)}
-          onRoot={() => {
-            setEdit(false);
-            setSelectedRow(null);
-            setEditForm({} as ReceiptEditFormData);
-            setSelected(null);
-          }}
-        />
-        <h2 className="text-xl font-bold mb-4">รายงานภาษีขาย</h2>
         <PrintWrapper printLabel="รายงานภาษีขาย" printButtonLabel="พิมพ์รายงานภาษีขาย">
-          <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
+          <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
             <div className="w-full vat-header">
               <VatReportHeader
                 month={month}
@@ -194,15 +181,14 @@ export default function VatReport() {
     );
   }
 
-  if (selected === 'purchase') {
+  if (type === 'purchase') {
     if (selectedRow) {
       return (
         <div className="w-full max-w-full">
           <VatBreadcrumb
-            type={selected}
+            type={type}
             edit={edit}
             onBack={() => { setSelectedRow(null); setEdit(false); }}
-            onRoot={() => { setSelected(null); setSelectedRow(null); setEdit(false); }}
           />
           <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
             {edit ? (
@@ -231,29 +217,10 @@ export default function VatReport() {
         </div>
       );
     }
-  // const company = {
-  //   name: "ชื่อบริษัท",
-  //   address: "[ที่อยู่บริษัท]",
-  //   taxId: "[เลขผู้เสียภาษี]"
-  // };
-  // const monthLabel = monthOptions.find((m) => m.value === month)?.label || month;
-  // const today = new Date();
-  // const printDate = today.toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" });
     return (
       <div className="w-full max-w-full">
-        <VatBreadcrumb
-          type="purchase"
-          onBack={() => setSelected(null)}
-          onRoot={() => {
-            setEdit(false);
-            setSelectedRow(null);
-            setEditForm({} as ReceiptEditFormData);
-            setSelected(null);
-          }}
-        />
-        <h2 className="text-xl font-bold mb-4">รายงานภาษีซื้อ</h2>
         <PrintWrapper printLabel="รายงานภาษีซื้อ" printButtonLabel="พิมพ์รายงานภาษีซื้อ">
-          <div className="mt-8 bg-white dark:bg-neutral-900 p-6 rounded-lg border border-gray-200 dark:border-neutral-700 shadow w-full max-w-full">
+          <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
             <div className="w-full vat-header">
               <VatReportHeader
                 month={month}
@@ -295,27 +262,6 @@ export default function VatReport() {
     );
   }
 
-  // Menu selection
-  return (
-    <div className="w-full">
-      <ul className="space-y-4 mb-4">
-        <li>
-          <button
-            className="block w-full text-left p-4 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-lg border border-blue-200 dark:bg-neutral-800 dark:text-blue-300 dark:hover:bg-neutral-700 dark:border-neutral-700 transition"
-            onClick={() => setSelected('purchase')}
-          >
-            รายงานภาษีซื้อ
-          </button>
-        </li>
-        <li>
-          <button
-            className="block w-full text-left p-4 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 font-semibold text-lg border border-green-200 dark:bg-neutral-800 dark:text-green-300 dark:hover:bg-neutral-700 dark:border-neutral-700 transition"
-            onClick={() => setSelected('sale')}
-          >
-            รายงานภาษีขาย
-          </button>
-        </li>
-      </ul>
-    </div>
-  );
+  // No menu selection UI
+  return null;
 }

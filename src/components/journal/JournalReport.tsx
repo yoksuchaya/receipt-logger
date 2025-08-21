@@ -1,7 +1,6 @@
 
 
 import React, { useEffect, useState } from "react";
-import AccountBreadcrumb from "../account/AccountBreadcrumb";
 import VatReportHeader from "../vat/VatReportHeader";
 import PrintWrapper from "../layout/PrintWrapper";
 import { formatMoney } from "../utils/utils";
@@ -65,7 +64,6 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
 
   return (
     <div className="w-full">
-      <AccountBreadcrumb onBack={onBack} onRoot={onBack} current="สมุดรายวันทั่วไป" />
       <PrintWrapper printLabel="สมุดรายวันทั่วไป" printButtonLabel="พิมพ์สมุดรายวันทั่วไป">
         <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-full">
           <VatReportHeader
