@@ -98,7 +98,7 @@ const ReceiptLogList: React.FC = () => {
           onEdit={() => setEdit(false)}
         />
         <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
-          <h3 className="text-lg font-bold mb-4">{edit ? 'แก้ไขใบเสร็จ' : 'รายละเอียดใบเสร็จ'}</h3>
+          <h3 className="text-lg font-bold mb-4">{edit ? 'แก้ไขเอกสาร' : 'รายละเอียดเอกสาร'}</h3>
           {edit ? (
             <ReceiptEditForm
               editForm={editForm}
@@ -144,15 +144,16 @@ const ReceiptLogList: React.FC = () => {
           <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="rounded border px-2 py-1 text-sm" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ประเภทใบเสร็จ</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ประเภทเอกสาร</label>
           <select
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value as 'all' | 'sale' | 'purchase')}
             className="rounded border px-2 py-1 text-sm"
           >
             <option value="all">ทั้งหมด</option>
-            <option value="sale">ขาย (ออกใบกำกับ)</option>
-            <option value="purchase">ซื้อ (รับใบกำกับ)</option>
+            <option value="sale">ขาย</option>
+            <option value="purchase">ซื้อ</option>
+            <option value="capital">เงินลงทุน</option>
           </select>
         </div>
         {(fromDate || toDate || typeFilter !== 'all') && (
@@ -160,7 +161,7 @@ const ReceiptLogList: React.FC = () => {
         )}
       </div>
       {filteredLogs.length === 0 ? (
-        <div className="text-gray-600">ไม่มีเอกสารหลักฐานการเงิน</div>
+        <div className="text-gray-600">ไม่มีเอกสาร</div>
       ) : (
         <div className="w-full max-w-full overflow-x-auto">
           <table className="min-w-full text-xs md:text-sm border border-gray-300 dark:border-neutral-700">
@@ -168,7 +169,7 @@ const ReceiptLogList: React.FC = () => {
               <tr>
                 <th className="px-3 py-2 text-left">วันที่</th>
                 <th className="px-3 py-2 text-left">ประเภท</th>
-                <th className="px-3 py-2 text-left">หมายเลขใบเสร็จ</th>
+                <th className="px-3 py-2 text-left">หมายเลขเอกสาร</th>
                 <th className="px-3 py-2 text-left">ยอดรวม</th>
                 <th className="px-3 py-2 text-left">หมายเหตุ</th>
                 <th className="px-3 py-2 text-left">Actions</th>

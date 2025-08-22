@@ -63,8 +63,8 @@ export default function Home() {
             />
             <h2 className="text-2xl font-semibold mb-4 text-center text-gray-900 dark:text-white">
               {selectedMenu === 'upload-receipt' && 'อัพโหลดใบเสร็จ'}
-              {selectedMenu === 'financial-doc-list' && 'รายการหลักฐานการเงิน'}
-              {selectedMenu === 'issue-document' && 'ออกเอกสารหลักฐานการเงิน'}
+              {selectedMenu === 'financial-doc-list' && 'รายการเอกสาร'}
+              {selectedMenu === 'issue-document' && 'ออกเอกสาร'}
               {selectedMenu === 'stock-overview' && 'ภาพรวมสต็อก'}
               {selectedMenu === 'stock-movement' && 'ความเคลื่อนไหวสต็อก'}
               {selectedMenu === 'journal' && 'สมุดรายวันทั่วไป'}

@@ -28,7 +28,7 @@ interface SidebarMenuProps {
 const menuGroups = [
   {
     key: 'financial-docs',
-    label: 'หลักฐานการเงิน',
+    label: 'เอกสาร',
     icon: DocumentTextIcon,
     items: [
       {
@@ -38,12 +38,12 @@ const menuGroups = [
       },
       {
         key: 'financial-doc-list',
-        label: 'รายการหลักฐานการเงิน',
+        label: 'รายการเอกสาร',
         icon: ListBulletIcon,
       },
       {
         key: 'issue-document',
-        label: 'ออกเอกสารหลักฐานการเงิน',
+        label: 'ออกเอกสาร',
         icon: DocumentTextIcon,
       },
     ],

@@ -309,9 +309,9 @@ export default function ReceiptLogger() {
 
   const formSections: FormSection[] = [
     {
-      title: "ข้อมูลใบเสร็จ",
+      title: "ข้อมูลเอกสาร",
       fields: [
-        { name: "receipt_no", label: "เลขที่ใบเสร็จ", type: "text", required: false },
+        { name: "receipt_no", label: "เลขที่เอกสาร", type: "text", required: false },
         { name: "date", label: "วันที่", type: "date", required: true },
         { name: "category", label: "ประเภทสินค้า/บริการ", type: "text", required: false },
       ],

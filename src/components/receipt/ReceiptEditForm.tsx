@@ -97,7 +97,7 @@ const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ editForm, setEditForm
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Receipt Info */}
         <div className="sm:col-span-1 flex flex-col">
-          <label className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">เลขที่ใบเสร็จ</label>
+          <label className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">เลขที่เอกสาร</label>
           <input
             type="text"
             name="receipt_no"

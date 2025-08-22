@@ -52,11 +52,11 @@ const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelet
 
       {/* Receipt Details */}
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">รายละเอียดใบเสร็จ</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">รายละเอียดเอกสาร</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Receipt Info */}
           <div className="sm:col-span-1 flex flex-col">
-            <span className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">เลขที่ใบเสร็จ:</span>
+            <span className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">เลขที่เอกสาร:</span>
             <span className="text-gray-900 dark:text-white text-sm break-words">{selected.receipt_no || '-'}</span>
           </div>
           <div className="sm:col-span-1 flex flex-col">
