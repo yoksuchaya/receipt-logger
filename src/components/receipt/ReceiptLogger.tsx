@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import ReceiptPreview from "./ReceiptPreview";
-import { formatMoney } from "../utils/utils";
+import { formatMoney, isSale, isPurchase } from "../utils/utils";
 
 type PaymentMap = {
   cash?: string;
@@ -52,6 +52,7 @@ type FormSection = {
 };
 
 export default function ReceiptLogger() {
+  // ...existing code...
   const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -70,15 +71,29 @@ export default function ReceiptLogger() {
     buyer_tax_id: "",
     products: [],
   });
+  // Helper: determine if the receipt is purchase, sale, or capital type using utils
+  const purchaseType = isPurchase(form);
+  const saleType = isSale(form);
+  const capitalType = form.category?.toLowerCase().includes('ทุน');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [apiResult, setApiResult] = useState<ApiResult>(null);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiReading, setApiReading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [invalidFields, setInvalidFields] = useState<{ [key: string]: boolean }>({});
+
+  React.useEffect(() => {
+    if (apiError) {
+      setShowToast(true);
+      const timer = setTimeout(() => setShowToast(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [apiError]);
 
   // Just preview the original image, do not scan
-  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) { 
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const fileObj = e.target.files?.[0];
     if (!fileObj) return;
     const isImage = fileObj.type.startsWith("image/");
@@ -96,7 +111,7 @@ export default function ReceiptLogger() {
       setImage(null);
       return;
     }
-  
+
     setFile(fileObj);
     setApiResult(null);
     setApiError(null);
@@ -183,12 +198,12 @@ export default function ReceiptLogger() {
           buyer_tax_id: (data.buyer_tax_id as string) || prev.buyer_tax_id,
           products: Array.isArray(data.products)
             ? (data.products as Product[]).map((p) => ({
-                name: String(p.name ?? ""),
-                weight: String(p.weight ?? ""),
-                quantity: String(p.quantity ?? ""),
-                pricePerItem: String(p.pricePerItem ?? ""),
-                price: String(p.price ?? ""),
-              }))
+              name: String(p.name ?? ""),
+              weight: String(p.weight ?? ""),
+              quantity: String(p.quantity ?? ""),
+              pricePerItem: String(p.pricePerItem ?? ""),
+              price: String(p.price ?? ""),
+            }))
             : prev.products,
         }));
       }
@@ -203,7 +218,7 @@ export default function ReceiptLogger() {
     }
   }
 
-  function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     if (name.startsWith("payment.")) {
       const key = name.split(".")[1];
@@ -242,30 +257,67 @@ export default function ReceiptLogger() {
     }));
   }
 
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setApiResult(null);
     setApiError(null);
-    if (!file) {
-      setApiError("Please upload a receipt image.");
-      return;
-    }
+    const newInvalid: { [key: string]: boolean } = {};
 
-    // Validation: sum of product prices === grand_total
+    // Validation: required fields
+    if (!form.receipt_no) newInvalid.receipt_no = true;
+    if (!form.category) newInvalid.category = true;
+    if (!form.vendor) newInvalid.vendor = true;
+    if (!form.vendor_tax_id) newInvalid.vendor_tax_id = true;
+    if (!form.date) newInvalid.date = true;
+    // grand_total must not be empty, not NaN, and > 0
+    const grandTotal = parseFloat(form.grand_total);
+    if (!form.grand_total || isNaN(grandTotal) || grandTotal === 0) newInvalid.grand_total = true;
+    // vat must not be empty and must be a number
+    const vat = parseFloat(form.vat);
+    if (!form.vat || isNaN(vat)) newInvalid.vat = true;
+
+    // At least one product if purchaseType or saleType, but not for capitalType
+    if (!capitalType && (purchaseType || saleType) && (!form.products || form.products.length === 0)) {
+      newInvalid.products = true;
+    }
+    // Sum of product prices === grand_total, skip for capitalType
     const sumProduct = form.products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
-    const grandTotal = parseFloat(form.grand_total) || 0;
-    if (form.products.length > 0 && Math.abs(sumProduct - grandTotal) > 0.01) {
-      setApiError("ผลรวมราคารวมของสินค้าทั้งหมดไม่ตรงกับยอดรวมทั้งสิ้น");
-      return;
+    if (!capitalType && form.products.length > 0 && Math.abs(sumProduct - grandTotal) > 0.01) {
+      newInvalid.products = true;
+      form.products.forEach((p, idx) => {
+        newInvalid[`product_price_${idx}`] = true;
+      });
     }
-
-    // Validation: sum of payment types === grand_total
+    // Sum of payment types === grand_total
     const sumPayment = (["cash", "credit_card", "transfer"] as (keyof PaymentMap)[]).reduce(
       (sum, type) => sum + (parseFloat(form.payment[type] || "0") || 0),
       0
     );
-    if (Math.abs(sumPayment - grandTotal) > 0.01) {
-      setApiError("ผลรวมช่องทางการชำระเงินไม่ตรงกับยอดรวมทั้งสิ้น");
+    if (Math.abs(sumPayment - grandTotal) > 0.01) newInvalid.payment = true;
+    setInvalidFields(newInvalid);
+    if (Object.keys(newInvalid).length > 0) {
+      // Show the first error as toast, but also show inline errors
+      if (newInvalid.receipt_no) setApiError("กรุณากรอกเลขที่เอกสาร");
+      else if (newInvalid.category) setApiError("กรุณาเลือกประเภทสินค้า/บริการ");
+      else if (newInvalid.vendor) setApiError("กรุณากรอกชื่อผู้ขาย");
+      else if (newInvalid.vendor_tax_id) setApiError("กรุณากรอกเลขประจำตัวผู้เสียภาษีผู้ขาย");
+      else if (newInvalid.date) setApiError("กรุณาเลือกวันที่");
+      else if (newInvalid.grand_total) setApiError("กรุณากรอกยอดรวมทั้งสิ้นให้ถูกต้อง (ต้องไม่เป็นค่าว่างหรือ 0)");
+      else if (newInvalid.vat) setApiError("กรุณากรอก VAT ให้ถูกต้อง");
+      else if (newInvalid.products) {
+        if ((purchaseType || saleType) && (!form.products || form.products.length === 0)) {
+          setApiError("กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ");
+        } else {
+          setApiError("กรุณาตรวจสอบผลรวมราคารวมของสินค้าทั้งหมดให้ตรงกับยอดรวมทั้งสิ้น");
+        }
+      }
+      else if (newInvalid.payment) setApiError("ผลรวมช่องทางการชำระเงินไม่ตรงกับยอดรวมทั้งสิ้น");
+      return;
+    }
+
+    if (!file) {
+      setApiError("กรุณาอัปโหลดรูปถ่ายใบเสร็จ");
       return;
     }
 
@@ -304,6 +356,7 @@ export default function ReceiptLogger() {
       buyer_tax_id: "",
       products: [],
     });
+    setInvalidFields({});
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -397,11 +450,10 @@ export default function ReceiptLogger() {
                 <button
                   type="button"
                   onClick={() => apiResult && setShowPreview(true)}
-                  className={`flex-1 py-2 rounded-lg font-semibold text-base shadow focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${
-                    apiResult
+                  className={`flex-1 py-2 rounded-lg font-semibold text-base shadow focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${apiResult
                       ? "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-neutral-600"
                       : "bg-gray-100 dark:bg-neutral-800 text-gray-400 cursor-not-allowed"
-                  }`}
+                    }`}
                   disabled={!apiResult}
                 >
                   ดูข้อมูล JSON ดิบ
@@ -412,7 +464,15 @@ export default function ReceiptLogger() {
         </div>
         {/* Error + JSON Preview */}
         <div className="mb-4">
-          {apiError && <div className="text-red-600 font-medium">{apiError}</div>}
+          {/* Toast error message */}
+          {showToast && apiError && (
+            <div className="fixed top-6 right-6 z-50">
+              <div className="bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span className="font-medium">{apiError}</span>
+              </div>
+            </div>
+          )}
           {showPreview && apiResult && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" onClick={() => setShowPreview(false)}>
               <div className="absolute top-4 right-4">
@@ -437,6 +497,98 @@ export default function ReceiptLogger() {
           <div key={section.title + i} className={section.grid.includes("grid") ? `grid ${section.grid} gap-4` : section.grid}>
             {section.fields.map((field, j) => {
               const colSpan = field.colSpan ? `sm:col-span-${field.colSpan}` : "";
+              // Custom rendering for each field with inline error message
+              if (field.name === "date") {
+                return (
+                  <div key={field.name + j} className={colSpan}>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="date">
+                      {field.label}
+                    </label>
+                    <input
+                      id="date"
+                      name="date"
+                      value={form.date}
+                      onChange={handleFormChange}
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none ${invalidFields.date ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700 focus:ring-2 focus:ring-blue-500'}`}
+                      type="date"
+                    />
+                    {invalidFields.date && <div className="text-red-600 text-xs mt-1">กรุณาเลือกวันที่</div>}
+                  </div>
+                );
+              }
+              if (field.name === "category") {
+                return (
+                  <div key={field.name + j} className={colSpan}>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="category">
+                      {field.label}
+                    </label>
+                    <input
+                      id="category"
+                      name="category"
+                      value={form.category}
+                      onChange={handleFormChange}
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.category ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
+                      type="text"
+                    />
+                    {invalidFields.category && <div className="text-red-600 text-xs mt-1">กรุณาเลือกประเภทสินค้า/บริการ</div>}
+                  </div>
+                );
+              }
+              if (field.name === "receipt_no") {
+                return (
+                  <div key={field.name + j} className={colSpan}>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="receipt_no">
+                      {field.label}
+                    </label>
+                    <input
+                      id="receipt_no"
+                      name="receipt_no"
+                      value={form.receipt_no}
+                      onChange={handleFormChange}
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.receipt_no ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
+                      type="text"
+                    />
+                    {invalidFields.receipt_no && <div className="text-red-600 text-xs mt-1">กรุณากรอกเลขที่เอกสาร</div>}
+                  </div>
+                );
+              }
+              if (field.name === "vendor") {
+                return (
+                  <div key={field.name + j} className={colSpan}>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="vendor">
+                      {field.label}
+                    </label>
+                    <input
+                      id="vendor"
+                      name="vendor"
+                      value={form.vendor}
+                      onChange={handleFormChange}
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.vendor ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
+                      type="text"
+                    />
+                    {invalidFields.vendor && <div className="text-red-600 text-xs mt-1">กรุณากรอกชื่อผู้ขาย</div>}
+                  </div>
+                );
+              }
+              if (field.name === "vendor_tax_id") {
+                return (
+                  <div key={field.name + j} className={colSpan}>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="vendor_tax_id">
+                      {field.label}
+                    </label>
+                    <input
+                      id="vendor_tax_id"
+                      name="vendor_tax_id"
+                      value={form.vendor_tax_id}
+                      onChange={handleFormChange}
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.vendor_tax_id ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
+                      type="text"
+                    />
+                    {invalidFields.vendor_tax_id && <div className="text-red-600 text-xs mt-1">กรุณากรอกเลขประจำตัวผู้เสียภาษีผู้ขาย</div>}
+                  </div>
+                );
+              }
+              // ...existing code for other fields...
               return (
                 <div key={field.name + j} className={colSpan}>
                   <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor={field.name}>
@@ -448,8 +600,7 @@ export default function ReceiptLogger() {
                       name={field.name}
                       value={form[field.name] as string}
                       onChange={handleFormChange}
-                      required={field.required}
-                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields[field.name] ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
                       rows={2}
                     />
                   ) : field.name === "grand_total" || field.name === "vat" ? (
@@ -458,8 +609,7 @@ export default function ReceiptLogger() {
                       name={field.name}
                       value={form[field.name] as string}
                       onChange={handleFormChange}
-                      required={field.required}
-                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields[field.name] ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
                       type="number"
                       min={field.min}
                       step="any"
@@ -467,14 +617,14 @@ export default function ReceiptLogger() {
                       style={{ MozAppearance: 'textfield' }}
                       onWheel={e => (e.target as HTMLInputElement).blur()}
                     />
-                  ) : (
+                    ) : (
                     <input
                       id={field.name}
                       name={field.name}
                       value={form[field.name] as string}
                       onChange={handleFormChange}
                       required={field.required}
-                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields[field.name] ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
                       type={field.type}
                       min={field.min}
                     />
@@ -499,7 +649,7 @@ export default function ReceiptLogger() {
                       inputMode="decimal"
                       style={{ MozAppearance: 'textfield' }}
                       onWheel={e => (e.target as HTMLInputElement).blur()}
-                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.payment ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
                       value={form.payment[type] || ""}
                       onChange={handleFormChange}
                       placeholder="0.00"
@@ -595,7 +745,7 @@ export default function ReceiptLogger() {
                     name="price"
                     value={product.price}
                     onChange={e => handleProductChange(idx, e)}
-                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields[`product_price_${idx}`] ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
                     placeholder="ราคารวม"
                     min="0"
                     step="any"

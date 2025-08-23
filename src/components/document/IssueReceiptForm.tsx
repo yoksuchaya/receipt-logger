@@ -487,7 +487,7 @@ const IssueReceiptForm: React.FC = () => {
                 type="submit"
                 className="mt-4 w-full py-3 rounded-lg bg-blue-600 text-white font-semibold text-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             >
-                สร้างไฟล์ PDF
+                ออกเอกสาร
             </button>
         </form>
     );
