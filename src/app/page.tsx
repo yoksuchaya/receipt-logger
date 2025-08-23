@@ -13,6 +13,7 @@ import HamburgerButton from "@/components/layout/HamburgerButton";
 import SidebarMenu from "@/components/layout/SidebarMenu";
 import MenuOverlay from "@/components/layout/MenuOverlay";
 import MobileCloseButton from "@/components/layout/MobileCloseButton";
+import IssueDocumentMenu from "@/components/document/IssueDocumentMenu";
 
 
 type MenuKey =
@@ -79,8 +80,8 @@ export default function Home() {
             {selectedMenu === 'upload-receipt' && <ReceiptLogger />}
             {selectedMenu === 'financial-doc-list' && <ReceiptLogList key={resetList} />}
             {selectedMenu === 'issue-document' && (
-              <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
-                <p>ยังไม่มีหน้าออกเอกสารในระบบ</p>
+              <div className="w-full flex justify-center py-8">
+                <IssueDocumentMenu />
               </div>
             )}
             {selectedMenu === 'stock-overview' && (
