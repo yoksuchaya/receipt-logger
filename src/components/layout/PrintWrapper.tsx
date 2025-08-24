@@ -22,14 +22,14 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
     const printContents = printRef.current.innerHTML;
     const printWindow = window.open('', '', 'height=800,width=1200');
     if (!printWindow) return;
-        // Copy all <link rel="stylesheet"> and <style> from the current document head
-        const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-          .map(link => link.outerHTML)
-          .join('');
-        const styleTags = Array.from(document.querySelectorAll('style'))
-          .map(style => style.outerHTML)
-          .join('');
-        printWindow.document.write(`<html><head><title>${printLabel}</title>${stylesheets}${styleTags}`);
+    // Copy all <link rel="stylesheet"> and <style> from the current document head
+    const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .map(link => link.outerHTML)
+      .join('');
+    const styleTags = Array.from(document.querySelectorAll('style'))
+      .map(style => style.outerHTML)
+      .join('');
+    printWindow.document.write(`<html><head><title>${printLabel}</title>${stylesheets}${styleTags}`);
     printWindow.document.write(`
       <style>
         @media print {
@@ -58,7 +58,6 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
             font-size: 60% !important;
           }
           table, th, td {
-            border: 1px solid #333 !important;
             border-collapse: collapse !important;
           }
           th, td {
@@ -81,6 +80,28 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
           /* Ensure money columns align right and use monospace font in print */
           .text-right { text-align: right !important; }
           .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important; }
+          /* Remove overflow for print, so tables are not clipped */
+          .overflow-x-auto, .overflow-x-auto * {
+            overflow: visible !important;
+            box-shadow: none !important;
+            -webkit-overflow-scrolling: auto !important;
+          }
+          /* Page break for long tables */
+          table {
+            page-break-inside: auto !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+          }
+        }
+        /* Ensure images fit and are not cut off */
+        .print-scale img {
+          max-width: 100% !important;
+          height: auto !important;
+          display: block;
+          margin: 0 auto;
+          page-break-inside: avoid !important;
         }
         @page {
           size: A4;
@@ -92,9 +113,36 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
     printWindow.document.write(`<div class="print-scale">${printContents}</div>`);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+    printWindow.onload = () => {
+      const images = printWindow.document.images;
+      const doPrint = () => {
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 100);
+      };
+      if (images.length === 0) {
+        doPrint();
+        return;
+      }
+      let loaded = 0;
+      for (let img of images) {
+        if (img.complete) {
+          loaded++;
+        } else {
+          img.onload = img.onerror = () => {
+            loaded++;
+            if (loaded === images.length) {
+              doPrint();
+            }
+          };
+        }
+      }
+      if (loaded === images.length) {
+        doPrint();
+      }
+    };
   };
 
   return (

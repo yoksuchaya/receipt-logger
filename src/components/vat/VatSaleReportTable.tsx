@@ -30,7 +30,7 @@ const tdRight = td + " text-right";
 
 const VatSaleReportTable: React.FC<VatSaleReportTableProps> = ({ data, sumExVat, sumVat, sumTotal, onRowAction }) => {
     return (
-        <table className="min-w-full text-xs md:text-sm border border-gray-300 dark:border-neutral-700">
+        <table className="min-w-full text-xs md:text-sm">
             <thead>
                 <tr className="bg-gray-100 dark:bg-neutral-800">
                     <th className={th}>ลำดับที่</th>
@@ -80,7 +80,7 @@ const VatSaleReportTable: React.FC<VatSaleReportTableProps> = ({ data, sumExVat,
                     <td className={tdRight}>{formatMoney(sumVat)}</td>
                     <td className={tdRight}>{formatMoney(sumTotal)}</td>
                     <td className={td}></td>
-                    <td className={td}></td>
+                    <td className={td + " no-print"}></td>
                 </tr>
             </tfoot>
         </table>

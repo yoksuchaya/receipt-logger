@@ -31,7 +31,7 @@ export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTot
     return (
         <div className="w-full">
             <div className="overflow-x-auto">
-                <table className="min-w-[900px] w-full text-[14px] border border-gray-300">
+                <table className="min-w-[900px] w-full text-[14px]">
                     <thead>
                         <tr>
                             <th className={th}>ลำดับที่</th>
@@ -80,8 +80,8 @@ export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTot
                             <td className={tdRight + " font-bold"}>{formatMoney(sumAmount)}</td>
                             <td className={tdRight + " font-bold"}>{formatMoney(sumVat)}</td>
                             <td className={tdRight + " font-bold"}>{formatMoney(sumTotal)}</td>
-                            <td className={td + " no-print"}></td>
                             <td className={td}></td>
+                            <td className={td + " no-print"}></td>
                         </tr>
                     </tfoot>
                 </table>

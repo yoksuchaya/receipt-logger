@@ -15,6 +15,8 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
       .catch(() => setCompany(null));
   }, []);
 
+  // Calculate price before VAT once and reuse
+  const priceBeforeVat = Number((data.grand_total || (data.products || []).reduce((sum: number, p: any) => sum + Number(p.price || 0), 0)) - (Number(data.vat) || 0));
   return (
     <div className={`w-full max-w-2xl mx-auto bg-white dark:bg-neutral-900 my-4 ${className || ''}`}>
       <div className="flex flex-row justify-between items-start md:items-center border-b border-gray-200 dark:border-neutral-700 p-4 md:p-6 gap-4 w-full">
@@ -23,7 +25,7 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
           {company?.address && <div className="text-xs text-gray-500 dark:text-gray-400">{company.address}</div>}
           <div className="text-xs text-gray-500 dark:text-gray-400">เลขประจำตัวผู้เสียภาษีอากร: {company?.tax_id || '-'}</div>
         </div>
-        <div className="text-left md:text-right">
+        <div className="text-right">
           <div className="font-bold text-base md:text-lg text-gray-700 dark:text-gray-200">ใบเสร็จรับเงิน / ใบกำกับภาษี</div>
           <div className="text-xs text-gray-500 dark:text-gray-400">เลขที่ (No.): {data.receipt_no || '-'}</div>
         </div>
@@ -107,15 +109,29 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
             <table className="w-full text-xs">
               <tbody>
                 <tr>
-                  <td className="label text-gray-500 dark:text-gray-400">ยอดรวม (Sum of items)</td>
-                  <td className="num text-right text-gray-700 dark:text-gray-200">{Number((data.products || []).reduce((sum: number, p: any) => sum + Number(p.price || 0), 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                  <td className="label text-gray-500 dark:text-gray-400">ราคาสินค้าก่อนรวมภาษีมูลค่าเพิ่ม</td>
+                  <td className="num text-right text-gray-700 dark:text-gray-200">{priceBeforeVat.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                 </tr>
                 <tr>
-                  <td className="label text-gray-500 dark:text-gray-400">ภาษีมูลค่าเพิ่ม (VAT %)</td>
-                  <td className="num text-right text-gray-700 dark:text-gray-200">{data.vat ? `${data.vat}` : '-'}</td>
+                  <td className="label text-gray-500 dark:text-gray-400">หัก ราคาทองรูปพรรณ์รับคืน</td>
+                  <td className="num text-right text-gray-700 dark:text-gray-200">0.00</td>
                 </tr>
                 <tr>
-                  <td className="label text-gray-700 dark:text-gray-200 font-semibold">ยอดชำระรวม (Grand Total)</td>
+                  <td className="label text-gray-500 dark:text-gray-400">ส่วนต่างฐานภาษี</td>
+                  <td className="num text-right text-gray-700 dark:text-gray-200">{
+                    (() => {
+                      const ornamentBuy = Number(data.ornamentBuy) || 0;
+                      return (priceBeforeVat - ornamentBuy).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+                    })()
+                  }</td>
+                </tr>
+
+                <tr>
+                  <td className="label text-gray-500 dark:text-gray-400">ภาษีมูลค่าเพิ่ม (VAT)</td>
+                  <td className="num text-right text-gray-700 dark:text-gray-200">{data.vat ? Number(data.vat).toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '0.00'}</td>
+                </tr>
+                <tr>
+                  <td className="label text-gray-700 dark:text-gray-200 font-semibold">รวมจำนวนเงินสุทธิ</td>
                   <td className="num text-right text-gray-900 dark:text-white font-bold">{Number(data.grand_total || (data.products || []).reduce((sum: number, p: any) => sum + Number(p.price || 0), 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                 </tr>
               </tbody>
