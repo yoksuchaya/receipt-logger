@@ -1,3 +1,4 @@
+import { numberToThaiText } from "../utils/numberToThaiText";
 import React, { useEffect, useState } from "react";
 
 interface SaleReceiptTemplateProps {
@@ -169,6 +170,12 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
                 <td className="label text-gray-700 dark:text-gray-200 font-semibold">รวมจำนวนเงินสุทธิ</td>
                 <td className="num text-right text-gray-900 dark:text-white font-bold">{Number(data.grand_total || (data.products || []).reduce((sum: number, p: any) => sum + Number(p.price || 0), 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
               </tr>
+              {/* Grand total spell out in Thai */}
+            <tr>
+              <td className="p-2 pt-4 text-center italic text-sm dark:text-gray-400" colSpan={6}>
+                (ตัวอักษร) {numberToThaiText(Number(data.grand_total || (data.products || []).reduce((sum: number, p: any) => sum + Number(p.price || 0), 0)))}
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
