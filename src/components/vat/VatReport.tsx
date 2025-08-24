@@ -112,7 +112,7 @@ export default function VatReport({ type }: VatReportProps) {
             edit={edit}
             onBack={() => { setSelectedRow(null); setEdit(false); }}
           />
-          <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
+          <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 w-full">
             {edit ? (
               <ReceiptEditForm
                 editForm={editForm}
@@ -142,7 +142,7 @@ export default function VatReport({ type }: VatReportProps) {
     return (
       <div className="w-full max-w-full">
         <PrintWrapper printLabel="รายงานภาษีขาย" printButtonLabel="พิมพ์รายงานภาษีขาย">
-          <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
+          <div className="w-full bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 flex flex-col">
             <div className="w-full vat-header">
               <ReportHeader
                 month={month}
@@ -192,7 +192,7 @@ export default function VatReport({ type }: VatReportProps) {
             edit={edit}
             onBack={() => { setSelectedRow(null); setEdit(false); }}
           />
-          <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full">
+          <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 w-full">
             {edit ? (
               <ReceiptEditForm
                 editForm={editForm}
@@ -222,7 +222,7 @@ export default function VatReport({ type }: VatReportProps) {
     return (
       <div className="w-full max-w-full">
         <PrintWrapper printLabel="รายงานภาษีซื้อ" printButtonLabel="พิมพ์รายงานภาษีซื้อ">
-          <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
+          <div className="w-full bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 flex flex-col">
             <div className="w-full vat-header">
               <ReportHeader
                 month={month}

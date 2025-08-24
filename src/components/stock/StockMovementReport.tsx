@@ -80,7 +80,7 @@ export default function StockMovementReport() {
 
   return (
     <PrintWrapper printLabel="รายงานความเคลื่อนไหวสต๊อก" printButtonLabel="พิมพ์รายงานสต๊อก">
-      <div className="w-full bg-white dark:bg-neutral-900 rounded-lg shadow p-4 sm:p-6 flex flex-col">
+      <div className="w-full bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 flex flex-col">
         <ReportHeader
           month={month}
           year={year}

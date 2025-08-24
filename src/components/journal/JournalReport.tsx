@@ -65,7 +65,7 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
   return (
     <div className="w-full">
       <PrintWrapper printLabel="สมุดรายวันทั่วไป" printButtonLabel="พิมพ์สมุดรายวันทั่วไป">
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-full">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-full">
           <ReportHeader
             month={month}
             year={year}
