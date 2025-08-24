@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// You may want to use a PDF library like jsPDF or pdf-lib for real PDF generation
+
 
 type PaymentMap = {
     cash?: string;
@@ -32,18 +32,12 @@ type FormState = {
     products: Product[];
 };
 
-const companyProfile = {
-    company_name: "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)",
-    address: "เลขที่ 100/10 หมู่ 8 ตำบลอ้อมใหญ่ อำเภอสามพราน จังหวัดนครปฐม 73160",
-    tax_id: "0735559006568",
-};
-
-const initialForm: FormState = {
+const emptyForm: FormState = {
     date: '',
     grand_total: '',
     vat: '',
-    vendor: companyProfile.company_name,
-    vendor_tax_id: companyProfile.tax_id,
+    vendor: '',
+    vendor_tax_id: '',
     category: '',
     notes: '',
     payment: { cash: '' },
@@ -55,12 +49,27 @@ const initialForm: FormState = {
     products: [],
 };
 
-const IssueReceiptForm: React.FC = () => {
-    const [form, setForm] = useState<FormState>(initialForm);
 
-    // If you want to support dynamic company profile loading in the future, use useEffect to fetch and set vendor fields here.
+const IssueReceiptForm: React.FC = () => {
+    const [form, setForm] = useState<FormState>(emptyForm);
+    const [companyProfile, setCompanyProfile] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [showToast, setShowToast] = useState(false);
+    const [invalidFields, setInvalidFields] = useState<{ [key: string]: boolean }>({});
+
+    useEffect(() => {
+        async function fetchProfile() {
+            const res = await fetch('/api/company-profile');
+            const data = await res.json();
+            setCompanyProfile(data);
+            setForm(f => ({
+                ...f,
+                vendor: data.company_name || '',
+                vendor_tax_id: data.tax_id || '',
+            }));
+        }
+        fetchProfile();
+    }, []);
 
     useEffect(() => {
         if (error) {
@@ -69,12 +78,15 @@ const IssueReceiptForm: React.FC = () => {
             return () => clearTimeout(timer);
         }
     }, [error]);
-    const [invalidFields, setInvalidFields] = useState<{ [key: string]: boolean }>({});
 
     function handleSelectChange(e: React.ChangeEvent<HTMLSelectElement>) {
         const { name, value } = e.target;
         setForm((prev) => {
-            const updated = { ...prev, [name]: value };
+            let updated = { ...prev, [name]: value };
+            // If category changes, reset products
+            if (name === 'category') {
+                updated.products = [];
+            }
             setTimeout(() => updateReceiptNo(updated, name === 'date'), 0);
             return updated;
         });
@@ -101,16 +113,14 @@ const IssueReceiptForm: React.FC = () => {
     }
 
     // Helper to update receipt_no if date, bank, and category are set
+
     async function updateReceiptNo(form: FormState, isDateChange: boolean) {
         const { date, bank, category } = form;
-        console.log(date, bank, category);
         if (!date || !bank || !category) {
             setForm((prev) => ({ ...prev, receipt_no: '' }));
             return;
         }
         // Map category and bank to codes
-        // Category code: B = Bullion, C = Ornament
-        // Bank code: C = cash, KS = krungsri, KB = kbank, A = aeon
         const categoryMap: Record<string, string> = {
             'bullion': 'B',
             'ornament': 'O',
@@ -122,30 +132,25 @@ const IssueReceiptForm: React.FC = () => {
             'scb': 'SC',
             'cash': 'C',
         };
-        // Use the value from the dropdown, not the label
         const catCode = categoryMap[category] ?? '';
         const bankCode = bankMap[bank] ?? '';
         if (!catCode || !bankCode) {
             setForm((prev) => ({ ...prev, receipt_no: '' }));
             return;
         }
-        // Find running number for this month/category/bank
         let running = 1;
         const [year, mon] = date.split('-');
         const month = `${year}-${mon}`;
         try {
             const res = await fetch('/api/receipt-log');
             const data = await res.json();
-            // Only receipts with same month, category, and bank
             const filtered = data
                 .filter((r: any) => r && r.date && r.date.startsWith(month)
-                    && r.category === category && r.bank === bank
+                    && r.category === companyProfile.productCategoryNames[category] && r.bank === bank
                     && r.receipt_no && r.receipt_no.startsWith('S'));
-            // Get all unique dates for this combo (including the selected date)
             const sameComboDates = filtered.map((r: any) => r.date);
-            if (!sameComboDates.includes(date)) sameComboDates.push(date);
             const sortedDates = Array.from(new Set(sameComboDates)).sort();
-            running = sortedDates.indexOf(date) + 1;
+            running = sortedDates.indexOf(date) + 2;
         } catch { }
         setForm((prev) => ({
             ...prev,
@@ -153,7 +158,7 @@ const IssueReceiptForm: React.FC = () => {
         }));
     }
 
-    function handleProductChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    function handleProductChange(index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
         setForm((prev) => {
             const products = prev.products.map((p, i) =>
@@ -164,6 +169,7 @@ const IssueReceiptForm: React.FC = () => {
     }
 
     function handleAddProduct() {
+        if (!form.category) return;
         setForm((prev) => ({
             ...prev,
             products: [
@@ -180,7 +186,7 @@ const IssueReceiptForm: React.FC = () => {
         }));
     }
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError(null);
         const newInvalid: { [key: string]: boolean } = {};
@@ -227,14 +233,37 @@ const IssueReceiptForm: React.FC = () => {
 
             return;
         }
-        // Generate PDF (placeholder)
-        alert('PDF will be generated with the following data:\n' + JSON.stringify(form, null, 2));
-        console.log('PDF will be generated with the following data:\n', JSON.stringify(form, null, 2));
-        // TODO: Use jsPDF or pdf-lib to generate and download the PDF
+        // Log to /api/receipt-log with systemGenerated: true
+        const logData = { ...form, systemGenerated: true };
+        if (!logData.buyer_name || logData.buyer_name.trim() === '') {
+            logData.buyer_name = 'ไม่ประสงค์ออกนาม';
+        }
+        if (!logData.notes || logData.notes.trim() === '') {
+            const sumWeight = Array.isArray(logData.products)
+                ? logData.products.reduce((sum, p) => sum + (parseFloat(p.weight) || 0), 0)
+                : 0;
+            let categoryDisplay = logData.category;
+            if (companyProfile && companyProfile.productCategoryNames && companyProfile.productCategoryNames[logData.category]) {
+                categoryDisplay = companyProfile.productCategoryNames[logData.category];
+            }
+            logData.notes = `ขาย${categoryDisplay} น้ำหนักรวม ${sumWeight} กรัม`;
+            logData.category = categoryDisplay;
+        }
+        try {
+            const res = await fetch('/api/receipt-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(logData),
+            });
+            if (!res.ok) throw new Error('Failed to log document');
+            alert('ออกเอกสารเรียบร้อยแล้ว!');
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการออกเอกสาร');
+        }
     }
 
     return (
-        <form className="w-full max-w-none bg-white dark:bg-neutral-900 p-6 rounded-lg shadow flex flex-col gap-6" onSubmit={handleSubmit}>
+    <form className="w-full max-w-none bg-white dark:bg-neutral-900 p-6 rounded-lg shadow flex flex-col gap-6" onSubmit={handleSubmit}>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">ออกใบกำกับภาษี / ใบเสร็จรับเงิน (ใบขาย)</h3>
             {/* Toast error message */}
             {showToast && error && (
@@ -273,8 +302,14 @@ const IssueReceiptForm: React.FC = () => {
                         className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.category ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
                     >
                         <option value="">เลือกประเภท</option>
-                        <option value="bullion">ขายทองแท่งและค่าบล็อค</option>
-                        <option value="ornament">ขายทองรูปพรรณ 96.5%</option>
+                        {companyProfile && companyProfile.productOptions &&
+                            Object.entries(companyProfile.productOptions).map(([key, value]: [string, any]) => (
+                                <option key={key} value={key}>
+                                    {companyProfile.productCategoryNames && companyProfile.productCategoryNames[key]
+                                        ? companyProfile.productCategoryNames[key]
+                                        : key}
+                                </option>
+                            ))}
                     </select>
                 </div>
             </div>
@@ -334,25 +369,31 @@ const IssueReceiptForm: React.FC = () => {
             </div>
             {/* Payment breakdown */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-                {(['cash', 'credit_card', 'transfer'] as const).map((type) => (
-                    <div key={type}>
-                        <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor={`payment.${type}`}>
-                            {type === 'cash' ? 'เงินสด' : type === 'credit_card' ? 'บัตรเครดิต' : 'โอนเงิน'}
-                        </label>
-                        <input
-                            id={`payment.${type}`}
-                            name={`payment.${type}`}
-                            type="number"
-                            min="0"
-                            step="any"
-                            inputMode="decimal"
-                            className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.payment ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
-                            value={form.payment[type] || ''}
-                            onChange={handleFormChange}
-                            placeholder="0.00"
-                        />
-                    </div>
-                ))}
+                {(['cash', 'credit_card', 'transfer'] as const).map((type) => {
+                    // If cash is filled (not empty and not zero), disable other payment types
+                    const cashFilled = !!form.payment.cash && parseFloat(form.payment.cash) > 0;
+                    const isDisabled = type !== 'cash' && cashFilled;
+                    return (
+                        <div key={type}>
+                            <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor={`payment.${type}`}>
+                                {type === 'cash' ? 'เงินสด' : type === 'credit_card' ? 'บัตรเครดิต' : 'โอนเงิน'}
+                            </label>
+                            <input
+                                id={`payment.${type}`}
+                                name={`payment.${type}`}
+                                type="number"
+                                min="0"
+                                step="any"
+                                inputMode="decimal"
+                                className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.payment ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'} ${isDisabled ? 'bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' : ''}`}
+                                value={form.payment[type] || ''}
+                                onChange={handleFormChange}
+                                placeholder="0.00"
+                                disabled={isDisabled}
+                            />
+                        </div>
+                    );
+                })}
                 {/* Bank selection dropdown */}
                 <div>
                     <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="bank">ธนาคาร</label>
@@ -385,7 +426,12 @@ const IssueReceiptForm: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleAddProduct}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium text-sm hover:bg-green-100 border border-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 dark:border-green-800 transition"
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium text-sm border transition
+                            ${form.category
+                                ? 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 dark:border-green-800'
+                                : 'bg-gray-100 text-gray-400 border-gray-200 dark:bg-neutral-800 dark:text-gray-500 dark:border-neutral-700 cursor-not-allowed'}
+                        `}
+                        disabled={!form.category}
                     >
                         <span className="text-lg leading-none">＋</span> เพิ่มสินค้า
                     </button>
@@ -398,16 +444,32 @@ const IssueReceiptForm: React.FC = () => {
                         <div key={idx} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 border border-gray-100 dark:border-neutral-800 relative">
                             <div className="flex flex-col">
                                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-name-${idx}`}>ชื่อสินค้า</label>
-                                <input
-                                    id={`product-name-${idx}`}
-                                    type="text"
-                                    name="name"
-                                    value={product.name}
-                                    onChange={e => handleProductChange(idx, e)}
-                                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="ชื่อสินค้า"
-                                    required
-                                />
+                                {companyProfile && companyProfile.productOptions && companyProfile.productOptions[form.category] ? (
+                                    <select
+                                        id={`product-name-${idx}`}
+                                        name="name"
+                                        value={product.name}
+                                        onChange={e => handleProductChange(idx, e)}
+                                        className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required
+                                    >
+                                        <option value="">เลือกสินค้า</option>
+                                        {companyProfile.productOptions[form.category].map((opt: string) => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <input
+                                        id={`product-name-${idx}`}
+                                        type="text"
+                                        name="name"
+                                        value={product.name}
+                                        onChange={e => handleProductChange(idx, e)}
+                                        className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="ชื่อสินค้า"
+                                        required
+                                    />
+                                )}
                             </div>
                             <div className="flex flex-col">
                                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-weight-${idx}`}>น้ำหนัก</label>

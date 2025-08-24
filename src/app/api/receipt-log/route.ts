@@ -56,6 +56,9 @@ export async function POST(req: NextRequest) {
       log.type = typeValue;
     }
     log.uploadedAt = new Date().toISOString();
+    if (typeof log.systemGenerated === 'undefined') {
+      log.systemGenerated = false;
+    }
     await fs.appendFile(LOG_FILE, JSON.stringify(log) + "\n", "utf8");
     return NextResponse.json({ success: true, fileUrl });
   } catch (err: unknown) {

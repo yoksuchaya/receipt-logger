@@ -1,9 +1,10 @@
+
 import type { StockMovement } from "@/types/StockMovement";
 import { NextRequest, NextResponse } from 'next/server';
-
 import fs from 'fs/promises';
 import path from 'path';
 import { isPurchase, isPurchaseType, isSale, isSaleType } from '@/components/utils/utils';
+import companyProfile from '../../../../company-profile.json';
 
 const RECEIPT_LOG_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
 
@@ -158,18 +159,33 @@ function getMovementsWithOpening(receipts: Receipt[], month: number, year: numbe
   return rows;
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const month = parseInt(searchParams.get('month') || '0', 10);
     const year = parseInt(searchParams.get('year') || '0', 10);
     if (!month || !year) return NextResponse.json([], { status: 400 });
     const data = await fs.readFile(RECEIPT_LOG_FILE, 'utf8');
     const receipts = data.split('\n').filter(Boolean).map(line => {
       try { return JSON.parse(line) as Receipt; } catch { return null; }
-  }).filter((r): r is Receipt => r !== null);
-  const rows = getMovementsWithOpening(receipts, month, year);
-    return NextResponse.json(rows);
+    }).filter((r): r is Receipt => r !== null);
+    const rows = getMovementsWithOpening(receipts, month, year);
+
+    // Add productType field to each row using companyProfile.productOptions
+    const productOptions = companyProfile.productOptions || {};
+    function getProductType(product: string | undefined): string {
+      if (!product) return 'อื่นๆ';
+      for (const [type, names] of Object.entries(productOptions)) {
+        if (Array.isArray(names) && names.some((n: string) => n === product)) {
+          if (type === 'ornament') return 'ทองรูปพรรณ 96.5%';
+          if (type === 'bullion') return 'ทองแท่ง 96.5%';
+          return type;
+        }
+      }
+      return 'อื่นๆ';
+    }
+    const rowsWithType = rows.map(row => ({ ...row, productType: getProductType(row.product) }));
+    return NextResponse.json(rowsWithType);
   } catch (err) {
     return NextResponse.json({ error: 'Failed to load stock movement' }, { status: 500 });
   }

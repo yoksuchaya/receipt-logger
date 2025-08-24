@@ -26,13 +26,7 @@ interface StockMovementRow {
   balanceTotal: number;
 }
 export default function StockMovementReport() {
-  // Helper: extract type from product name (customize as needed)
-  function getProductType(product: string) {
-    if (!product) return "อื่นๆ";
-    if (product.includes("รูปพรรณ")) return "ทองรูปพรรณ";
-    if (product.includes("แท่ง")) return "ทองแท่ง";
-    return "อื่นๆ";
-  }
+
 
   // State and hooks
   const [month, setMonth] = useState(getCurrentMonthYear().month);
@@ -68,10 +62,10 @@ export default function StockMovementReport() {
   const todayStr = today.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 
-  // Group rows by product type and calculate summary for each type
+  // Group rows by productType and calculate summary for each type
   const typeGroups: Record<string, StockMovementRow[]> = {};
   rows.forEach(row => {
-    const type = getProductType(row.product);
+    const type = (row as any).productType || "อื่นๆ";
     if (!typeGroups[type]) typeGroups[type] = [];
     typeGroups[type].push(row);
   });

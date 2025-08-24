@@ -29,6 +29,7 @@ interface ReceiptDetailData {
   notes?: string;
   uploadedAt?: string;
   products?: Product[];
+  systemGenerated?: boolean;
 }
 
 interface ReceiptDetailProps {
@@ -48,6 +49,8 @@ const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelet
         fileType={selected.fileType ?? ''}
         fileName={selected.fileName ?? ''}
         className="mt-2 mb-6"
+        systemGenerated={selected.systemGenerated}
+        receiptData={selected}
       />
 
       {/* Receipt Details */}

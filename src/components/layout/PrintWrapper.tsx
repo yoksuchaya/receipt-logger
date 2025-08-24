@@ -22,7 +22,14 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
     const printContents = printRef.current.innerHTML;
     const printWindow = window.open('', '', 'height=800,width=1200');
     if (!printWindow) return;
-  printWindow.document.write(`<html><head><title>${printLabel}</title>`);
+        // Copy all <link rel="stylesheet"> and <style> from the current document head
+        const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+          .map(link => link.outerHTML)
+          .join('');
+        const styleTags = Array.from(document.querySelectorAll('style'))
+          .map(style => style.outerHTML)
+          .join('');
+        printWindow.document.write(`<html><head><title>${printLabel}</title>${stylesheets}${styleTags}`);
     printWindow.document.write(`
       <style>
         @media print {
