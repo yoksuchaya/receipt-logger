@@ -4,6 +4,7 @@ interface PrintWrapperProps {
   children: React.ReactNode;
   printLabel?: string; // For print window/document title
   printButtonLabel?: string; // For button text
+  printFontSizePercent?: number; // For print font size, e.g. 60 (default), 100
 }
 
 /**
@@ -14,6 +15,7 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
   children,
   printLabel = "พิมพ์รายงาน",
   printButtonLabel = "พิมพ์รายงาน",
+  printFontSizePercent = 60,
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -40,7 +42,7 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
             padding: 10mm 10mm 10mm 10mm;
             box-sizing: border-box;
             background: white;
-            font-size: 60% !important;
+            font-size: ${printFontSizePercent}% !important;
           }
           /* Always hide .no-print in print, with highest specificity */
           .no-print, .no-print * {
@@ -55,7 +57,7 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
           .print-scale table,
           .print-scale th,
           .print-scale td {
-            font-size: 60% !important;
+            font-size: ${printFontSizePercent}% !important;
           }
           table, th, td {
             border-collapse: collapse !important;

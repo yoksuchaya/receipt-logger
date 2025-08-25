@@ -55,12 +55,12 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
         <table className="min-w-full text-xs rounded-lg overflow-hidden mb-4">
           <thead className="bg-gray-100 dark:bg-neutral-800">
             <tr>
-              <th className="p-2 border border-gray-200 dark:border-neutral-700">ลำดับ</th>
-              <th className="p-2 border border-gray-200 dark:border-neutral-700">รายการ</th>
-              <th className="p-2 border border-gray-200 dark:border-neutral-700">น้ำหนัก (กรัม)</th>
-              <th className="p-2 border border-gray-200 dark:border-neutral-700">จำนวน</th>
-              <th className="p-2 border border-gray-200 dark:border-neutral-700">ราคาต่อหน่วย</th>
-              <th className="p-2 border border-gray-200 dark:border-neutral-700">จำนวนเงิน</th>
+              <th className="p-2 border border-gray-200 dark:border-neutral-700 font-sans">ลำดับ</th>
+              <th className="p-2 border border-gray-200 dark:border-neutral-700 font-sans">รายการ</th>
+              <th className="p-2 border border-gray-200 dark:border-neutral-700 font-sans">น้ำหนัก (กรัม)</th>
+              <th className="p-2 border border-gray-200 dark:border-neutral-700 font-sans">จำนวน</th>
+              <th className="p-2 border border-gray-200 dark:border-neutral-700 font-sans">ราคาต่อหน่วย</th>
+              <th className="p-2 border border-gray-200 dark:border-neutral-700 font-sans">จำนวนเงิน</th>
             </tr>
           </thead>
           <tbody>
@@ -79,12 +79,12 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
               for (let i = products.length; i < 6; i++) {
                 rows.push(
                   <tr key={`empty-${i}`}>
-                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center">&nbsp;</td>
-                    <td className="p-2 border border-gray-200 dark:border-neutral-700">&nbsp;</td>
-                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center">&nbsp;</td>
-                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center">&nbsp;</td>
-                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right">&nbsp;</td>
-                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right">&nbsp;</td>
+                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center font-sans">&nbsp;</td>
+                    <td className="p-2 border border-gray-200 dark:border-neutral-700 font-sans">&nbsp;</td>
+                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center font-sans">&nbsp;</td>
+                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center font-sans">&nbsp;</td>
+                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right font-sans">&nbsp;</td>
+                    <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right font-sans">&nbsp;</td>
                   </tr>
                 );
               }
@@ -93,13 +93,13 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
           </tbody>
           <tfoot>
             <tr>
-              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right font-semibold" colSpan={2}>รวมน้ำหนัก (กรัม)</td>
-              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center font-semibold">
+              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right font-semibold font-sans" colSpan={2}>รวมน้ำหนัก (กรัม)</td>
+              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center font-semibold font-sans">
                 {Number((data.products || []).reduce((sum: number, p: any) => sum + (Number(p.weight) || 0), 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
               </td>
-              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center">&nbsp;</td>
-              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right">&nbsp;</td>
-              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right">&nbsp;</td>
+              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-center font-sans">&nbsp;</td>
+              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right font-sans">&nbsp;</td>
+              <td className="p-2 border border-gray-200 dark:border-neutral-700 text-right font-sans">&nbsp;</td>
             </tr>
           </tfoot>
         </table>

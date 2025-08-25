@@ -85,7 +85,7 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ fileUrl, fileType, file
             </button>
           </div>
           <div className="relative max-w-full max-h-full p-4 overflow-auto bg-white print:bg-transparent print:p-0 print:overflow-visible" onClick={e => e.stopPropagation()}>
-            <PrintWrapper printLabel={`ใบเสร็จรับเงิน/ใบกำกับภาษีเลขที่ ${data.receipt_no || ''}`} printButtonLabel="พิมพ์ใบเสร็จ">
+            <PrintWrapper printLabel={`ใบเสร็จรับเงิน/ใบกำกับภาษีเลขที่ ${data.receipt_no || ''}`} printButtonLabel="พิมพ์ใบเสร็จ" printFontSizePercent={90}>
               {systemGenerated && !fileUrl ? (
                 <SaleReceiptTemplate data={data} />
               ) : (
