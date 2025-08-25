@@ -51,26 +51,34 @@ type FormSection = {
   grid: string;
 };
 
-export default function ReceiptLogger() {
-  // ...existing code...
+type ReceiptLoggerProps = {
+  initialValues?: Partial<FormState>;
+  mode?: 'edit' | 'create';
+  onSubmit?: (form: FormState) => Promise<void> | void;
+  onCancel?: () => void;
+};
+
+const defaultForm: FormState = {
+  date: "",
+  grand_total: "",
+  vat: "",
+  vendor: "",
+  vendor_tax_id: "",
+  category: "",
+  notes: "",
+  payment: { cash: "" },
+  receipt_no: "",
+  buyer_name: "",
+  buyer_address: "",
+  buyer_tax_id: "",
+  products: [],
+};
+
+const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'create', onSubmit, onCancel }) => {
   const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [form, setForm] = useState<FormState>({
-    date: "",
-    grand_total: "",
-    vat: "",
-    vendor: "",
-    vendor_tax_id: "",
-    category: "",
-    notes: "",
-    payment: { cash: "" },
-    receipt_no: "",
-    buyer_name: "",
-    buyer_address: "",
-    buyer_tax_id: "",
-    products: [],
-  });
+  const [form, setForm] = useState<FormState>({ ...defaultForm, ...initialValues, payment: { ...defaultForm.payment, ...(initialValues?.payment || {}) }, products: initialValues?.products || [] });
   // Helper: determine if the receipt is purchase, sale, or capital type using utils
   const purchaseType = isPurchase(form);
   const saleType = isSale(form);
@@ -316,6 +324,13 @@ export default function ReceiptLogger() {
       return;
     }
 
+    // If in edit mode, call onSubmit if provided
+    if (mode === 'edit' && onSubmit) {
+      await onSubmit(form);
+      return;
+    }
+
+    // Otherwise, normal create mode (with file upload)
     if (!file) {
       setApiError("กรุณาอัปโหลดรูปถ่ายใบเสร็จ");
       return;
@@ -341,21 +356,7 @@ export default function ReceiptLogger() {
     }
     setImage(null);
     setFile(null);
-    setForm({
-      date: "",
-      grand_total: "",
-      vat: "",
-      vendor: "",
-      vendor_tax_id: "",
-      category: "",
-      notes: "",
-      payment: { cash: "" },
-      receipt_no: "",
-      buyer_name: "",
-      buyer_address: "",
-      buyer_tax_id: "",
-      products: [],
-    });
+    setForm({ ...defaultForm });
     setInvalidFields({});
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
@@ -767,13 +768,26 @@ export default function ReceiptLogger() {
           </div>
         </div>
 
-        <button
-          type="submit"
-          className="mt-4 w-full py-3 rounded-lg bg-blue-600 text-white font-semibold text-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-        >
-          บันทึกใบเสร็จ
-        </button>
+        <div className="flex gap-2 mt-4">
+          <button
+            type="submit"
+            className="flex-1 py-3 rounded-lg bg-blue-600 text-white font-semibold text-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          >
+            {mode === 'edit' ? 'บันทึกการแก้ไข' : 'บันทึกใบเสร็จ'}
+          </button>
+          {mode === 'edit' && onCancel && (
+            <button
+              type="button"
+              className="flex-1 py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-lg shadow focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
+              onClick={onCancel}
+            >
+              ยกเลิก
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
 }
+
+export default ReceiptLogger;

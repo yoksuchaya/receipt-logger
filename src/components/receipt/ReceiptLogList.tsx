@@ -3,7 +3,7 @@ import { formatMoney, isCapitalType, isPurchaseType, isSaleType } from "../utils
 import React, { useEffect, useState } from "react";
 import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
 import ReceiptDetail from "./ReceiptDetail";
-import ReceiptEditForm, { type ReceiptEditFormData } from "./ReceiptEditForm";
+import ReceiptEditForm from "./ReceiptEditForm";
 
 
 interface ReceiptLog {
@@ -32,7 +32,7 @@ const ReceiptLogList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReceiptLog | null>(null);
   const [edit, setEdit] = useState(false);
-  const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
+  const [editForm, setEditForm] = useState<import("./ReceiptEditForm").ReceiptEditFormData>({});
   // Set initial date range: first day of current month to today (or last day of month if today is not in current month)
   function formatLocalDate(date: Date) {
     const y = date.getFullYear();
@@ -101,9 +101,9 @@ const ReceiptLogList: React.FC = () => {
           <h3 className="text-lg font-bold mb-4">{edit ? 'แก้ไขเอกสาร' : 'รายละเอียดเอกสาร'}</h3>
           {edit ? (
             <ReceiptEditForm
-              editForm={editForm}
-              setEditForm={setEditForm}
-              onSave={async (form) => {
+              systemGenerated={!!editForm?.systemGenerated}
+              initialValues={editForm}
+              onSubmit={async (form) => {
                 await fetch('/api/receipt-log/edit', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
                 if ('receipt_no' in form && typeof form.receipt_no === 'string') {
                   setLogs(logs.map(l => l.receipt_no === form.receipt_no ? { ...l, ...(form as ReceiptLog) } : l));
@@ -111,6 +111,7 @@ const ReceiptLogList: React.FC = () => {
                 setSelected(null);
                 setEdit(false);
               }}
+              onCancel={() => { setSelected(null); setEdit(false); }}
             />
           ) : (
             <ReceiptDetail

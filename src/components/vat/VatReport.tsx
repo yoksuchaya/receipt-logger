@@ -6,7 +6,7 @@ import ReportHeader from "../common/ReportHeader";
 import VatSaleReportTable from "./VatSaleReportTable";
 import VatPurchaseReportTable from "./VatPurchaseReportTable";
 import ReceiptDetail from "../receipt/ReceiptDetail";
-import ReceiptEditForm, { type ReceiptEditFormData } from "../receipt/ReceiptEditForm";
+import ReceiptEditForm from "../receipt/ReceiptEditForm";
 import PrintWrapper from "../layout/PrintWrapper";
 import { isPurchaseType, isSaleType } from "../utils/utils";
 
@@ -20,7 +20,7 @@ export default function VatReport({ type }: VatReportProps) {
   type SelectedRow = VatSale | VatPurchase | null;
   const [selectedRow, setSelectedRow] = useState<SelectedRow>(null);
   const [edit, setEdit] = useState(false);
-  const [editForm, setEditForm] = useState<ReceiptEditFormData>({} as ReceiptEditFormData);
+  const [editForm, setEditForm] = useState<import("../receipt/ReceiptEditForm").ReceiptEditFormData>({});
   interface VatSale {
     date: string;
     receipt_no: string;
@@ -115,13 +115,13 @@ export default function VatReport({ type }: VatReportProps) {
           <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 w-full">
             {edit ? (
               <ReceiptEditForm
-                editForm={editForm}
-                setEditForm={setEditForm}
-                onSave={async () => {
+                systemGenerated={!!editForm?.systemGenerated}
+                initialValues={editForm}
+                onSubmit={async () => {
                   setSelectedRow(null);
                   setEdit(false);
                 }}
-                onClose={() => { setSelectedRow(null); setEdit(false); }}
+                onCancel={() => { setSelectedRow(null); setEdit(false); }}
               />
             ) : (
               <ReceiptDetail
@@ -195,13 +195,13 @@ export default function VatReport({ type }: VatReportProps) {
           <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 w-full">
             {edit ? (
               <ReceiptEditForm
-                editForm={editForm}
-                setEditForm={setEditForm}
-                onSave={async () => {
+                systemGenerated={!!editForm?.systemGenerated}
+                initialValues={editForm}
+                onSubmit={async () => {
                   setSelectedRow(null);
                   setEdit(false);
                 }}
-                onClose={() => { setSelectedRow(null); setEdit(false); }}
+                onCancel={() => { setSelectedRow(null); setEdit(false); }}
               />
             ) : (
               <ReceiptDetail

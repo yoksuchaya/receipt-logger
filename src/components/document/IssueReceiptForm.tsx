@@ -50,12 +50,38 @@ const emptyForm: FormState = {
 };
 
 
-const IssueReceiptForm: React.FC = () => {
-    const [form, setForm] = useState<FormState>(emptyForm);
+
+type IssueReceiptFormProps = {
+    initialValues?: Partial<FormState>;
+    mode?: 'edit' | 'create';
+    onSubmit?: (form: FormState) => Promise<void> | void;
+    onCancel?: () => void;
+};
+
+const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode = 'create', onSubmit, onCancel }) => {
     const [companyProfile, setCompanyProfile] = useState<any>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [showToast, setShowToast] = useState(false);
-    const [invalidFields, setInvalidFields] = useState<{ [key: string]: boolean }>({});
+    const [form, setForm] = useState<FormState>(() => {
+        return { ...emptyForm, ...initialValues, payment: { ...emptyForm.payment, ...(initialValues?.payment || {}) }, products: initialValues?.products || [] };
+    });
+    // Map display name to internal key for category after companyProfile is loaded
+    useEffect(() => {
+        if (companyProfile && initialValues?.category) {
+            const foundKey = Object.keys(companyProfile.productCategoryNames || {}).find(
+                key => companyProfile.productCategoryNames[key] === initialValues.category
+            );
+            if (foundKey && form.category !== foundKey) {
+                setForm(prev => ({
+                    ...prev,
+                    category: foundKey,
+                }));
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [companyProfile, initialValues?.category]);
+    // (removed duplicate companyProfile declaration)
+        const [error, setError] = useState<string | null>(null);
+        const [showToast, setShowToast] = useState(false);
+        const [invalidFields, setInvalidFields] = useState<{ [key: string]: boolean }>({});
 
     useEffect(() => {
         async function fetchProfile() {
@@ -121,7 +147,7 @@ const IssueReceiptForm: React.FC = () => {
             return;
         }
         // Map category and bank to codes
-        const categoryMap: Record<string, string> = {
+        const categoryReceiptIdMap: Record<string, string> = {
             'bullion': 'B',
             'ornament': 'O',
         };
@@ -132,7 +158,7 @@ const IssueReceiptForm: React.FC = () => {
             'scb': 'SC',
             'cash': 'C',
         };
-        const catCode = categoryMap[category] ?? '';
+        const catCode = categoryReceiptIdMap[category] ?? '';
         const bankCode = bankMap[bank] ?? '';
         if (!catCode || !bankCode) {
             setForm((prev) => ({ ...prev, receipt_no: '' }));
@@ -233,6 +259,13 @@ const IssueReceiptForm: React.FC = () => {
 
             return;
         }
+
+        // If in edit mode, call onSubmit if provided
+        if (mode === 'edit' && onSubmit) {
+            await onSubmit(form);
+            return;
+        }
+
         // Log to /api/receipt-log with systemGenerated: true
         const logData = { ...form, systemGenerated: true };
         if (!logData.buyer_name || logData.buyer_name.trim() === '') {
@@ -545,12 +578,23 @@ const IssueReceiptForm: React.FC = () => {
                     ))}
                 </div>
             </div>
-            <button
-                type="submit"
-                className="mt-4 w-full py-3 rounded-lg bg-blue-600 text-white font-semibold text-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            >
-                ออกเอกสาร
-            </button>
+            <div className="flex gap-2 mt-4">
+                <button
+                    type="submit"
+                    className="flex-1 py-3 rounded-lg bg-blue-600 text-white font-semibold text-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                >
+                    {mode === 'edit' ? 'บันทึกการแก้ไข' : 'ออกเอกสาร'}
+                </button>
+                {mode === 'edit' && onCancel && (
+                    <button
+                        type="button"
+                        className="flex-1 py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-lg shadow focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
+                        onClick={onCancel}
+                    >
+                        ยกเลิก
+                    </button>
+                )}
+            </div>
         </form>
     );
 };
