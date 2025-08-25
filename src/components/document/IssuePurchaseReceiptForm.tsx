@@ -51,14 +51,14 @@ const emptyForm: FormState = {
 
 
 
-type IssueReceiptFormProps = {
+type IssuePurchaseReceiptFormProps = {
     initialValues?: Partial<FormState>;
     mode?: 'edit' | 'create';
     onSubmit?: (form: FormState) => Promise<void> | void;
     onCancel?: () => void;
 };
 
-const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode = 'create', onSubmit, onCancel }) => {
+const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ initialValues, mode = 'create', onSubmit, onCancel }) => {
     const [companyProfile, setCompanyProfile] = useState<any>(null);
     const [form, setForm] = useState<FormState>(() => {
         return { ...emptyForm, ...initialValues, payment: { ...emptyForm.payment, ...(initialValues?.payment || {}) }, products: initialValues?.products || [] };
@@ -90,8 +90,9 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
             setCompanyProfile(data);
             setForm(f => ({
                 ...f,
-                vendor: data.company_name || '',
-                vendor_tax_id: data.tax_id || '',
+                buyer_name: data.company_name || '',
+                buyer_address: data.address || '',
+                buyer_tax_id: data.tax_id || '',
             }));
         }
         fetchProfile();
@@ -141,8 +142,8 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
     // Helper to update receipt_no if date, bank, and category are set
 
     async function updateReceiptNo(form: FormState, isDateChange: boolean) {
-        const { date, bank, category } = form;
-        if (!date || !bank || !category) {
+        const { date, category } = form;
+        if (!date || !category) {
             setForm((prev) => ({ ...prev, receipt_no: '' }));
             return;
         }
@@ -151,16 +152,8 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
             'bullion': 'B',
             'ornament': 'O',
         };
-        const bankMap: Record<string, string> = {
-            'aeon': 'A',
-            'krungsri': 'KS',
-            'kbank': 'KB',
-            'scb': 'SC',
-            'cash': 'C',
-        };
         const catCode = categoryReceiptIdMap[category] ?? '';
-        const bankCode = bankMap[bank] ?? '';
-        if (!catCode || !bankCode) {
+        if (!catCode) {
             setForm((prev) => ({ ...prev, receipt_no: '' }));
             return;
         }
@@ -172,7 +165,7 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
             const data = await res.json();
             const filtered = data
                 .filter((r: any) => r && r.date && r.date.startsWith(month)
-                    && r.category === companyProfile.productCategoryNames[category] && r.bank === bank
+                    && r.category === companyProfile.productCategoryNames[category]
                     && r.receipt_no && r.receipt_no.startsWith('S'));
             const sameComboDates = filtered.map((r: any) => r.date);
             const sortedDates = Array.from(new Set(sameComboDates)).sort();
@@ -180,7 +173,7 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
         } catch { }
         setForm((prev) => ({
             ...prev,
-            receipt_no: `S${catCode}-${bankCode}-${String(running).padStart(5, '0')}`,
+            receipt_no: `B${catCode}-${String(running).padStart(5, '0')}`,
         }));
     }
 
@@ -297,7 +290,7 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
 
     return (
     <form className="w-full max-w-none bg-white dark:bg-neutral-900 p-6 rounded-lg shadow flex flex-col gap-6" onSubmit={handleSubmit}>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">ออกใบกำกับภาษี / ใบเสร็จรับเงิน (ใบขาย)</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">ใบกำกับภาษี / ใบเสร็จรับเงิน (ใบขาย)</h3>
             {/* Toast error message */}
             {showToast && error && (
                 <div className="fixed top-6 right-6 z-50">
@@ -346,27 +339,27 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
                     </select>
                 </div>
             </div>
-            {/* Seller/Buyer Info */}
+            {/* Buyer (Prefilled as company) / Seller (editable) Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                 <div>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_name">ชื่อผู้ซื้อ</label>
+                    <input id="buyer_name" name="buyer_name" value={companyProfile?.company_name || ''} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" disabled />
+                </div>
+                <div>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_address">ที่อยู่ผู้ซื้อ</label>
+                    <input id="buyer_address" name="buyer_address" value={companyProfile?.address || ''} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" disabled />
+                </div>
+                <div className="sm:col-span-2">
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_tax_id">เลขประจำตัวผู้เสียภาษีผู้ซื้อ</label>
+                    <input id="buyer_tax_id" name="buyer_tax_id" value={companyProfile?.tax_id || ''} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" disabled />
+                </div>
+                <div>
                     <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="vendor">ชื่อผู้ขาย</label>
-                    <input id="vendor" name="vendor" value={form.vendor} onChange={handleFormChange} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" disabled />
+                    <input id="vendor" name="vendor" value={form.vendor} onChange={handleFormChange} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
                 </div>
                 <div>
                     <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="vendor_tax_id">เลขประจำตัวผู้เสียภาษีผู้ขาย</label>
-                    <input id="vendor_tax_id" name="vendor_tax_id" value={form.vendor_tax_id} onChange={handleFormChange} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" disabled />
-                </div>
-                <div>
-                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_name">ชื่อผู้ซื้อ (ถ้ามี)</label>
-                    <input id="buyer_name" name="buyer_name" value={form.buyer_name} onChange={handleFormChange} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
-                </div>
-                <div>
-                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_address">ที่อยู่ผู้ซื้อ (ถ้ามี)</label>
-                    <input id="buyer_address" name="buyer_address" value={form.buyer_address} onChange={handleFormChange} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
-                </div>
-                <div className="sm:col-span-2">
-                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_tax_id">เลขประจำตัวผู้เสียภาษีผู้ซื้อ (ถ้ามี)</label>
-                    <input id="buyer_tax_id" name="buyer_tax_id" value={form.buyer_tax_id} onChange={handleFormChange} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                    <input id="vendor_tax_id" name="vendor_tax_id" value={form.vendor_tax_id} onChange={handleFormChange} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
                 </div>
             </div>
             {/* Totals & Payment */}
@@ -599,4 +592,4 @@ const IssueReceiptForm: React.FC<IssueReceiptFormProps> = ({ initialValues, mode
     );
 };
 
-export default IssueReceiptForm;
+export default IssuePurchaseReceiptForm;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import IssueReceiptForm from './IssueReceiptForm';
+import IssueSaleReceiptForm from './IssueSaleReceiptForm';
+import IssuePurchaseReceiptForm from './IssuePurchaseReceiptForm';
 
 const documentTypes = [
   { key: 'financial', label: 'เอกสารการเงิน' },
@@ -61,10 +62,15 @@ const IssueDocumentMenu: React.FC = () => {
           </select>
         </div>
       </div>
-      {/* Show form only for the first financial doc for now */}
+      {/* Show form for selected financial document */}
       {selectedType === 'financial' && selectedDoc === 'issue-receipt' && (
         <div className="w-full">
-          <IssueReceiptForm />
+          <IssueSaleReceiptForm />
+        </div>
+      )}
+      {selectedType === 'financial' && selectedDoc === 'payment-voucher' && (
+        <div className="w-full">
+          <IssuePurchaseReceiptForm />
         </div>
       )}
     </div>

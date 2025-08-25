@@ -23,8 +23,9 @@ export type ReceiptEditFormData = {
 };
 
 import React from "react";
+import IssueSaleReceiptForm from "../document/IssueSaleReceiptForm";
+import IssuePurchaseReceiptForm from "../document/IssuePurchaseReceiptForm";
 import ReceiptLogger from "./ReceiptLogger";
-import IssueReceiptForm from "../document/IssueReceiptForm";
 
 interface ReceiptEditFormProps {
   systemGenerated: boolean;
@@ -33,11 +34,19 @@ interface ReceiptEditFormProps {
   onCancel?: () => void;
 }
 
+
 const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ systemGenerated, initialValues, onSubmit, onCancel }) => {
   const mode = 'edit';
   if (systemGenerated) {
-    return <IssueReceiptForm initialValues={initialValues} mode={mode} onSubmit={onSubmit} onCancel={onCancel} />;
+    const type = initialValues?.type;
+    if (type === 'sale') {
+      return <IssueSaleReceiptForm initialValues={initialValues} mode={mode} onSubmit={onSubmit} onCancel={onCancel} />;
+    }
+    if (type === 'purchase') {
+      return <IssuePurchaseReceiptForm initialValues={initialValues} mode={mode} onSubmit={onSubmit} onCancel={onCancel} />;
+    }
   }
+  // fallback for non-systemGenerated
   return <ReceiptLogger initialValues={initialValues} mode={mode} onSubmit={onSubmit} onCancel={onCancel} />;
 };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import SaleReceiptTemplate from "./SaleReceiptTemplate";
+import PurchaseReceiptTemplate from "../document/PurchaseReceiptTemplate";
+import SaleReceiptTemplate from "../document/SaleReceiptTemplate";
 import PrintWrapper from "../layout/PrintWrapper";
 import { MagnifyingGlassPlusIcon, XMarkIcon, PrinterIcon } from "@heroicons/react/24/outline";
 
@@ -85,9 +86,23 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ fileUrl, fileType, file
             </button>
           </div>
           <div className="relative max-w-full max-h-full p-4 overflow-auto bg-white print:bg-transparent print:p-0 print:overflow-visible" onClick={e => e.stopPropagation()}>
-            <PrintWrapper printLabel={`ใบเสร็จรับเงิน/ใบกำกับภาษีเลขที่ ${data.receipt_no || ''}`} printButtonLabel="พิมพ์ใบเสร็จ" printFontSizePercent={90}>
+            <PrintWrapper
+              printLabel={
+                data.type === 'sale'
+                  ? `ใบเสร็จรับเงิน/ใบกำกับภาษีเลขที่ ${data.receipt_no || ''}`
+                  : data.type === 'purchase'
+                  ? `ใบรับซื้อทองเก่า / ใบสำคัญการจ่ายเงินเลขที่ ${data.receipt_no || ''}`
+                  : undefined
+              }
+              printButtonLabel="พิมพ์ใบเสร็จ"
+              printFontSizePercent={90}
+            >
               {systemGenerated && !fileUrl ? (
-                <SaleReceiptTemplate data={data} />
+                data.type === 'sale' ? (
+                  <SaleReceiptTemplate data={data} />
+                ) : data.type === 'purchase' ? (
+                  <PurchaseReceiptTemplate data={data} />
+                ) : null
               ) : (
                 <img
                   src={fileUrl}

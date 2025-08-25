@@ -11,6 +11,12 @@ interface Product {
   price: string;
 }
 
+interface PaymentMap {
+  cash?: string | number;
+  credit_card?: string | number;
+  transfer?: string | number;
+}
+
 interface ReceiptDetailData {
   fileUrl?: string;
   fileType?: string;
@@ -26,6 +32,7 @@ interface ReceiptDetailData {
   grand_total?: number | string;
   vat?: number | string;
   payment_type?: string;
+  payment?: PaymentMap;
   notes?: string;
   uploadedAt?: string;
   products?: Product[];
@@ -101,9 +108,29 @@ const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelet
             <span className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">ภาษีมูลค่าเพิ่ม (VAT):</span>
             <span className="text-gray-900 dark:text-white text-sm break-words">{formatMoney(selected.vat)}</span>
           </div>
+
           <div className="sm:col-span-1 flex flex-col">
             <span className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">วิธีการชำระเงิน:</span>
-            <span className="text-gray-900 dark:text-white text-sm break-words">{selected.payment_type || '-'}</span>
+            {selected.payment && typeof selected.payment === 'object' ? (
+              <div className="flex flex-col gap-0.5">
+                {(['cash', 'credit_card', 'transfer'] as Array<keyof PaymentMap>).map((type) => {
+                  const label = type === 'cash' ? 'เงินสด' : type === 'credit_card' ? 'บัตรเครดิต' : 'โอนเงิน';
+                  const value = selected.payment ? selected.payment[type] : undefined;
+                  if (!value || value === '0' || value === 0) return null;
+                  return (
+                    <span key={type} className="text-gray-900 dark:text-white text-sm break-words">
+                      {label}: {formatMoney(value)}
+                    </span>
+                  );
+                })}
+                {/* If no payment types are filled, show dash */}
+                {(['cash', 'credit_card', 'transfer'] as Array<keyof PaymentMap>).every(type => !selected.payment || !selected.payment[type] || selected.payment[type] === '0' || selected.payment[type] === 0) && (
+                  <span className="text-gray-900 dark:text-white text-sm break-words">-</span>
+                )}
+              </div>
+            ) : (
+              <span className="text-gray-900 dark:text-white text-sm break-words">{selected.payment_type || '-'}</span>
+            )}
           </div>
           {/* Notes */}
           <div className="sm:col-span-3 flex flex-col">
