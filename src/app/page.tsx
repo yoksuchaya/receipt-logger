@@ -9,6 +9,7 @@ import StockMovementReport from "@/components/stock/StockMovementReport";
 import JournalReport from "@/components/journal/JournalReport";
 import LedgerReportContainer from "@/components/journal/LedgerReportContainer";
 import { useState } from "react";
+import CompanyProfile from "@/components/company/CompanyProfile";
 import HamburgerButton from "@/components/layout/HamburgerButton";
 import SidebarMenu from "@/components/layout/SidebarMenu";
 import MenuOverlay from "@/components/layout/MenuOverlay";
@@ -27,7 +28,8 @@ type MenuKey =
   | 'vat-purchase'
   | 'vat-sales'
   | 'vat-summary'
-  | 'trial-balance';
+  | 'trial-balance'
+  | 'company-profile';
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -74,6 +76,7 @@ export default function Home() {
               {selectedMenu === 'vat-sales' && 'รายงานภาษีขาย'}
               {selectedMenu === 'vat-summary' && 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)'}
               {selectedMenu === 'trial-balance' && 'Trial Balance (ประจำเดือน)'}
+              {selectedMenu === 'company-profile' && 'ตั้งค่าข้อมูลบริษัท'}
             </h2>
           </div>
           <div className="flex-1 w-full flex flex-col items-center justify-start px-4 pb-8 overflow-auto">
@@ -104,6 +107,7 @@ export default function Home() {
                 <p>ยังไม่มีหน้างบทดลอง (ประจำเดือน)</p>
               </div>
             )}
+            {selectedMenu === 'company-profile' && <CompanyProfile />}
           </div>
         </div>
       </main>

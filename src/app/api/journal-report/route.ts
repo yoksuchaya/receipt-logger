@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
         const stock = accounts.find((a) => a.accountNumber === "1100") || { accountNumber: "1100", accountName: "Unknown", note: "" };
         entries.push({
           date: receipt.date,
-          description,
+          description: 'ต้นทุนทองที่ขาย',
           accountNumber: stock.accountNumber,
           accountName: stock.accountName,
           debit: net,

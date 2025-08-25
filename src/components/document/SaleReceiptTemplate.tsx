@@ -130,13 +130,10 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
               <div key="bank-label" className="text-gray-500 dark:text-gray-400">บัญชีธนาคาร</div>,
               <div key="bank-value" className="text-gray-700 dark:text-gray-200">
                 {(() => {
-                  const bankMap: Record<string, string> = {
-                    ks: 'กรุงศรี',
-                    kbank: 'กสิกร',
-                    scb: 'ไทยพาณิชย์',
-                    aeon: 'อิออน',
-                  };
-                  return bankMap[data.bank] || data.bank;
+                  // Use paymentBankOptions from company profile (fetched above)
+                  const paymentBankOptions = (company && (company as any).paymentBankOptions) || [];
+                  const found = paymentBankOptions.find((b: any) => b.value === data.bank);
+                  return found ? found.label : data.bank;
                 })()}
               </div>
             ]}

@@ -79,9 +79,9 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [companyProfile, initialValues?.category]);
     // (removed duplicate companyProfile declaration)
-        const [error, setError] = useState<string | null>(null);
-        const [showToast, setShowToast] = useState(false);
-        const [invalidFields, setInvalidFields] = useState<{ [key: string]: boolean }>({});
+    const [error, setError] = useState<string | null>(null);
+    const [showToast, setShowToast] = useState(false);
+    const [invalidFields, setInvalidFields] = useState<{ [key: string]: boolean }>({});
 
     useEffect(() => {
         async function fetchProfile() {
@@ -148,10 +148,7 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
             return;
         }
         // Map category and bank to codes
-        const categoryReceiptIdMap: Record<string, string> = {
-            'bullion': 'B',
-            'ornament': 'O',
-        };
+        const categoryReceiptIdMap: Record<string, string> = companyProfile?.productCategoryShorts || {};
         const catCode = categoryReceiptIdMap[category] ?? '';
         if (!catCode) {
             setForm((prev) => ({ ...prev, receipt_no: '' }));
@@ -272,7 +269,7 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
             if (companyProfile && companyProfile.productCategoryNames && companyProfile.productCategoryNames[logData.category]) {
                 categoryDisplay = companyProfile.productCategoryNames[logData.category];
             }
-            logData.notes = `ขาย${categoryDisplay} น้ำหนักรวม ${sumWeight} กรัม`;
+            logData.notes = `ซื้อ${categoryDisplay} น้ำหนักรวม ${sumWeight} กรัม`;
             logData.category = categoryDisplay;
         }
         try {
@@ -289,7 +286,7 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
     }
 
     return (
-    <form className="w-full max-w-none bg-white dark:bg-neutral-900 p-6 rounded-lg shadow flex flex-col gap-6" onSubmit={handleSubmit}>
+        <form className="w-full max-w-none bg-white dark:bg-neutral-900 p-6 rounded-lg shadow flex flex-col gap-6" onSubmit={handleSubmit}>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">ใบกำกับภาษี / ใบเสร็จรับเงิน (ใบขาย)</h3>
             {/* Toast error message */}
             {showToast && error && (
@@ -431,11 +428,9 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
                         className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.bank ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
                     >
                         <option value="">เลือกธนาคาร</option>
-                        <option value="cash">เงินสด</option>
-                        <option value="aeon">AEON</option>
-                        <option value="ks">Krungsri</option>
-                        <option value="kbank">Kasikorn</option>
-                        <option value="scb">SCB</option>
+                        {companyProfile?.paymentBankOptions?.map((opt: any) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
                     </select>
                 </div>
             </div>

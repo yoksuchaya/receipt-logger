@@ -15,6 +15,8 @@ import {
   ArrowTrendingDownIcon,
   CalculatorIcon,
   ClipboardDocumentCheckIcon,
+  BuildingOffice2Icon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
 
@@ -106,6 +108,18 @@ const menuGroups = [
         key: 'trial-balance',
         label: 'งบทดลอง (ประจำเดือน)',
         icon: CalculatorIcon, // Calculation/balance
+      },
+    ],
+  },
+  {
+    key: 'company',
+    label: 'ข้อมูลบริษัท',
+    icon: BuildingOffice2Icon,
+    items: [
+      {
+        key: 'company-profile',
+        label: 'ตั้งค่าข้อมูลบริษัท',
+        icon: Cog6ToothIcon,
       },
     ],
   },

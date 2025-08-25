@@ -2,13 +2,57 @@
   "company_name": "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)",
   "address": "เลขที่ 100/10 หมู่ 8 ตำบลอ้อมใหญ่ อำเภอสามพราน จังหวัดนครปฐม 73160",
   "tax_id": "0735559006568",
-  "phones": ["02-4206075", "02-8115693"],
+  "phones": [
+    "02-4206075",
+    "02-8115693"
+  ],
   "productOptions": {
-    "ornament": ["ทองรูปพรรณ 96.5%"],
-    "bullion": ["ทองแท่ง 96.5%", "ค่าบล็อค"]
+    "ornament": [
+      "ทองรูปพรรณ 96.5%"
+    ],
+    "bullion": [
+      "ทองแท่ง 96.5%",
+      "ค่าบล็อค"
+    ],
+    "เพชร": [
+      "เพชรจะย้อม"
+    ]
   },
   "productCategoryNames": {
     "ornament": "ทองรูปพรรณ 96.5%",
-    "bullion": "ทองแท่ง 96.5%"
-  }
+    "bullion": "ทองแท่ง 96.5%",
+    "เพชร": "เพชร"
+  },
+  "productCategoryShorts": {
+    "bullion": "B",
+    "ornament": "O",
+    "เพชร": "D"
+  },
+  "paymentBankOptions": [
+    {
+      "value": "cash",
+      "label": "เงินสด",
+      "shorts": "C"
+    },
+    {
+      "value": "aeon",
+      "label": "อิออน",
+      "shorts": "A"
+    },
+    {
+      "value": "ks",
+      "label": "กรุงศรี",
+      "shorts": "KS"
+    },
+    {
+      "value": "kbank",
+      "label": "กสิกร",
+      "shorts": "KB"
+    },
+    {
+      "value": "scb",
+      "label": "ไทยพาณิชย์",
+      "shorts": "SC"
+    }
+  ]
 }

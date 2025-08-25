@@ -7,13 +7,20 @@ interface PurchaseReceiptTemplateProps {
 }
 
 const PurchaseReceiptTemplate: React.FC<PurchaseReceiptTemplateProps> = ({ data, className }) => {
-  const [company, setCompany] = useState<{ company_name?: string; tax_id?: string; address?: string } | null>(null);
+  const [company, setCompany] = useState<any>(null);
+  const [bankOptions, setBankOptions] = useState<any[]>([]);
 
   useEffect(() => {
     fetch('/api/company-profile')
       .then(res => res.json())
-      .then(setCompany)
-      .catch(() => setCompany(null));
+      .then(profile => {
+        setCompany(profile);
+        setBankOptions(profile.paymentBankOptions || []);
+      })
+      .catch(() => {
+        setCompany(null);
+        setBankOptions([]);
+      });
   }, []);
 
   // Calculate price before VAT once and reuse
@@ -130,15 +137,7 @@ const PurchaseReceiptTemplate: React.FC<PurchaseReceiptTemplateProps> = ({ data,
             {data.bank && data.bank !== 'cash' && [
               <div key="bank-label" className="text-gray-500 dark:text-gray-400">บัญชีธนาคาร</div>,
               <div key="bank-value" className="text-gray-700 dark:text-gray-200">
-                {(() => {
-                  const bankMap: Record<string, string> = {
-                    ks: 'กรุงศรี',
-                    kbank: 'กสิกร',
-                    scb: 'ไทยพาณิชย์',
-                    aeon: 'อิออน',
-                  };
-                  return bankMap[data.bank] || data.bank;
-                })()}
+                {bankOptions.find((b: any) => b.value === data.bank)?.label || data.bank}
               </div>
             ]}
           </div>
