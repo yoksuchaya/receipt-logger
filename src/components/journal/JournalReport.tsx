@@ -80,12 +80,12 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
               <table className="min-w-full text-sm border border-gray-200 dark:border-neutral-700">
                 <thead>
                   <tr className="bg-gray-100 dark:bg-neutral-800">
-                    <th className="px-2 py-1 border">วันที่</th>
-                    <th className="px-2 py-1 border">รายละเอียด</th>
-                    <th className="px-2 py-1 border">เลขที่บัญชี</th>
-                    <th className="px-2 py-1 border">ชื่อบัญชี</th>
-                    <th className="px-2 py-1 border text-right">เดบิต</th>
-                    <th className="px-2 py-1 border text-right">เครดิต</th>
+                    <th className="px-2 py-1 border border-gray-300">วันที่</th>
+                    <th className="px-2 py-1 border border-gray-300">รายละเอียด</th>
+                    <th className="px-2 py-1 border border-gray-300">เลขที่บัญชี</th>
+                    <th className="px-2 py-1 border border-gray-300">ชื่อบัญชี</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">เดบิต</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">เครดิต</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -94,12 +94,12 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
                   ) : (
                     journalEntries.map((entry, idx) => (
                       <tr key={idx} className="border-b last:border-b-0">
-                        <td className="px-2 py-1 border whitespace-nowrap">{entry.date}</td>
-                        <td className="px-2 py-1 border">{entry.description}</td>
-                        <td className="px-2 py-1 border text-center">{entry.accountNumber}</td>
-                        <td className="px-2 py-1 border">{entry.accountName}</td>
-                        <td className="px-2 py-1 border text-right">{entry.debit === 0 ? '' : formatMoney(entry.debit)}</td>
-                        <td className="px-2 py-1 border text-right">{entry.credit === 0 ? '' : formatMoney(entry.credit)}</td>
+                        <td className="px-2 py-1 border border-gray-300 whitespace-nowrap">{entry.date}</td>
+                        <td className="px-2 py-1 border border-gray-300">{entry.description}</td>
+                        <td className="px-2 py-1 border border-gray-300 text-center">{entry.accountNumber}</td>
+                        <td className="px-2 py-1 border border-gray-300">{entry.accountName}</td>
+                        <td className="px-2 py-1 border border-gray-300 text-right">{entry.debit === 0 ? '' : formatMoney(entry.debit)}</td>
+                        <td className="px-2 py-1 border border-gray-300 text-right">{entry.credit === 0 ? '' : formatMoney(entry.credit)}</td>
                       </tr>
                     ))
                   )}
@@ -108,11 +108,11 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
                 {journalEntries.length > 0 && (
                   <tfoot>
                     <tr className="bg-gray-50 dark:bg-neutral-800 font-bold">
-                      <td className="px-2 py-1 border text-right" colSpan={4}>รวม</td>
-                      <td className="px-2 py-1 border text-right">
+                      <td className="px-2 py-1 border border-gray-300 text-right" colSpan={4}>รวม</td>
+                      <td className="px-2 py-1 border border-gray-300 text-right">
                         {(() => { const sum = journalEntries.reduce((sum, e) => sum + (e.debit || 0), 0); return sum === 0 ? '' : formatMoney(sum); })()}
                       </td>
-                      <td className="px-2 py-1 border text-right">
+                      <td className="px-2 py-1 border border-gray-300 text-right">
                         {(() => { const sum = journalEntries.reduce((sum, e) => sum + (e.credit || 0), 0); return sum === 0 ? '' : formatMoney(sum); })()}
                       </td>
                     </tr>

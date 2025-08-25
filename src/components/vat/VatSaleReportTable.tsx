@@ -24,8 +24,8 @@ interface VatSaleReportTableProps {
     onRowAction?: (row: VatSale, isEdit: boolean) => void;
 }
 
-const th = "border px-2 py-1 bg-gray-100 dark:bg-neutral-800";
-const td = "border px-2 py-1 text-xs md:text-sm";
+const th = "border border-gray-300 px-2 py-1 bg-gray-100 dark:bg-neutral-800";
+const td = "border border-gray-300 px-2 py-1 text-xs md:text-sm";
 const tdRight = td + " text-right";
 
 const VatSaleReportTable: React.FC<VatSaleReportTableProps> = ({ data, sumExVat, sumVat, sumTotal, onRowAction }) => {

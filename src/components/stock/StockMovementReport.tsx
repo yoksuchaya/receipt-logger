@@ -93,37 +93,37 @@ export default function StockMovementReport() {
         {!loading && !error && (
           <>
             <div className="overflow-x-auto w-full vat-table">
-              <table className="min-w-full text-sm border">
+              <table className="min-w-full text-sm border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100 dark:bg-neutral-800">
-                    <th className="px-2 py-1 border">วันที่</th>
-                    <th className="px-2 py-1 border">สินค้า</th>
-                    <th className="px-2 py-1 border">ประเภท</th>
-                    <th className="px-2 py-1 border text-right">ซื้อ/ขาย</th>
-                    <th className="px-2 py-1 border text-right">ราคาต่อหน่วย</th>
-                    <th className="px-2 py-1 border text-right">รวม</th>
-                    <th className="px-2 py-1 border text-right">คงเหลือ (จำนวน)</th>
-                    <th className="px-2 py-1 border text-right">คงเหลือ (ต้นทุนเฉลี่ย)</th>
-                    <th className="px-2 py-1 border text-right">คงเหลือ (มูลค่า)</th>
-                    <th className="px-2 py-1 border">หมายเหตุ</th>
+                    <th className="px-2 py-1 border border-gray-300">วันที่</th>
+                    <th className="px-2 py-1 border border-gray-300">สินค้า</th>
+                    <th className="px-2 py-1 border border-gray-300">ประเภท</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">ซื้อ/ขาย</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">ราคาต่อหน่วย</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">รวม</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">คงเหลือ (จำนวน)</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">คงเหลือ (ต้นทุนเฉลี่ย)</th>
+                    <th className="px-2 py-1 border border-gray-300 text-right">คงเหลือ (มูลค่า)</th>
+                    <th className="px-2 py-1 border border-gray-300">หมายเหตุ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 && (
-                    <tr><td colSpan={10} className="text-center py-4">ไม่มีข้อมูล</td></tr>
+                    <tr><td colSpan={10} className="text-center py-4 border border-gray-300">ไม่มีข้อมูล</td></tr>
                   )}
                   {rows.map((row, i) => (
                     <tr key={i}>
-                      <td className="border px-2 py-1 whitespace-nowrap">{row.date}</td>
-                      <td className="border px-2 py-1">{row.product}</td>
-                      <td className="border px-2 py-1">{isPurchaseType(row.type) ? 'ซื้อ' : isSaleType(row.type) ? 'ขาย' : row.type === 'opening' ? 'ยกมา' : row.type}</td>
-                      <td className="border px-2 py-1 text-right">{formatMoney(row.qty, "-")}</td>
-                      <td className="border px-2 py-1 text-right">{formatMoney(row.unitCost, "-")}</td>
-                      <td className="border px-2 py-1 text-right">{formatMoney(row.total, "-")}</td>
-                      <td className="border px-2 py-1 text-right">{formatMoney(row.balanceQty, "-")}</td>
-                      <td className="border px-2 py-1 text-right">{formatMoney(row.balanceAvgCost, "-")}</td>
-                      <td className="border px-2 py-1 text-right">{formatMoney(row.balanceTotal, "-")}</td>
-                      <td className="border px-2 py-1">{row.desc}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1 whitespace-nowrap">{row.date}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1">{row.product}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1">{isPurchaseType(row.type) ? 'ซื้อ' : isSaleType(row.type) ? 'ขาย' : row.type === 'opening' ? 'ยกมา' : row.type}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1 text-right">{formatMoney(row.qty, "-")}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1 text-right">{formatMoney(row.unitCost, "-")}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1 text-right">{formatMoney(row.total, "-")}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1 text-right">{formatMoney(row.balanceQty, "-")}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1 text-right">{formatMoney(row.balanceAvgCost, "-")}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1 text-right">{formatMoney(row.balanceTotal, "-")}</td>
+                      <td className="border border-gray-300 px-2 py-1  px-2 py-1">{row.desc}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -133,29 +133,29 @@ export default function StockMovementReport() {
             {typeSummaries.map((summary) => (
               <div key={summary.type} className="w-full max-w-lg mt-8 vat-table">
                 <div className="font-bold mb-2">สรุปประเภท: {summary.type}</div>
-                <table className="w-full border text-sm">
+                <table className="w-full border border-gray-300 text-sm">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="border px-2 py-1 w-1/2">รายการ</th>
-                      <th className="border px-2 py-1">มูลค่า (บาท)</th>
+                      <th className="border border-gray-300 px-2 py-1 w-1/2">รายการ</th>
+                      <th className="border border-gray-300 px-2 py-1">มูลค่า (บาท)</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td className="font-medium border px-2 py-1 w-1/2">รวมยอดรับเข้า</td>
-                      <td className="border px-2 py-1">{formatMoney(summary.totalIn, "-")} บาท</td>
+                      <td className="font-medium border border-gray-300 px-2 py-1 w-1/2">รวมยอดรับเข้า</td>
+                      <td className="border border-gray-300 px-2 py-1">{formatMoney(summary.totalIn, "-")} บาท</td>
                     </tr>
                     <tr>
-                      <td className="font-medium border px-2 py-1">รวมยอดจ่ายออก</td>
-                      <td className="border px-2 py-1">{formatMoney(summary.totalOut, "-")} บาท</td>
+                      <td className="font-medium border border-gray-300 px-2 py-1">รวมยอดจ่ายออก</td>
+                      <td className="border border-gray-300 px-2 py-1">{formatMoney(summary.totalOut, "-")} บาท</td>
                     </tr>
                     <tr>
-                      <td className="font-medium border px-2 py-1">มูลค่าคงเหลือปลายงวด</td>
-                      <td className="border px-2 py-1">{formatMoney(summary.endingValue, "-")} บาท</td>
+                      <td className="font-medium border border-gray-300 px-2 py-1">มูลค่าคงเหลือปลายงวด</td>
+                      <td className="border border-gray-300 px-2 py-1">{formatMoney(summary.endingValue, "-")} บาท</td>
                     </tr>
                     <tr>
-                      <td className="font-medium border px-2 py-1">ราคาถัวเฉลี่ยปลายงวด</td>
-                      <td className="border px-2 py-1">{formatMoney(summary.endingAvgCost, "-")} บาท/หน่วย</td>
+                      <td className="font-medium border border-gray-300 px-2 py-1">ราคาถัวเฉลี่ยปลายงวด</td>
+                      <td className="border border-gray-300 px-2 py-1">{formatMoney(summary.endingAvgCost, "-")} บาท/หน่วย</td>
                     </tr>
                   </tbody>
                 </table>
