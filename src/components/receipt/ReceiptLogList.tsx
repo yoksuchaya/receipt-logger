@@ -165,7 +165,7 @@ const ReceiptLogList: React.FC = () => {
         <div className="text-gray-600">ไม่มีเอกสาร</div>
       ) : (
         <div className="w-full max-w-full overflow-x-auto">
-          <table className="min-w-full text-xs md:text-sm border border-gray-300 dark:border-neutral-700">
+          <table className="min-w-full text-xs md:text-sm border border-gray-300">
             <thead className="bg-gray-100 dark:bg-neutral-800">
               <tr>
                 <th className="px-3 py-2 text-left">วันที่</th>

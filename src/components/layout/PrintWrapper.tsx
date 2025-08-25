@@ -73,11 +73,11 @@ const PrintWrapper: React.FC<PrintWrapperProps> = ({
             display: inline-block !important;
           }
           .print-scale .vat-table {
-            margin-top: 32px !important;
-            margin-bottom: 40px !important;
+            margin-top: 16px !important;
+            margin-bottom: 16px !important;
           }
           .print-scale .vat-signature {
-            margin-top: 40px !important;
+            margin-top: 24px !important;
           }
           /* Ensure money columns align right and use monospace font in print */
           .text-right { text-align: right !important; }
