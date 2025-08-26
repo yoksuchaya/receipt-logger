@@ -64,7 +64,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Generate journal entries using rules
     const entries: JournalEntry[] = [];
     for (const receipt of receipts) {
       let ruleType: string | null = null;
@@ -120,8 +119,9 @@ export async function GET(req: NextRequest) {
         else if (rule.amount === "cost") amount = cost;
         else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
 
-        // Only add entry if amount > 0
-        if (amount && amount > 0) {
+
+        // Only add entry if amount > 0 and not NaN
+        if (amount && amount > 0 && !isNaN(amount)) {
           entries.push({
             date: receipt.date,
             description: rule.description || description,

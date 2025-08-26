@@ -43,7 +43,7 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
   useEffect(() => {
     fetch("/api/account-chart")
       .then((res) => res.json())
-      .then((data) => setAccounts(data))
+      .then((data) => setAccounts(Array.isArray(data) ? data : data.accounts))
       .catch(() => setAccounts([]));
   }, []);
 

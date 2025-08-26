@@ -28,9 +28,6 @@ interface LedgerAccount {
   entries: LedgerEntry[];
 }
 
-const RECEIPT_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
-const ACCOUNT_FILE = path.join(process.cwd(), 'account-chart.json');
-
 function parseMonth(date: string) {
   return date.slice(0, 7);
 }
@@ -42,7 +39,6 @@ function getAccountMap(accounts: Account[]) {
   }
   return map;
 }
-
 
 // Helper to get account number by name keyword
 function findAccountNumber(accounts: Account[], keyword: string): string | undefined {
@@ -115,8 +111,8 @@ export async function GET(req: NextRequest) {
   const monthParam = searchParams.get('month');
   const accountNumber = searchParams.get('accountNumber');
 
-    if (!monthParam || !/^\d{4}-\d{2}$/.test(monthParam)) {
-      return NextResponse.json({ error: 'Invalid or missing month' }, { status: 400 });
+  if (!monthParam || !/^\d{4}-\d{2}$/.test(monthParam)) {
+    return NextResponse.json({ error: 'Invalid or missing month' }, { status: 400 });
   }
 
   // Fetch stock-movement for the month for COGS calculation
@@ -202,8 +198,8 @@ export async function GET(req: NextRequest) {
 
   // Add transactions for the month
   for (const receipt of receipts) {
-  const rMonth = parseMonth(receipt.date);
-  if (rMonth !== monthParam) continue;
+    const rMonth = parseMonth(receipt.date);
+    if (rMonth !== monthParam) continue;
     // Patch: inject weighted avg COGS for sales
     let accs2 = getAccountsForReceipt(receipt, accounts);
     if (isSaleType(receipt.type) && receipt.receipt_no && stockMovements.length > 0) {
