@@ -121,6 +121,11 @@ const menuGroups = [
         label: 'ตั้งค่าข้อมูลบริษัท',
         icon: Cog6ToothIcon,
       },
+      {
+        key: 'account-chart',
+        label: 'ผังบัญชี',
+        icon: ListBulletIcon,
+      },
     ],
   },
 ];

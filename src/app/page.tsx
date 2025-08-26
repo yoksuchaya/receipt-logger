@@ -5,6 +5,7 @@ import ReceiptLogger from "@/components/receipt/ReceiptLogger";
 import ReceiptLogList from "@/components/receipt/ReceiptLogList";
 import VatReport from "@/components/vat/VatReport";
 import AccountBook from "@/components/account/AccountBook";
+import AccountChart from "@/components/account/AccountChart";
 import StockMovementReport from "@/components/stock/StockMovementReport";
 import JournalReport from "@/components/journal/JournalReport";
 import LedgerReportContainer from "@/components/journal/LedgerReportContainer";
@@ -29,7 +30,8 @@ type MenuKey =
   | 'vat-sales'
   | 'vat-summary'
   | 'trial-balance'
-  | 'company-profile';
+  | 'company-profile'
+  | 'account-chart';
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -77,6 +79,7 @@ export default function Home() {
               {selectedMenu === 'vat-summary' && 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)'}
               {selectedMenu === 'trial-balance' && 'Trial Balance (ประจำเดือน)'}
               {selectedMenu === 'company-profile' && 'ตั้งค่าข้อมูลบริษัท'}
+              {selectedMenu === 'account-chart' && 'ผังบัญชี'}
             </h2>
           </div>
           <div className="flex-1 w-full flex flex-col items-center justify-start px-4 pb-8 overflow-auto">
@@ -108,6 +111,7 @@ export default function Home() {
               </div>
             )}
             {selectedMenu === 'company-profile' && <CompanyProfile />}
+            {selectedMenu === 'account-chart' && <AccountChart />}
           </div>
         </div>
       </main>

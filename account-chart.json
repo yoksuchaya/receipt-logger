@@ -61,6 +61,13 @@
     "type": "equity"
   }
   ],
+  "typeLabels": {
+    "asset": "สินทรัพย์",
+    "liability": "หนี้สิน",
+    "equity": "ส่วนของผู้ถือหุ้น",
+    "revenue": "รายได้",
+    "expense": "ค่าใช้จ่าย"
+  },
   "rules": {
     "paymentTypeMap": {
       "cash": "1000",
