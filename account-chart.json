@@ -13,6 +13,12 @@
     "type": "asset"
   },
   {
+    "accountNumber": "1020",
+    "accountName": "เงินรับรอเรียกเก็บจากบัตรเครดิต",
+    "note": "ยอดเงินที่รอรับจากบริษัทบัตรเครดิต",
+    "type": "asset"
+  },
+  {
     "accountNumber": "1100",
     "accountName": "สต๊อกทอง",
     "note": "ทองซื้อเข้าร้าน",
@@ -71,7 +77,8 @@
   "rules": {
     "paymentTypeMap": {
       "cash": "1000",
-      "transfer": "1010"
+      "transfer": "1010",
+      "credit_card": "1020"
     },
     "purchase": [
       {
@@ -85,16 +92,16 @@
         "description": "VAT ซื้อ"
       },
       {
-        "credit": "1000|1010",
+        "credit": "1000|1010|1020",
         "amount": "grandTotal",
-        "description": "จ่ายเงิน (เงินสด/โอน)"
+        "description": "จ่ายเงิน (เงินสด/โอน/บัตรเครดิต)"
       }
     ],
     "sale": [
       {
-        "debit": "1000|1010",
+        "debit": "1000|1010|1020",
         "amount": "grandTotal",
-        "description": "รับเงิน (เงินสด/โอน)"
+        "description": "รับเงิน (เงินสด/โอน/บัตรเครดิต)"
       },
       {
         "credit": "4000",

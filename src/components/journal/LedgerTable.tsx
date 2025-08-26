@@ -32,8 +32,8 @@ const LedgerTable: React.FC<LedgerTableProps> = ({ acc, month, year }) => {
         <ReportHeader
           month={month}
           year={year}
-          onMonthChange={() => {}}
-          onYearChange={() => {}}
+          onMonthChange={() => { }}
+          onYearChange={() => { }}
           title={`สมุดบัญชีแยกประเภท: ${acc.accountNumber} - ${acc.accountName}`}
         />
       </div>
@@ -45,8 +45,8 @@ const LedgerTable: React.FC<LedgerTableProps> = ({ acc, month, year }) => {
         <thead className="bg-gray-100 dark:bg-neutral-800">
           <tr>
             <th className="border border-gray-300 px-2 py-1">วันที่</th>
-            <th className="border border-gray-300 px-2 py-1">รายละเอียด</th>
             <th className="border border-gray-300 px-2 py-1">เลขที่อ้างอิง</th>
+            <th className="border border-gray-300 px-2 py-1">รายละเอียด</th>
             <th className="border border-gray-300 px-2 py-1 text-right">เดบิต</th>
             <th className="border border-gray-300 px-2 py-1 text-right">เครดิต</th>
             <th className="border border-gray-300 px-2 py-1 text-right">ยอดคงเหลือ</th>
@@ -60,8 +60,8 @@ const LedgerTable: React.FC<LedgerTableProps> = ({ acc, month, year }) => {
           {acc.entries.map((entry, i) => (
             <tr key={i} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
               <td className="border border-gray-300 px-2 py-1 whitespace-nowrap">{entry.date}</td>
-              <td className="border border-gray-300 px-2 py-1">{entry.description}</td>
               <td className="border border-gray-300 px-2 py-1">{entry.reference}</td>
+              <td className="border border-gray-300 px-2 py-1">{entry.description}</td>
               <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(entry.debit === 0 ? '' : entry.debit)}</td>
               <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(entry.credit === 0 ? '' : entry.credit)}</td>
               <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(entry.runningBalance === 0 ? '' : entry.runningBalance)}</td>
