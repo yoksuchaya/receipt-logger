@@ -111,11 +111,11 @@ const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, classNa
             {/* Payment methods */}
             {data.payment ? (
               Object.entries(data.payment).map(([k, v]) => {
-                const paymentLabels: Record<string, string> = {
-                  cash: 'เงินสด',
-                  credit_card: 'บัตรเครดิต',
-                  transfer: 'เงินโอน',
-                };
+                // Build paymentLabels from company?.paymentTypes if available
+                const paymentLabels: Record<string, string> = (company && (company as any).paymentTypes || []).reduce((acc: Record<string, string>, cur: any) => {
+                  acc[cur.value] = cur.label;
+                  return acc;
+                }, {});
                 return [
                   <div key={k + '-label'} className="text-gray-500 dark:text-gray-400">{paymentLabels[k] || k}</div>,
                   <div key={k + '-value'} className="text-gray-700 dark:text-gray-200">{Number(v).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท</div>

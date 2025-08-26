@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formatMoney } from "../utils/utils";
 import ReceiptPreview from "./ReceiptPreview";
 
+interface PaymentType {
+  value: string;
+  label: string;
+}
 
 interface Product {
   name: string;
@@ -12,9 +16,7 @@ interface Product {
 }
 
 interface PaymentMap {
-  cash?: string | number;
-  credit_card?: string | number;
-  transfer?: string | number;
+  [key: string]: string | number | undefined;
 }
 
 interface ReceiptDetailData {
@@ -45,9 +47,18 @@ interface ReceiptDetailProps {
   onDelete?: () => void;
 }
 
-
 const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelete }) => {
   // const [showZoom, setShowZoom] = useState(false);
+  const [companyProfile, setCompanyProfile] = useState<any>(null);
+  useEffect(() => {
+    async function fetchProfile() {
+      const res = await fetch('/api/company-profile');
+      const data = await res.json();
+      setCompanyProfile(data);
+    }
+    fetchProfile();
+  }, []);
+  
   return (
     <div className="max-w-xl mx-auto bg-white dark:bg-neutral-900 rounded-xl shadow-lg p-6 md:p-8 text-base border border-gray-100 dark:border-neutral-800">
       {/* File Preview */}
@@ -113,18 +124,17 @@ const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelet
             <span className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">วิธีการชำระเงิน:</span>
             {selected.payment && typeof selected.payment === 'object' ? (
               <div className="flex flex-col gap-0.5">
-                {(['cash', 'credit_card', 'transfer'] as Array<keyof PaymentMap>).map((type) => {
-                  const label = type === 'cash' ? 'เงินสด' : type === 'credit_card' ? 'บัตรเครดิต' : 'โอนเงิน';
-                  const value = selected.payment ? selected.payment[type] : undefined;
+                {companyProfile?.paymentTypes?.map((type: PaymentType) => {
+                  const value = selected.payment ? selected.payment[type.value] : undefined;
                   if (!value || value === '0' || value === 0) return null;
                   return (
-                    <span key={type} className="text-gray-900 dark:text-white text-sm break-words">
-                      {label}: {formatMoney(value)}
+                    <span key={type.value} className="text-gray-900 dark:text-white text-sm break-words">
+                      {type.label}: {formatMoney(value)}
                     </span>
                   );
                 })}
                 {/* If no payment types are filled, show dash */}
-                {(['cash', 'credit_card', 'transfer'] as Array<keyof PaymentMap>).every(type => !selected.payment || !selected.payment[type] || selected.payment[type] === '0' || selected.payment[type] === 0) && (
+                {companyProfile?.paymentTypes?.every((type: PaymentType) => !selected.payment || !selected.payment[type.value] || selected.payment[type.value] === '0' || selected.payment[type.value] === 0) && (
                   <span className="text-gray-900 dark:text-white text-sm break-words">-</span>
                 )}
               </div>

@@ -21,6 +21,10 @@ export interface PaymentBankOption {
   label: string;
   shorts?: string;
 }
+export interface PaymentType {
+  value: string;
+  label: string;
+}
 
 export interface CompanyProfileData {
   company_name: string;
@@ -30,6 +34,7 @@ export interface CompanyProfileData {
   productOptions?: Record<string, string[]>;
   productCategoryNames?: Record<string, string>;
   productCategoryShorts?: Record<string, string>;
+  paymentTypes?: PaymentType[];
   paymentBankOptions?: PaymentBankOption[];
 }
 
@@ -119,16 +124,8 @@ const CompanyProfile: React.FC = () => {
               </h2>
               <CompanyBankOptions
                 company={company}
-                editingBank={editingBank}
-                editData={editData}
-                setEditingBank={setEditingBank}
-                setEditData={setEditData}
                 setCompany={setCompany}
                 receipts={receipts}
-                newBankLabel={newBankLabel}
-                setNewBankLabel={setNewBankLabel}
-                newBankShort={newBankShort}
-                setNewBankShort={setNewBankShort}
               />
             </section>
             {/* ตัวเลือกสินค้า */}

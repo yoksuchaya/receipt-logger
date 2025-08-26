@@ -5,10 +5,9 @@ import ReceiptPreview from "./ReceiptPreview";
 import { formatMoney, isSale, isPurchase } from "../utils/utils";
 
 type PaymentMap = {
-  cash?: string;
-  credit_card?: string;
-  transfer?: string;
+  [key: string]: string;
 };
+type PaymentType = { value: string; label: string };
 
 type Product = {
   name: string;
@@ -75,6 +74,16 @@ const defaultForm: FormState = {
 };
 
 const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'create', onSubmit, onCancel }) => {
+  const [companyProfile, setCompanyProfile] = React.useState<any>(null);
+  React.useEffect(() => {
+    async function fetchProfile() {
+      const res = await fetch('/api/company-profile');
+      const data = await res.json();
+      setCompanyProfile(data);
+    }
+    fetchProfile();
+  }, []);
+
   const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -195,11 +204,14 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
           vendor_tax_id: (data.vendor_tax_id as string) || prev.vendor_tax_id,
           category: (data.category as string) || prev.category,
           notes: (data.notes as string) || prev.notes,
-          payment: {
-            cash: (data.payment as { cash?: string })?.cash || "",
-            credit_card: (data.payment as { credit_card?: string })?.credit_card || "",
-            transfer: (data.payment as { transfer?: string })?.transfer || "",
-          },
+          payment: companyProfile?.paymentTypes
+            ? Object.fromEntries(
+                companyProfile.paymentTypes.map((type: PaymentType) => [
+                  type.value,
+                  (data.payment && typeof data.payment === 'object' && (data.payment as any)[type.value]) || ""
+                ])
+              )
+            : prev.payment,
           receipt_no: (data.receipt_no as string) || prev.receipt_no,
           buyer_name: (data.buyer_name as string) || prev.buyer_name,
           buyer_address: (data.buyer_address as string) || prev.buyer_address,
@@ -298,10 +310,11 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
       });
     }
     // Sum of payment types === grand_total
-    const sumPayment = (["cash", "credit_card", "transfer"] as (keyof PaymentMap)[]).reduce(
-      (sum, type) => sum + (parseFloat(form.payment[type] || "0") || 0),
-      0
-    );
+  const sumPayment = companyProfile?.paymentTypes
+    ? companyProfile.paymentTypes
+      .map((type: PaymentType) => parseFloat(form.payment[type.value] || "0"))
+      .reduce((sum: number, val: number) => sum + val, 0)
+    : 0;
     if (Math.abs(sumPayment - grandTotal) > 0.01) newInvalid.payment = true;
     setInvalidFields(newInvalid);
     if (Object.keys(newInvalid).length > 0) {
@@ -636,14 +649,14 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
             {/* Payment type multi-input */}
             {section.title === "ยอดรวมและการชำระเงิน" && (
               <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                {(["cash", "credit_card", "transfer"] as const).map((type) => (
-                  <div key={type}>
-                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor={`payment.${type}`}>
-                      {type === "cash" ? "เงินสด" : type === "credit_card" ? "บัตรเครดิต" : "โอนเงิน"}
+                {companyProfile?.paymentTypes?.map((type: PaymentType) => (
+                  <div key={type.value}>
+                    <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor={`payment.${type.value}`}>
+                      {type.label}
                     </label>
                     <input
-                      id={`payment.${type}`}
-                      name={`payment.${type}`}
+                      id={`payment.${type.value}`}
+                      name={`payment.${type.value}`}
                       type="number"
                       min="0"
                       step="any"
@@ -651,7 +664,7 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
                       style={{ MozAppearance: 'textfield' }}
                       onWheel={e => (e.target as HTMLInputElement).blur()}
                       className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.payment ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
-                      value={form.payment[type] || ""}
+                      value={form.payment[type.value] || ""}
                       onChange={handleFormChange}
                       placeholder="0.00"
                     />

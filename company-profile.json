@@ -28,6 +28,20 @@
     "ornament": "O",
     "เพชร": "D"
   },
+  "paymentTypes": [
+    {
+      "value": "cash",
+      "label": "เงินสด"
+    },
+    {
+      "value": "credit_card",
+      "label": "บัตรเครดิต"
+    },
+    {
+      "value": "transfer",
+      "label": "เงินโอน"
+    }
+  ],
   "paymentBankOptions": [
     {
       "value": "cash",

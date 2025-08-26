@@ -1,7 +1,7 @@
 import React from "react";
 import MonthYearSelector from "../common/MonthYearSelector";
 import { monthOptions as sharedMonthOptions, getMonthLabel } from "../utils/monthLabels";
-import companyProfile from '../../../company-profile.json';
+
 
 interface ReportHeaderProps {
     month: string;
@@ -15,6 +15,7 @@ interface ReportHeaderProps {
 
 const defaultYearOptions = Array.from({ length: 6 }, (_, i) => (2020 + i).toString());
 
+
 const ReportHeader: React.FC<ReportHeaderProps> = ({
     month,
     year,
@@ -23,25 +24,46 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({
     onMonthChange,
     onYearChange,
     title
-}) => (
-    <div className="mb-4 text-center">
-        <div className="font-bold text-lg">{companyProfile.company_name}</div>
-        <div>เลขประจำตัวผู้เสียภาษี: {companyProfile.tax_id}</div>
-        <div>ที่อยู่: {companyProfile.address}</div>
-        <div>โทรศัพท์ : {Array.isArray(companyProfile.phones) ? companyProfile.phones.join(', ') : companyProfile.phones}</div>
-        <div className="font-semibold mt-2">{title}</div>
-        <div className="flex flex-wrap justify-center gap-2 mt-2 items-center no-print">
-            <MonthYearSelector
-                month={month}
-                year={year}
-                monthOptions={monthOptions}
-                yearOptions={yearOptions}
-                onMonthChange={onMonthChange}
-                onYearChange={onYearChange}
-            />
+}) => {
+    const [companyProfile, setCompanyProfile] = React.useState<any>(null);
+    const [loading, setLoading] = React.useState(true);
+    React.useEffect(() => {
+        setLoading(true);
+        fetch('/api/company-profile')
+            .then(res => res.json())
+            .then(data => {
+                setCompanyProfile(data);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
+
+    return (
+        <div className="mb-4 text-center">
+            {loading || !companyProfile ? (
+                <div className="text-gray-400">Loading company info...</div>
+            ) : (
+                <>
+                    <div className="font-bold text-lg">{companyProfile.company_name}</div>
+                    <div>เลขประจำตัวผู้เสียภาษี: {companyProfile.tax_id}</div>
+                    <div>ที่อยู่: {companyProfile.address}</div>
+                    <div>โทรศัพท์ : {Array.isArray(companyProfile.phones) ? companyProfile.phones.join(', ') : companyProfile.phones}</div>
+                </>
+            )}
+            <div className="font-semibold mt-2">{title}</div>
+            <div className="flex flex-wrap justify-center gap-2 mt-2 items-center no-print">
+                <MonthYearSelector
+                    month={month}
+                    year={year}
+                    monthOptions={monthOptions}
+                    yearOptions={yearOptions}
+                    onMonthChange={onMonthChange}
+                    onYearChange={onYearChange}
+                />
+            </div>
+            <div className="mt-1">ประจำเดือน: {getMonthLabel(month)} / {year}</div>
         </div>
-        <div className="mt-1">ประจำเดือน: {getMonthLabel(month)} / {year}</div>
-    </div>
-);
+    );
+};
 
 export default ReportHeader;

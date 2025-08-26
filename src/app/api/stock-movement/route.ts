@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import { isPurchase, isPurchaseType, isSale, isSaleType } from '@/components/utils/utils';
-import companyProfile from '../../../../company-profile.json';
 
 const RECEIPT_LOG_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
 
@@ -159,9 +158,9 @@ function getMovementsWithOpening(receipts: Receipt[], month: number, year: numbe
   return rows;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const month = parseInt(searchParams.get('month') || '0', 10);
     const year = parseInt(searchParams.get('year') || '0', 10);
     if (!month || !year) return NextResponse.json([], { status: 400 });
@@ -171,7 +170,11 @@ export async function GET(request: NextRequest) {
     }).filter((r): r is Receipt => r !== null);
     const rows = getMovementsWithOpening(receipts, month, year);
 
-    // Add productType field to each row using companyProfile.productOptions
+    // Fetch company profile from API
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/company-profile`);
+    if (!res.ok) throw new Error('Failed to fetch company profile');
+    const companyProfile = await res.json();
     const productOptions = companyProfile.productOptions || {};
     function getProductType(product: string | undefined): string {
       if (!product) return 'อื่นๆ';

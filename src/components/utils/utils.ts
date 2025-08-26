@@ -1,14 +1,42 @@
-import companyProfile from '../../../company-profile.json';
-const COMPANY_TAX_ID = companyProfile.tax_id;
+
+
+let cachedTaxId: string | undefined;
+let fetchPromise: Promise<string> | null = null;
+
+
+/**
+ * Get the company tax ID from the API (cached after first fetch).
+ */
+export async function getCompanyTaxId(): Promise<string> {
+  if (cachedTaxId !== undefined) return cachedTaxId;
+  if (fetchPromise) return fetchPromise;
+  fetchPromise = fetch('/api/company-profile')
+    .then(res => res.json())
+    .then(data => {
+      cachedTaxId = typeof data.tax_id === 'string' ? data.tax_id : '';
+      return cachedTaxId || '';
+    })
+    .catch(() => {
+      cachedTaxId = '';
+      return '';
+    });
+  return fetchPromise.then(val => val || '');
+}
 
 // Utility to determine if a receipt is a sale (our org is the vendor)
-export function isSale(receipt: { vendor_tax_id?: string }) {
-  return receipt.vendor_tax_id === COMPANY_TAX_ID;
+
+// Async version for dynamic tax id
+export async function isSale(receipt: { vendor_tax_id?: string }) {
+  const taxId = await getCompanyTaxId();
+  return receipt.vendor_tax_id === taxId;
 }
 
 // Utility to determine if a receipt is a purchase (our org is the buyer)
-export function isPurchase(receipt: { buyer_tax_id?: string, vendor_tax_id?: string }) {
-  return receipt.buyer_tax_id === COMPANY_TAX_ID && receipt.vendor_tax_id && receipt.vendor_tax_id !== COMPANY_TAX_ID;
+
+// Async version for dynamic tax id
+export async function isPurchase(receipt: { buyer_tax_id?: string, vendor_tax_id?: string }) {
+  const taxId = await getCompanyTaxId();
+  return receipt.buyer_tax_id === taxId && receipt.vendor_tax_id && receipt.vendor_tax_id !== taxId;
 }
 
 // Utility to determine if a receipt is a sale (by type)

@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 
 type PaymentMap = {
-    cash?: string;
-    credit_card?: string;
-    transfer?: string;
+    [key: string]: string;
 };
 
 type Product = {
@@ -227,10 +225,9 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
             });
         }
         // Validation: sum of payment types === grand_total
-        const sumPayment = (['cash', 'credit_card', 'transfer'] as (keyof PaymentMap)[]).reduce(
-            (sum, type) => sum + (parseFloat(form.payment[type] || '0') || 0),
-            0
-        );
+        const sumPayment = companyProfile.paymentTypes
+            .map((type: { value: string }) => parseFloat(form.payment[type.value] || '0'))
+            .reduce((sum: number, val: number) => sum + val, 0);
         if (Math.abs(sumPayment - grandTotal) > 0.01) newInvalid.payment = true;
         setInvalidFields(newInvalid);
         if (Object.keys(newInvalid).length > 0) {
@@ -392,14 +389,16 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
             </div>
             {/* Payment breakdown */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-                {(['cash', 'credit_card', 'transfer'] as const).map((type) => {
+                {companyProfile?.paymentTypes?.map((pt: any) => {
+                    const type = pt.value;
+                    const label = pt.label;
                     // If cash is filled (not empty and not zero), disable other payment types
                     const cashFilled = !!form.payment.cash && parseFloat(form.payment.cash) > 0;
                     const isDisabled = type !== 'cash' && cashFilled;
                     return (
                         <div key={type}>
                             <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor={`payment.${type}`}>
-                                {type === 'cash' ? 'เงินสด' : type === 'credit_card' ? 'บัตรเครดิต' : 'โอนเงิน'}
+                                {label}
                             </label>
                             <input
                                 id={`payment.${type}`}
@@ -409,7 +408,7 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
                                 step="any"
                                 inputMode="decimal"
                                 className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.payment ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'} ${isDisabled ? 'bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' : ''}`}
-                                value={form.payment[type] || ''}
+                                value={form.payment[type as string] || ''}
                                 onChange={handleFormChange}
                                 placeholder="0.00"
                                 disabled={isDisabled}
