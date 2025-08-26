@@ -20,14 +20,32 @@
     },
     {
       "accountNumber": "1100",
-      "accountName": "สต๊อกทอง",
+      "accountName": "สต๊อกสินค้า",
       "note": "ทองซื้อเข้าร้าน",
       "type": "asset"
+    },
+    {
+      "accountNumber": "1200",
+      "accountName": "ภาษีซื้อรอคืน (VAT Input)",
+      "note": "VAT ที่จ่ายในการซื้อสินค้า",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "1300",
+      "accountName": "ค่าเสื่อมสะสม",
+      "note": "ค่าเสื่อมราคาสะสม",
+      "type": "contra-asset"
     },
     {
       "accountNumber": "2000",
       "accountName": "เจ้าหนี้การค้า",
       "note": "ร้านทองที่ซื้อสินค้า",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "2100",
+      "accountName": "เจ้าหนี้ประกันสังคม",
+      "note": "หนี้ประกันสังคม",
       "type": "liability"
     },
     {
@@ -37,10 +55,22 @@
       "type": "liability"
     },
     {
-      "accountNumber": "2210",
-      "accountName": "ภาษีซื้อรอคืน (VAT Input)",
-      "note": "VAT ที่จ่ายในการซื้อสินค้า",
-      "type": "asset"
+      "accountNumber": "2300",
+      "accountName": "เงินเดือนค้างจ่าย",
+      "note": "เงินเดือนที่ยังไม่จ่ายพนักงาน",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "3000",
+      "accountName": "เงินลงทุนผู้ถือหุ้น",
+      "note": "เงินลงทุนจากผู้ถือหุ้น",
+      "type": "equity"
+    },
+    {
+      "accountNumber": "3100",
+      "accountName": "กำไรสะสม",
+      "note": "กำไรสะสมหลังปิดบัญชี",
+      "type": "equity"
     },
     {
       "accountNumber": "4000",
@@ -61,14 +91,45 @@
       "type": "expense"
     },
     {
-      "accountNumber": "3000",
-      "accountName": "เงินลงทุนผู้ถือหุ้น",
-      "note": "เงินลงทุนจากผู้ถือหุ้น",
-      "type": "equity"
+      "accountNumber": "5100",
+      "accountName": "เงินเดือนพนักงาน",
+      "note": "ค่าใช้จ่ายเงินเดือน",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "5110",
+      "accountName": "ค่าคอมมิชชั่น",
+      "note": "ค่าใช้จ่ายค่าคอมมิชชั่น",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "5120",
+      "accountName": "ประกันสังคม",
+      "note": "ค่าใช้จ่ายประกันสังคม",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "5200",
+      "accountName": "ค่าเช่า",
+      "note": "ค่าเช่าตึก/สำนักงาน",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "5300",
+      "accountName": "ค่าเสื่อม",
+      "note": "ค่าเสื่อมสินทรัพย์",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "5400",
+      "accountName": "ค่าใช้จ่ายสำนักงาน",
+      "note": "ค่าใช้จ่ายสำนักงานทั่วไป",
+      "type": "expense"
     }
   ],
   "typeLabels": {
     "asset": "สินทรัพย์",
+    "contra-asset": "สินทรัพย์ลดค่า",
     "liability": "หนี้สิน",
     "equity": "ส่วนของผู้ถือหุ้น",
     "revenue": "รายได้",
@@ -87,7 +148,7 @@
         "description": "ต้นทุนทองที่ซื้อ"
       },
       {
-        "debit": "2210",
+        "debit": "1200",
         "amount": "vat",
         "description": "VAT ซื้อ"
       },
@@ -134,6 +195,69 @@
         "credit": "3000",
         "amount": "grandTotal",
         "description": "เงินลงทุนผู้ถือหุ้น"
+      }
+    ],
+    "salary": [
+      {
+        "debit": "5100",
+        "amount": "amount",
+        "description": "เงินเดือนพนักงาน"
+      }
+    ],
+    "commission": [
+      {
+        "debit": "5110",
+        "amount": "amount",
+        "description": "ค่าคอมมิชชั่น"
+      }
+    ],
+    "social_security": [
+      {
+        "debit": "5120",
+        "amount": "amount",
+        "description": "ประกันสังคม"
+      }
+    ],
+    "rent_expense": [
+      {
+        "debit": "5200",
+        "amount": "amount",
+        "description": "ค่าเช่า"
+      }
+    ],
+    "depreciation": [
+      {
+        "debit": "5300",
+        "credit": "1300",
+        "amount": "amount",
+        "description": "บันทึกค่าเสื่อมและสะสม"
+      }
+    ],
+    "office_expense": [
+      {
+        "debit": "5400",
+        "amount": "amount",
+        "description": "ค่าใช้จ่ายสำนักงาน"
+      }
+    ],
+    "closing": [
+      {
+        "debit": "4000",
+        "credit": null,
+        "amount": "totalRevenue",
+        "description": "ปิดรายได้ไปกำไรสะสม"
+      },
+      {
+        "debit": null,
+        "credit": "5000",
+        "amount": "totalExpense",
+        "description": "ปิดค่าใช้จ่ายไปกำไรสะสม"
+      },
+      {
+        "debit": "3100",
+        "credit": null,
+        "amount": "netProfit",
+        "description": "ยอดกำไรสุทธิเดือนนี้"
       }
     ]
   }

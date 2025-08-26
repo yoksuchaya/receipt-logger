@@ -1,3 +1,5 @@
+import AccountRuleInfo from "./AccountRuleInfo";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 
 interface AccountChartItem {
@@ -16,6 +18,8 @@ const AccountChart: React.FC = () => {
   const [editIdx, setEditIdx] = useState<{ type: string; idx: number } | null>(null);
   const [editValues, setEditValues] = useState<{ accountNumber: string; accountName: string; note?: string }>({ accountNumber: '', accountName: '', note: '' });
   const [paymentTypeLabels, setPaymentTypeLabels] = useState<Record<string, string>>({});
+  // Section popover state for info icon
+  const [sectionInfo, setSectionInfo] = useState<{ type: string | null }>({ type: null });
 
   useEffect(() => {
     setLoading(true);
@@ -170,10 +174,48 @@ const AccountChart: React.FC = () => {
         <div className="text-gray-600 dark:text-gray-300 mb-4 text-sm">รายการบัญชีที่ใช้ในระบบ</div>
         {sortedTypes.map((type) => (
           <div key={type} className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
-              <span className="inline-block w-1.5 h-5 bg-gray-400 dark:bg-gray-500 rounded-full mr-2" aria-hidden="true"></span>
-              {typeLabels[type] || type}
-            </h2>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2 m-0">
+                <span className="inline-block w-1.5 h-5 bg-gray-400 dark:bg-gray-500 rounded-full mr-2" aria-hidden="true"></span>
+                {typeLabels[type] || type}
+              </h2>
+              <button
+                type="button"
+                className="ml-1 cursor-pointer text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white relative focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 rounded-full"
+                aria-label="ดูรายละเอียดการใช้งานบัญชีในหมวดนี้"
+                onClick={() => setSectionInfo({ type })}
+                tabIndex={0}
+              >
+                <InformationCircleIcon className="w-5 h-5" aria-hidden="true" />
+              </button>
+      {/* Modal Dialog for Account Info */}
+      {sectionInfo.type && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-40" onClick={() => setSectionInfo({ type: null })} />
+          <div
+            className="relative bg-white dark:bg-neutral-900 rounded-lg shadow-2xl max-w-2xl w-full mx-4 p-8 overflow-y-auto max-h-[90vh] animate-fadeIn"
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+          >
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white text-2xl focus:outline-none"
+              aria-label="ปิด"
+              onClick={() => setSectionInfo({ type: null })}
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-bold mb-4 text-gray-800 dark:text-gray-100">รายละเอียดการใช้งานบัญชีในหมวด: {typeLabels[sectionInfo.type] || sectionInfo.type}</h3>
+            {grouped[sectionInfo.type]?.map((item) => (
+              <div key={item.accountNumber} className="mb-6 last:mb-0">
+                <div className="font-medium text-base text-gray-800 dark:text-gray-100 mb-2">{item.accountNumber} {item.accountName}</div>
+                <AccountRuleInfo accountNumber={item.accountNumber} rules={rules} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+            </div>
             <table className="min-w-full text-sm mb-2 table-fixed">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-neutral-700">
@@ -205,7 +247,9 @@ const AccountChart: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <td className="py-2 px-2 text-gray-900 dark:text-white">{item.accountNumber}{getPaymentTypeMapping(item.accountNumber)}</td>
+                        <td className="py-2 px-2 text-gray-900 dark:text-white flex items-center gap-1">
+                          {item.accountNumber}{getPaymentTypeMapping(item.accountNumber)}
+                        </td>
                         <td className="py-2 px-2 text-gray-900 dark:text-white">{item.accountName}</td>
                         <td className="py-2 px-2 text-gray-700 dark:text-gray-300">{item.note || '-'}</td>
                         <td className="py-2 px-2">

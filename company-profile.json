@@ -13,20 +13,15 @@
     "bullion": [
       "ทองแท่ง 96.5%",
       "ค่าบล็อค"
-    ],
-    "เพชร": [
-      "เพชรจะย้อม"
     ]
   },
   "productCategoryNames": {
     "ornament": "ทองรูปพรรณ 96.5%",
-    "bullion": "ทองแท่ง 96.5%",
-    "เพชร": "เพชร"
+    "bullion": "ทองแท่ง 96.5%"
   },
   "productCategoryShorts": {
     "bullion": "B",
-    "ornament": "O",
-    "เพชร": "D"
+    "ornament": "O"
   },
   "paymentTypes": [
     {
