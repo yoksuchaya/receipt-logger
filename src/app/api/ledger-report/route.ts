@@ -46,63 +46,78 @@ function findAccountNumber(accounts: Account[], keyword: string): string | undef
   return acc?.accountNumber;
 }
 
-// Real logic: determine debit/credit accounts based on receipt type and account chart
-function getAccountsForReceipt(receipt: Receipt, accounts: Account[]) {
-  const amount = Number(receipt.grand_total);
-  const vatAmount = Number(receipt.vat || 0);
-  // Use the same logic as receipts API for purchase/sale/capital
-  const sale = isSaleType(receipt.type);
-  const purchase = isPurchaseType(receipt.type);
-  const capital = isCapitalType(receipt.type);
 
-  // Find relevant accounts
-  const accStock = findAccountNumber(accounts, 'สต๊อกทอง');
-  const accBank = findAccountNumber(accounts, 'เงินฝากธนาคาร');
-  const accCash = findAccountNumber(accounts, 'เงินสดในร้าน');
-  const accSales = findAccountNumber(accounts, 'ขายทอง');
-  const accVatInput = findAccountNumber(accounts, 'VAT Input');
-  const accVatOutput = findAccountNumber(accounts, 'VAT Output');
-  const accCOGS = findAccountNumber(accounts, 'ต้นทุนขาย'); // COGS (Cost of Goods Sold)
-  const accEquity = findAccountNumber(accounts, 'เงินลงทุนผู้ถือหุ้น');
+// Rules-based logic for ledger entries
+function getAccountsForReceipt(receipt: Receipt, accounts: Account[], rules: any, stockMovements: StockMovement[]) {
+  let ruleType: string | null = null;
+  if (isPurchaseType(receipt.type)) ruleType = "purchase";
+  else if (isSaleType(receipt.type)) ruleType = "sale";
+  else if (isCapitalType(receipt.type)) ruleType = "capital";
+  if (!ruleType || !rules[ruleType]) return [];
 
-  const entries: { accountNumber: string; debit: number; credit: number }[] = [];
-
-  if (purchase && accStock && (accBank || accCash)) {
-    // Purchase: Debit stock, Credit bank/cash, VAT input if present
-    entries.push({ accountNumber: accStock, debit: amount, credit: 0 });
-    if (vatAmount > 0 && accVatInput) {
-      entries.push({ accountNumber: accVatInput, debit: vatAmount, credit: 0 });
-      // Credit bank/cash for total (amount + vat)
-      const total = amount + vatAmount;
-      entries.push({ accountNumber: accBank || accCash || '', debit: 0, credit: total });
-    } else {
-      entries.push({ accountNumber: accBank || accCash || '', debit: 0, credit: amount });
+  const grandTotal = parseFloat(receipt.grand_total);
+  const vat = parseFloat(receipt.vat);
+  const net = grandTotal - vat;
+  // Calculate cost for sale (COGS)
+  let cost = 0;
+  if (ruleType === "sale") {
+    if (receipt.receipt_no && stockMovements.length > 0) {
+      const outs = stockMovements.filter((m) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
+        .filter((m) => {
+          const match = m.desc?.match(/เอกสารเลขที่\s*(\S+)/);
+          return match && match[1] === receipt.receipt_no;
+        });
+      cost = outs.reduce((sum, m) => {
+        const qty = parseFloat(m.qty ?? '0');
+        const avgCost = parseFloat(m.balanceAvgCost ?? '0');
+        if (!isNaN(qty) && !isNaN(avgCost)) {
+          return sum + qty * avgCost;
+        }
+        return sum;
+      }, 0);
     }
-  } else if (sale && (accBank || accCash) && accSales) {
-    // Sale: Debit cash/bank, Credit sales, VAT output if present
-    if (vatAmount > 0 && accVatOutput) {
-      // Debit cash/bank for total (amount + vat)
-      const total = amount + vatAmount;
-      entries.push({ accountNumber: accBank || accCash || '', debit: total, credit: 0 });
-      entries.push({ accountNumber: accSales || '', debit: 0, credit: amount });
-      entries.push({ accountNumber: accVatOutput || '', debit: 0, credit: vatAmount });
-    } else {
-      entries.push({ accountNumber: accBank || accCash || '', debit: amount, credit: 0 });
-      entries.push({ accountNumber: accSales || '', debit: 0, credit: amount });
-    }
-    // Weighted average COGS and inventory (1100) using stock-movement API
-    // This is async, so we will patch the main GET to inject the correct COGS per receipt
-    // For now, push a placeholder, will be replaced in GET
-    if (accStock && accCOGS) {
-      entries.push({ accountNumber: accCOGS, debit: -1, credit: 0 }); // -1 means to be filled in GET
-      entries.push({ accountNumber: accStock, debit: 0, credit: -1 });
-    }
-  } else if (capital && accBank && accEquity) {
-    // Capital injection: Debit เงินฝากธนาคาร (1010), Credit เงินลงทุนผู้ถือหุ้น (3000)
-    entries.push({ accountNumber: accBank, debit: amount, credit: 0 });
-    entries.push({ accountNumber: accEquity, debit: 0, credit: amount });
   }
-  // You can add more logic for other types if needed
+
+  const entries: { accountNumber: string; debit: number; credit: number; description?: string }[] = [];
+  // Infer payment_type if missing
+  let paymentType = receipt.payment_type;
+  if (!paymentType && receipt.payment) {
+    if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
+    else if (receipt.payment.cash && receipt.payment.cash !== "") paymentType = "cash";
+    else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
+  }
+  for (const rule of rules[ruleType]) {
+    // Determine account number (handle payment type for cash/bank using paymentTypeMap)
+    let accountNumber = rule.debit || rule.credit || "";
+    if (accountNumber.includes("|")) {
+      const paymentTypeMap = rules.paymentTypeMap || {};
+      let mapped: string | undefined = undefined;
+      if (paymentType) {
+        mapped = paymentTypeMap[paymentType];
+      }
+      if (mapped && accountNumber.split("|").includes(mapped)) {
+        accountNumber = mapped;
+      } else {
+        accountNumber = accountNumber.split("|")[0];
+      }
+    }
+    // Determine amount
+    let amount = 0;
+    if (rule.amount === "grandTotal") amount = grandTotal;
+    else if (rule.amount === "vat") amount = vat;
+    else if (rule.amount === "net") amount = net;
+    else if (rule.amount === "cost") amount = cost;
+    else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
+    // Only add entry if amount > 0 and not NaN
+    if (amount && amount > 0 && !isNaN(amount)) {
+      entries.push({
+        accountNumber,
+        debit: rule.debit ? amount : 0,
+        credit: rule.credit ? amount : 0,
+        description: rule.description
+      });
+    }
+  }
   return entries;
 }
 
@@ -129,21 +144,24 @@ export async function GET(req: NextRequest) {
 
   // Fetch accounts from API
   let accounts: Account[] = [];
+  let rules: any = {};
   try {
     const accountChartRes = await fetch(`${req.nextUrl.origin}/api/account-chart`);
     if (!accountChartRes.ok) throw new Error('Failed to fetch account chart');
     const accountChart = await accountChartRes.json();
     accounts = Array.isArray(accountChart) ? accountChart : accountChart.accounts;
+    rules = Array.isArray(accountChart) ? {} : accountChart.rules;
   } catch (e) {
     return NextResponse.json({ error: 'Cannot read account chart' }, { status: 500 });
   }
   const accountMap = getAccountMap(accounts);
 
-  // Read receipts
+  // Fetch receipts from API
   let receipts: Receipt[] = [];
   try {
-    const lines = (await fs.readFile(RECEIPT_FILE, 'utf-8')).split('\n').filter(Boolean);
-    receipts = lines.map(line => JSON.parse(line));
+    const receiptsRes = await fetch(`${req.nextUrl.origin}/api/receipt-log`);
+    if (!receiptsRes.ok) throw new Error('Failed to fetch receipts');
+    receipts = await receiptsRes.json();
   } catch (e) {
     return NextResponse.json({ error: 'Cannot read receipts' }, { status: 500 });
   }
@@ -164,27 +182,7 @@ export async function GET(req: NextRequest) {
     const rMonth = parseMonth(receipt.date);
     if (rMonth >= monthParam) continue;
     // Patch: inject weighted avg COGS for sales
-    let accs = getAccountsForReceipt(receipt, accounts);
-    if (isSaleType(receipt.type) && receipt.receipt_no && stockMovements.length > 0) {
-      const outs = stockMovements.filter((m) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
-        .filter((m) => {
-          const match = m.desc?.match(/เอกสารเลขที่\s*(\S+)/);
-          return match && match[1] === receipt.receipt_no;
-        });
-      const cogs = outs.reduce((sum, m) => {
-        const qty = parseFloat(m.qty ?? '0');
-        const avgCost = parseFloat(m.balanceAvgCost ?? '0');
-        if (!isNaN(qty) && !isNaN(avgCost)) {
-          return sum + qty * avgCost;
-        }
-        return sum;
-      }, 0);
-      accs = accs.map(acc => {
-        if (acc.debit === -1) return { ...acc, debit: cogs };
-        if (acc.credit === -1) return { ...acc, credit: cogs };
-        return acc;
-      });
-    }
+    const accs = getAccountsForReceipt(receipt, accounts, rules, stockMovements);
     for (const acc of accs) {
       if (!ledger[acc.accountNumber]) continue;
       const accType = accountMap[acc.accountNumber]?.type;
@@ -201,32 +199,12 @@ export async function GET(req: NextRequest) {
     const rMonth = parseMonth(receipt.date);
     if (rMonth !== monthParam) continue;
     // Patch: inject weighted avg COGS for sales
-    let accs2 = getAccountsForReceipt(receipt, accounts);
-    if (isSaleType(receipt.type) && receipt.receipt_no && stockMovements.length > 0) {
-      const outs = stockMovements.filter((m) => isSaleType(m.type) && m.desc && m.desc.includes('เอกสารเลขที่'))
-        .filter((m) => {
-          const match = m.desc?.match(/เอกสารเลขที่\s*(\S+)/);
-          return match && match[1] === receipt.receipt_no;
-        });
-      const cogs = outs.reduce((sum, m) => {
-        const qty = parseFloat(m.qty ?? '0');
-        const avgCost = parseFloat(m.balanceAvgCost ?? '0');
-        if (!isNaN(qty) && !isNaN(avgCost)) {
-          return sum + qty * avgCost;
-        }
-        return sum;
-      }, 0);
-      accs2 = accs2.map(acc => {
-        if (acc.debit === -1) return { ...acc, debit: cogs };
-        if (acc.credit === -1) return { ...acc, credit: cogs };
-        return acc;
-      });
-    }
+    const accs2 = getAccountsForReceipt(receipt, accounts, rules, stockMovements);
     for (const acc of accs2) {
       if (!ledger[acc.accountNumber]) continue;
       ledger[acc.accountNumber].entries.push({
         date: receipt.date,
-        description: acc.accountNumber === "5000" || acc.accountNumber === "1100" ? "ต้นทุนทองที่ขาย" : receipt.notes,
+        description: acc.description || receipt.notes,
         reference: receipt.receipt_no || '',
         debit: acc.debit,
         credit: acc.credit,

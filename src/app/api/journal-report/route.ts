@@ -66,6 +66,13 @@ export async function GET(req: NextRequest) {
 
     const entries: JournalEntry[] = [];
     for (const receipt of receipts) {
+      // Infer payment_type if missing
+      let paymentType = receipt.payment_type;
+      if (!paymentType && receipt.payment) {
+        if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
+        else if (receipt.payment.cash && receipt.payment.cash !== "") paymentType = "cash";
+        else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
+      }
       let ruleType: string | null = null;
       if (isPurchaseType(receipt.type)) ruleType = "purchase";
       else if (isSaleType(receipt.type)) ruleType = "sale";
@@ -102,7 +109,10 @@ export async function GET(req: NextRequest) {
         let accountNumber = rule.debit || rule.credit || "";
         if (accountNumber.includes("|")) {
           const paymentTypeMap = rules.paymentTypeMap || {};
-          const mapped = paymentTypeMap[receipt.payment_type];
+          let mapped: string | undefined = undefined;
+          if (paymentType) {
+            mapped = paymentTypeMap[paymentType];
+          }
           if (mapped && accountNumber.split("|").includes(mapped)) {
             accountNumber = mapped;
           } else {
@@ -119,12 +129,11 @@ export async function GET(req: NextRequest) {
         else if (rule.amount === "cost") amount = cost;
         else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
 
-
         // Only add entry if amount > 0 and not NaN
         if (amount && amount > 0 && !isNaN(amount)) {
           entries.push({
             date: receipt.date,
-            description: rule.description || description,
+            description: description || rule.description,
             accountNumber: acc.accountNumber,
             accountName: acc.accountName,
             debit: rule.debit ? amount : 0,

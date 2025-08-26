@@ -35,7 +35,8 @@ export async function GET(req: NextRequest) {
         (r: Receipt) =>
             typeof r.type === 'string' &&
             isPurchaseType(r.type) &&
-            typeof r.date === 'string' && r.date.startsWith(`${year}-${month}`)
+            typeof r.date === 'string' && r.date.startsWith(`${year}-${month}`) &&
+            parseFloat(r.vat || '0') > 0.0
     );
     // Sort by date ascending
     filtered.sort((a, b) => {

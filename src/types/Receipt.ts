@@ -6,7 +6,12 @@ export type Receipt = {
   vendor: string;
   buyer_name: string;
   category: string;
-  payment_type: "cash" | "transfer";
+  payment_type?: "cash" | "transfer";
+  payment?: {
+    cash?: string;
+    credit_card?: string;
+    transfer?: string;
+  };
   notes: string;
   vendor_tax_id?: string;
   buyer_tax_id?: string;

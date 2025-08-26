@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
-import { isSale } from '@/components/utils/utils';
+import { isSale, isSaleType } from '@/components/utils/utils';
+import { Receipt } from '@/types/Receipt';
 
 // Helper to parse JSONL
 async function readSalesData() {
@@ -31,9 +32,10 @@ export async function GET(req: NextRequest) {
 
     const data = await readSalesData();
     const filtered = data.filter(
-        (r: Record<string, unknown>) =>
-            isSale(r) &&
-            typeof r.date === 'string' && r.date.startsWith(`${year}-${month}`)
+        (r: Receipt) =>
+            isSaleType(r.type) &&
+            typeof r.date === 'string' && r.date.startsWith(`${year}-${month}`) &&
+            parseFloat(r.vat || '0') > 0.0
     );
     // Sort by date ascending
     filtered.sort((a, b) => {
