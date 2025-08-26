@@ -4,7 +4,6 @@ import Image from "next/image";
 import ReceiptLogger from "@/components/receipt/ReceiptLogger";
 import ReceiptLogList from "@/components/receipt/ReceiptLogList";
 import VatReport from "@/components/vat/VatReport";
-import AccountBook from "@/components/account/AccountBook";
 import AccountChart from "@/components/account/AccountChart";
 import StockMovementReport from "@/components/stock/StockMovementReport";
 import JournalReport from "@/components/journal/JournalReport";
