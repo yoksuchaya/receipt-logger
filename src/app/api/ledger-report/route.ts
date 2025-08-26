@@ -131,11 +131,13 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Read accounts
+  // Fetch accounts from API
   let accounts: Account[] = [];
   try {
-    const accRaw = await fs.readFile(ACCOUNT_FILE, 'utf-8');
-    accounts = JSON.parse(accRaw);
+    const accountChartRes = await fetch(`${req.nextUrl.origin}/api/account-chart`);
+    if (!accountChartRes.ok) throw new Error('Failed to fetch account chart');
+    const accountChart = await accountChartRes.json();
+    accounts = Array.isArray(accountChart) ? accountChart : accountChart.accounts;
   } catch (e) {
     return NextResponse.json({ error: 'Cannot read account chart' }, { status: 500 });
   }

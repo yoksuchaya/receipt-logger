@@ -6,9 +6,10 @@ const ACCOUNT_CHART_FILE = path.join(process.cwd(), "account-chart.json");
 
 export async function GET(req: NextRequest) {
   try {
-    const data = await fs.readFile(ACCOUNT_CHART_FILE, "utf8");
-    const accounts = JSON.parse(data);
-    return NextResponse.json(accounts);
+  const data = await fs.readFile(ACCOUNT_CHART_FILE, "utf8");
+  const chart = JSON.parse(data);
+  const accounts = Array.isArray(chart) ? chart : chart.accounts;
+  return NextResponse.json(accounts);
   } catch (err: unknown) {
     let message = 'Failed to read account chart';
     if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {

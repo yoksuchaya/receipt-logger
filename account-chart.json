@@ -1,4 +1,5 @@
-[
+{
+  "accounts": [
   {
     "accountNumber": "1000",
     "accountName": "เงินสดในร้าน",
@@ -59,4 +60,67 @@
     "note": "เงินลงทุนจากผู้ถือหุ้น",
     "type": "equity"
   }
-]
+  ],
+  "rules": {
+    "paymentTypeMap": {
+      "cash": "1000",
+      "transfer": "1010"
+    },
+    "purchase": [
+      {
+        "debit": "1100",
+        "amount": "net",
+        "description": "ต้นทุนทองที่ซื้อ"
+      },
+      {
+        "debit": "2210",
+        "amount": "vat",
+        "description": "VAT ซื้อ"
+      },
+      {
+        "credit": "1000|1010",
+        "amount": "grandTotal",
+        "description": "จ่ายเงิน (เงินสด/โอน)"
+      }
+    ],
+    "sale": [
+      {
+        "debit": "1000|1010",
+        "amount": "grandTotal",
+        "description": "รับเงิน (เงินสด/โอน)"
+      },
+      {
+        "credit": "4000",
+        "amount": "net",
+        "description": "ขายทอง/สินค้า"
+      },
+      {
+        "credit": "2200",
+        "amount": "vat",
+        "description": "VAT ขาย"
+      },
+      {
+        "debit": "5000",
+        "amount": "cost",
+        "description": "ต้นทุนทองที่ขาย"
+      },
+      {
+        "credit": "1100",
+        "amount": "cost",
+        "description": "ตัดสต๊อกทอง"
+      }
+    ],
+    "capital": [
+      {
+        "debit": "1010",
+        "amount": "grandTotal",
+        "description": "เงินเข้าธนาคาร"
+      },
+      {
+        "credit": "3000",
+        "amount": "grandTotal",
+        "description": "เงินลงทุนผู้ถือหุ้น"
+      }
+    ]
+  }
+}
