@@ -1,71 +1,71 @@
 {
   "accounts": [
-  {
-    "accountNumber": "1000",
-    "accountName": "เงินสดในร้าน",
-    "note": "เงินสดจากลูกค้า",
-    "type": "asset"
-  },
-  {
-    "accountNumber": "1010",
-    "accountName": "เงินฝากธนาคาร",
-    "note": "จ่ายโอนเงินซื้อทอง",
-    "type": "asset"
-  },
-  {
-    "accountNumber": "1020",
-    "accountName": "เงินรับรอเรียกเก็บจากบัตรเครดิต",
-    "note": "ยอดเงินที่รอรับจากบริษัทบัตรเครดิต",
-    "type": "asset"
-  },
-  {
-    "accountNumber": "1100",
-    "accountName": "สต๊อกทอง",
-    "note": "ทองซื้อเข้าร้าน",
-    "type": "asset"
-  },
-  {
-    "accountNumber": "2000",
-    "accountName": "เจ้าหนี้การค้า",
-    "note": "ร้านทองที่ซื้อสินค้า",
-    "type": "liability"
-  },
-  {
-    "accountNumber": "2200",
-    "accountName": "ภาษีขายค้างชำระ (VAT Output)",
-    "note": "VAT ที่เก็บจากขาย",
-    "type": "liability"
-  },
-  {
-    "accountNumber": "2210",
-    "accountName": "ภาษีซื้อรอคืน (VAT Input)",
-    "note": "VAT ที่จ่ายในการซื้อสินค้า",
-    "type": "asset"
-  },
-  {
-    "accountNumber": "4000",
-    "accountName": "ขายทอง/สินค้า",
-    "note": "รายได้จากการขายทอง",
-    "type": "revenue"
-  },
-  {
-    "accountNumber": "4010",
-    "accountName": "รายได้ค่าบริการ",
-    "note": "ค่ากำเหน็จ / ค่าบริการ (ถ้ามี)",
-    "type": "revenue"
-  },
-  {
-    "accountNumber": "5000",
-    "accountName": "ต้นทุนขาย",
-    "note": "ต้นทุนสินค้าที่ขาย",
-    "type": "expense"
-  },
-  {
-    "accountNumber": "3000",
-    "accountName": "เงินลงทุนผู้ถือหุ้น",
-    "note": "เงินลงทุนจากผู้ถือหุ้น",
-    "type": "equity"
-  }
+    {
+      "accountNumber": "1000",
+      "accountName": "เงินสดในร้าน",
+      "note": "เงินสดจากลูกค้า",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "1010",
+      "accountName": "เงินฝากธนาคาร",
+      "note": "จ่ายโอนเงินซื้อทอง",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "1020",
+      "accountName": "เงินรับรอเรียกเก็บจากบัตรเครดิต",
+      "note": "ยอดเงินที่รอรับจากบริษัทบัตรเครดิต",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "1100",
+      "accountName": "สต๊อกทอง",
+      "note": "ทองซื้อเข้าร้าน",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "2000",
+      "accountName": "เจ้าหนี้การค้า",
+      "note": "ร้านทองที่ซื้อสินค้า",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "2200",
+      "accountName": "ภาษีขายค้างชำระ (VAT Output)",
+      "note": "VAT ที่เก็บจากขาย",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "2210",
+      "accountName": "ภาษีซื้อรอคืน (VAT Input)",
+      "note": "VAT ที่จ่ายในการซื้อสินค้า",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "4000",
+      "accountName": "ขายสินค้า",
+      "note": "รายได้จากการขายทอง",
+      "type": "revenue"
+    },
+    {
+      "accountNumber": "4010",
+      "accountName": "รายได้ค่าบริการ",
+      "note": "ค่ากำเหน็จ / ค่าบริการ (ถ้ามี)",
+      "type": "revenue"
+    },
+    {
+      "accountNumber": "5000",
+      "accountName": "ต้นทุนขาย",
+      "note": "ต้นทุนสินค้าที่ขาย",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "3000",
+      "accountName": "เงินลงทุนผู้ถือหุ้น",
+      "note": "เงินลงทุนจากผู้ถือหุ้น",
+      "type": "equity"
+    }
   ],
   "typeLabels": {
     "asset": "สินทรัพย์",
