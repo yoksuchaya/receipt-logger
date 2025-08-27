@@ -60,15 +60,9 @@ export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTot
                                 <td className={tdRight}>{formatMoney(row.vat)}</td>
                                 <td className={tdRight}>{formatMoney(row.grand_total)}</td>
                                 <td className={td}>{row.notes || "-"}</td>
-                                <td className={td + " min-w-[120px] no-print"}>
+                                <td className={td + " no-print"}>
                                     <div className="flex flex-col sm:flex-row gap-2">
                                         <button className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 w-full sm:w-auto" onClick={() => onRowAction && onRowAction(row, false)}>ดูข้อมูล</button>
-                                        <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 w-full sm:w-auto" onClick={() => onRowAction && onRowAction(row, true)}>แก้ไข</button>
-                                        <button className="px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 w-full sm:w-auto" onClick={async () => {
-                                            if (window.confirm('Delete this receipt?')) {
-                                                // You may want to implement delete logic here
-                                            }
-                                        }}>ลบ</button>
                                     </div>
                                 </td>
                             </tr>

@@ -80,11 +80,11 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[], rules: any
 
   const entries: { accountNumber: string; debit: number; credit: number; description?: string }[] = [];
   // Infer payment_type if missing
-  let paymentType: "cash" | "transfer" | "credit_card" | undefined = receipt.payment_type;
+  let paymentType = receipt.payment_type;
   if (!paymentType && receipt.payment) {
-    if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "credit_card";
-    else if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
+    if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
     else if (receipt.payment.cash && receipt.payment.cash !== "") paymentType = "cash";
+    else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
   }
   for (const rule of rules[ruleType]) {
     // Determine account number (handle payment type for cash/bank using paymentTypeMap)

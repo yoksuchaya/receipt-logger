@@ -216,6 +216,11 @@
         "debit": "5120",
         "amount": "amount",
         "description": "ประกันสังคม"
+      },
+      {
+        "credit": "2100",
+        "amount": "amount",
+        "description": "ประกันสังคมค้างจ่าย"
       }
     ],
     "rent_expense": [
@@ -231,6 +236,18 @@
         "credit": "1300",
         "amount": "amount",
         "description": "บันทึกค่าเสื่อมและสะสม"
+      }
+    ],
+    "accrual_salary": [
+      {
+        "debit": "5100",
+        "amount": "amount",
+        "description": "เงินเดือนพนักงาน"
+      },
+      {
+        "credit": "2300",
+        "amount": "amount",
+        "description": "เงินเดือนค้างจ่าย"
       }
     ],
     "office_expense": [

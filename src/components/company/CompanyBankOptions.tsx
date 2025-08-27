@@ -335,7 +335,7 @@ const CompanyBankOptions: React.FC<Props> = ({ company, setCompany, receipts }) 
           </div>
           <div className="flex flex-col gap-1 mt-2 border-t pt-3">
             <label className="text-xs text-gray-600 dark:text-gray-300 mb-1">เพิ่มธนาคารใหม่</label>
-            <div className="flex gap-2 items-end">
+            <div className="flex gap-2 items-center">
               <input
                 className="rounded border border-gray-300 px-2 py-1 text-sm flex-1 bg-white dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-400 transition"
                 placeholder="ชื่อธนาคาร"

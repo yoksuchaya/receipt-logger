@@ -17,7 +17,6 @@ type JournalEntry = {
   accountName: string;
   debit: number;
   credit: number;
-  reference?: string; // เลขที่อ้างอิง (receipt no)
 };
 
 
@@ -82,7 +81,6 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
                 <thead>
                   <tr className="bg-gray-100 dark:bg-neutral-800">
                     <th className="px-2 py-1 border border-gray-300">วันที่</th>
-                    <th className="px-2 py-1 border border-gray-300">เลขที่อ้างอิง</th>
                     <th className="px-2 py-1 border border-gray-300">รายละเอียด</th>
                     <th className="px-2 py-1 border border-gray-300">เลขที่บัญชี</th>
                     <th className="px-2 py-1 border border-gray-300">ชื่อบัญชี</th>
@@ -92,12 +90,11 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
                 </thead>
                 <tbody>
                   {journalEntries.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-4">ไม่มีข้อมูลสมุดรายวัน</td></tr>
+                    <tr><td colSpan={6} className="text-center py-4">ไม่มีข้อมูลสมุดรายวัน</td></tr>
                   ) : (
                     journalEntries.map((entry, idx) => (
-                      <tr key={idx}>
+                      <tr key={idx} className="border-b last:border-b-0">
                         <td className="px-2 py-1 border border-gray-300 whitespace-nowrap">{entry.date}</td>
-                        <td className="px-2 py-1 border border-gray-300 text-center">{entry.reference || ''}</td>
                         <td className="px-2 py-1 border border-gray-300">{entry.description}</td>
                         <td className="px-2 py-1 border border-gray-300 text-center">{entry.accountNumber}</td>
                         <td className="px-2 py-1 border border-gray-300">{entry.accountName}</td>
@@ -111,7 +108,7 @@ const JournalReport: React.FC<JournalReportProps> = ({ onBack }) => {
                 {journalEntries.length > 0 && (
                   <tfoot>
                     <tr className="bg-gray-50 dark:bg-neutral-800 font-bold">
-                      <td className="px-2 py-1 border border-gray-300 text-right" colSpan={5}>รวม</td>
+                      <td className="px-2 py-1 border border-gray-300 text-right" colSpan={4}>รวม</td>
                       <td className="px-2 py-1 border border-gray-300 text-right">
                         {(() => { const sum = journalEntries.reduce((sum, e) => sum + (e.debit || 0), 0); return sum === 0 ? '' : formatMoney(sum); })()}
                       </td>

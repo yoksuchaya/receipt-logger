@@ -46,14 +46,33 @@ export async function POST(req: NextRequest) {
       // Fallback: accept JSON only
       log = await req.json();
     }
-    // Add type: 'sale' | 'purchase' if possible
-    const typeValue: 'sale' | 'purchase' | undefined = isSale(log)
-      ? 'sale'
-      : isPurchase(log)
-      ? 'purchase'
-      : undefined;
-    if (typeValue) {
-      log.type = typeValue;
+    // If type is provided in the request, use it. Otherwise, auto-detect.
+    if (typeof log.type === 'string' && (log.type === 'sale' || log.type === 'purchase' || log.type === 'capital')) {
+      // Use provided type
+    } else {
+      // Fetch company tax ID from company profile API
+      let companyTaxId = '';
+      try {
+        const res = await fetch(`${process.env.COMPANY_PROFILE_API || 'http://localhost:3000'}/api/company-profile`);
+        if (res.ok) {
+          const profile = await res.json();
+          if (profile && typeof profile.tax_id === 'string') {
+            companyTaxId = profile.tax_id;
+          }
+        }
+      } catch {}
+
+      // Add type: 'sale' | 'purchase' if possible
+      const isSaleResult = isSale(log, companyTaxId);
+      const isPurchaseResult = isPurchase(log, companyTaxId);
+      const typeValue: 'sale' | 'purchase' | undefined = isSaleResult
+        ? 'sale'
+        : isPurchaseResult
+        ? 'purchase'
+        : undefined;
+      if (typeValue) {
+        log.type = typeValue;
+      }
     }
     log.uploadedAt = new Date().toISOString();
     if (typeof log.systemGenerated === 'undefined') {

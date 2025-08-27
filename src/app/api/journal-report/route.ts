@@ -20,7 +20,6 @@ type JournalEntry = {
   accountName: string;
   debit: number;
   credit: number;
-  reference?: string;
 };
 
 export async function GET(req: NextRequest) {
@@ -68,11 +67,11 @@ export async function GET(req: NextRequest) {
     const entries: JournalEntry[] = [];
     for (const receipt of receipts) {
       // Infer payment_type if missing
-  let paymentType: "cash" | "transfer" | "credit_card" | undefined = receipt.payment_type;
+      let paymentType = receipt.payment_type;
       if (!paymentType && receipt.payment) {
-        if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "credit_card";
-        else if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
+        if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
         else if (receipt.payment.cash && receipt.payment.cash !== "") paymentType = "cash";
+        else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
       }
       let ruleType: string | null = null;
       if (isPurchaseType(receipt.type)) ruleType = "purchase";
@@ -139,7 +138,6 @@ export async function GET(req: NextRequest) {
             accountName: acc.accountName,
             debit: rule.debit ? amount : 0,
             credit: rule.credit ? amount : 0,
-            reference: receipt.receipt_no || undefined,
           });
         }
       }

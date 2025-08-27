@@ -70,7 +70,7 @@ const AccountChart: React.FC = () => {
     const mapping = Object.entries(rules.paymentTypeMap).filter(([_type, accNum]) => String(accNum) === accountNumber);
     if (mapping.length === 0) return null;
     return (
-      <span className="ml-2 text-xs text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-neutral-800 px-2 py-0.5 rounded">
+      <span className="text-xs text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-neutral-800 px-2 py-0.5 rounded">
         {mapping.map(([type]) => paymentTypeLabels[type] || type).join(', ')}
       </span>
     );
@@ -188,33 +188,33 @@ const AccountChart: React.FC = () => {
               >
                 <InformationCircleIcon className="w-5 h-5" aria-hidden="true" />
               </button>
-      {/* Modal Dialog for Account Info */}
-      {sectionInfo.type && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black bg-opacity-40" onClick={() => setSectionInfo({ type: null })} />
-          <div
-            className="relative bg-white dark:bg-neutral-900 rounded-lg shadow-2xl max-w-2xl w-full mx-4 p-8 overflow-y-auto max-h-[90vh] animate-fadeIn"
-            role="dialog"
-            aria-modal="true"
-            tabIndex={-1}
-          >
-            <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white text-2xl focus:outline-none"
-              aria-label="ปิด"
-              onClick={() => setSectionInfo({ type: null })}
-            >
-              &times;
-            </button>
-            <h3 className="text-lg font-bold mb-4 text-gray-800 dark:text-gray-100">รายละเอียดการใช้งานบัญชีในหมวด: {typeLabels[sectionInfo.type] || sectionInfo.type}</h3>
-            {grouped[sectionInfo.type]?.map((item) => (
-              <div key={item.accountNumber} className="mb-6 last:mb-0">
-                <div className="font-medium text-base text-gray-800 dark:text-gray-100 mb-2">{item.accountNumber} {item.accountName}</div>
-                <AccountRuleInfo accountNumber={item.accountNumber} rules={rules} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              {/* Modal Dialog for Account Info */}
+              {sectionInfo.type && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="fixed inset-0 bg-black bg-opacity-40" onClick={() => setSectionInfo({ type: null })} />
+                  <div
+                    className="relative bg-white dark:bg-neutral-900 rounded-lg shadow-2xl max-w-2xl w-full mx-4 p-8 overflow-y-auto max-h-[90vh] animate-fadeIn"
+                    role="dialog"
+                    aria-modal="true"
+                    tabIndex={-1}
+                  >
+                    <button
+                      className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white text-2xl focus:outline-none"
+                      aria-label="ปิด"
+                      onClick={() => setSectionInfo({ type: null })}
+                    >
+                      &times;
+                    </button>
+                    <h3 className="text-lg font-bold mb-4 text-gray-800 dark:text-gray-100">รายละเอียดการใช้งานบัญชีในหมวด: {typeLabels[sectionInfo.type] || sectionInfo.type}</h3>
+                    {grouped[sectionInfo.type]?.map((item) => (
+                      <div key={item.accountNumber} className="mb-6 last:mb-0">
+                        <div className="font-medium text-base text-gray-800 dark:text-gray-100 mb-2">{item.accountNumber} {item.accountName}</div>
+                        <AccountRuleInfo accountNumber={item.accountNumber} rules={rules} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <table className="min-w-full text-sm mb-2 table-fixed">
               <thead>
@@ -230,30 +230,71 @@ const AccountChart: React.FC = () => {
                   <tr key={item.accountNumber} className="border-b border-gray-100 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800">
                     {editIdx && editIdx.type === type && editIdx.idx === idx ? (
                       <>
-                        <td className="py-2 px-2">
-                          <input className="w-full border rounded px-2 py-1" value={editValues.accountNumber} onChange={e => setEditValues(v => ({ ...v, accountNumber: e.target.value }))} />
+                        <td className="py-2 px-2 align-top">
+                          <input
+                            className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                            value={editValues.accountNumber}
+                            onChange={e => setEditValues(v => ({ ...v, accountNumber: e.target.value }))}
+                            placeholder="รหัสบัญชี"
+                            aria-label="รหัสบัญชี"
+                          />
                           {getPaymentTypeMapping(editValues.accountNumber)}
                         </td>
-                        <td className="py-2 px-2">
-                          <input className="w-full border rounded px-2 py-1" value={editValues.accountName} onChange={e => setEditValues(v => ({ ...v, accountName: e.target.value }))} />
+                        <td className="py-2 px-2 align-top">
+                          <input
+                            className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                            value={editValues.accountName}
+                            onChange={e => setEditValues(v => ({ ...v, accountName: e.target.value }))}
+                            placeholder="ชื่อบัญชี"
+                            aria-label="ชื่อบัญชี"
+                          />
                         </td>
-                        <td className="py-2 px-2">
-                          <input className="w-full border rounded px-2 py-1" value={editValues.note} onChange={e => setEditValues(v => ({ ...v, note: e.target.value }))} />
+                        <td className="py-2 px-2 align-top">
+                          <input
+                            className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                            value={editValues.note}
+                            onChange={e => setEditValues(v => ({ ...v, note: e.target.value }))}
+                            placeholder="หมายเหตุ"
+                            aria-label="หมายเหตุ"
+                          />
                         </td>
-                        <td className="py-2 px-2 flex gap-2">
-                          <button className="text-green-600 hover:underline" onClick={() => handleSave(type, idx)}>บันทึก</button>
-                          <button className="text-gray-500 hover:underline" onClick={handleCancel}>ยกเลิก</button>
+                        <td className="py-2 px-2 min-w-[120px] flex flex-col gap-1 sm:flex-row sm:items-center align-middle justify-center h-full">
+                          <button
+                            className="px-3 py-1.5 rounded-md bg-blue-600 text-white font-medium text-sm shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                            onClick={() => handleSave(type, idx)}
+                            type="button"
+                          >
+                            บันทึก
+                          </button>
+                          <button
+                            className="px-3 py-1.5 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium text-sm shadow focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
+                            onClick={handleCancel}
+                            type="button"
+                          >
+                            ยกเลิก
+                          </button>
                         </td>
                       </>
                     ) : (
                       <>
-                        <td className="py-2 px-2 text-gray-900 dark:text-white flex items-center gap-1">
-                          {item.accountNumber}{getPaymentTypeMapping(item.accountNumber)}
+                        <td className="py-2 px-2 text-gray-900 dark:text-white">
+                          <div className="flex flex-col items-start gap-0.5">
+                            <span className="leading-tight">{item.accountNumber}</span>
+                            {getPaymentTypeMapping(item.accountNumber) && (
+                              <span className="mt-0.5">{getPaymentTypeMapping(item.accountNumber)}</span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-2 px-2 text-gray-900 dark:text-white">{item.accountName}</td>
                         <td className="py-2 px-2 text-gray-700 dark:text-gray-300">{item.note || '-'}</td>
                         <td className="py-2 px-2">
-                          <button className="text-blue-600 hover:underline" onClick={() => handleEdit(type, idx, item)}>แก้ไข</button>
+                          <button
+                            className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
+                            onClick={() => handleEdit(type, idx, item)}
+                            type="button"
+                          >
+                            แก้ไข
+                          </button>
                         </td>
                       </>
                     )}
