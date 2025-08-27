@@ -1,3 +1,16 @@
+import React from "react";
+import IssueSaleReceiptForm from "../document/IssueSaleReceiptForm";
+import IssuePurchaseReceiptForm from "../document/IssuePurchaseReceiptForm";
+import ReceiptLogger from "./ReceiptLogger";
+import { JournalVoucher } from "../document/JournalVoucher";
+
+interface ReceiptEditFormProps {
+  systemGenerated: boolean;
+  initialValues?: any;
+  onSubmit?: (form: any) => void;
+  onCancel?: () => void;
+}
+
 // Shared type for edit form data
 export type ReceiptEditFormData = {
   image_path?: string;
@@ -22,18 +35,6 @@ export type ReceiptEditFormData = {
   systemGenerated?: boolean;
 };
 
-import React from "react";
-import IssueSaleReceiptForm from "../document/IssueSaleReceiptForm";
-import IssuePurchaseReceiptForm from "../document/IssuePurchaseReceiptForm";
-import ReceiptLogger from "./ReceiptLogger";
-
-interface ReceiptEditFormProps {
-  systemGenerated: boolean;
-  initialValues?: any;
-  onSubmit?: (form: any) => void;
-  onCancel?: () => void;
-}
-
 
 const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ systemGenerated, initialValues, onSubmit, onCancel }) => {
   const mode = 'edit';
@@ -45,6 +46,8 @@ const ReceiptEditForm: React.FC<ReceiptEditFormProps> = ({ systemGenerated, init
     if (type === 'purchase') {
       return <IssuePurchaseReceiptForm initialValues={initialValues} mode={mode} onSubmit={onSubmit} onCancel={onCancel} />;
     }
+    // fallback for other systemGenerated types (e.g. journal voucher)
+    return <JournalVoucher initialValues={initialValues} mode={mode} onSubmit={onSubmit} onCancel={onCancel} />;
   }
   // fallback for non-systemGenerated
   return <ReceiptLogger initialValues={initialValues} mode={mode} onSubmit={onSubmit} onCancel={onCancel} />;

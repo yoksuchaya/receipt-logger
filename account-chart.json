@@ -135,6 +135,12 @@
     "revenue": "รายได้",
     "expense": "ค่าใช้จ่าย"
   },
+  "journalTypeLabels": {
+    "capital": "เงินลงทุน (Capital)",
+    "depreciation": "ค่าเสื่อมราคา (Depreciation)",
+    "accrual_salary": "เงินเดือนค้างจ่าย (Accrual Salary)",
+    "social_security": "ประกันสังคม (Social Security)"
+  },
   "rules": {
     "paymentTypeMap": {
       "cash": "1000",
@@ -236,6 +242,11 @@
         "credit": "1300",
         "amount": "amount",
         "description": "บันทึกค่าเสื่อมและสะสม"
+      },
+      {
+        "credit": "1300",
+        "amount": "amount",
+        "description": "ค่าเสื่อมราคาสะสม"
       }
     ],
     "accrual_salary": [

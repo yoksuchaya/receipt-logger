@@ -3,6 +3,7 @@ import PurchaseReceiptTemplate from "../document/PurchaseReceiptTemplate";
 import SaleReceiptTemplate from "../document/SaleReceiptTemplate";
 import PrintWrapper from "../layout/PrintWrapper";
 import { MagnifyingGlassPlusIcon, XMarkIcon, PrinterIcon } from "@heroicons/react/24/outline";
+import JournalVoucherTemplate from "../document/JournalVoucherTemplate";
 
 interface ReceiptPreviewProps {
   fileUrl: string;
@@ -16,18 +17,7 @@ interface ReceiptPreviewProps {
 
 const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ fileUrl, fileType, fileName, className, systemGenerated, receiptData }) => {
   const [showZoom, setShowZoom] = useState(false);
-  const [templateData, setTemplateData] = useState<Record<string, any> | null>(null);
-  const data = receiptData || templateData || {};
-
-  useEffect(() => {
-    if (systemGenerated && !fileUrl && !receiptData) {
-      fetch('/sample-system-receipt.json')
-        .then(res => res.json())
-        .then(setTemplateData)
-        .catch(() => setTemplateData(null));
-    }
-  }, [systemGenerated, fileUrl, receiptData]);
-
+  const data = receiptData || {};
 
   if (!fileUrl && !systemGenerated) return null;
 
@@ -40,12 +30,12 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ fileUrl, fileType, file
           onClick={() => setShowZoom(true)}
           tabIndex={0}
           role="button"
-          aria-label="ดูใบเสร็จขนาดใหญ่"
+          aria-label="ดูเอกสารขนาดใหญ่"
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowZoom(true); }}
         >
           <div className="flex items-center gap-2 mb-2">
             <MagnifyingGlassPlusIcon className="w-5 h-5 text-gray-500" />
-            <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">ใบเสร็จสร้างโดยระบบ</span>
+            <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">เอกสารสร้างโดยระบบ</span>
           </div>
           <div className="truncate text-xs text-gray-500 dark:text-gray-400">{data.vendor || 'ชื่อร้าน'}</div>
           <div className="truncate text-xs text-gray-500 dark:text-gray-400">วันที่: {data.date || '-'}</div>
@@ -102,7 +92,7 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ fileUrl, fileType, file
                   <SaleReceiptTemplate data={data} />
                 ) : data.type === 'purchase' ? (
                   <PurchaseReceiptTemplate data={data} />
-                ) : null
+                ) : <JournalVoucherTemplate data={data} />
               ) : (
                 <img
                   src={fileUrl}

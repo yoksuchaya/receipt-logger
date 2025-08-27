@@ -39,6 +39,7 @@ interface ReceiptDetailData {
   uploadedAt?: string;
   products?: Product[];
   systemGenerated?: boolean;
+  type?: string;
 }
 
 interface ReceiptDetailProps {
@@ -150,40 +151,42 @@ const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelet
         </div>
       </div>
 
-      {/* Products Section */}
-      <div className="w-full bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-4 mt-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <span className="font-semibold text-gray-800 dark:text-gray-100 text-base">รายการสินค้า/บริการ</span>
-        </div>
-        {(!selected.products || selected.products.length === 0) ? (
-          <div className="text-center text-gray-400 py-4 text-sm">ไม่มีสินค้า</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700 text-sm">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-neutral-800">
-                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ชื่อสินค้า</th>
-                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">น้ำหนัก</th>
-                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">จำนวน</th>
-                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ราคาต่อหน่วย</th>
-                  <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ราคารวม</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selected.products.map((product, idx) => (
-                  <tr key={idx} className={idx % 2 === 0 ? "bg-white dark:bg-neutral-900" : "bg-gray-50 dark:bg-neutral-800"}>
-                    <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{product.name || '-'}</td>
-                    <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{product.weight || '-'}</td>
-                    <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{product.quantity || '-'}</td>
-                    <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{formatMoney(product.pricePerItem) || '-'}</td>
-                    <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{formatMoney(product.price) || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Products Section: only show for sale or purchase */}
+      {(selected.type === 'sale' || selected.type === 'purchase') && (
+        <div className="w-full bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-4 mt-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <span className="font-semibold text-gray-800 dark:text-gray-100 text-base">รายการ</span>
           </div>
-        )}
-      </div>
+          {(!selected.products || selected.products.length === 0) ? (
+            <div className="text-center text-gray-400 py-4 text-sm">ไม่มีรายการ</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700 text-sm">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-neutral-800">
+                    <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ชื่อสินค้า</th>
+                    <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">น้ำหนัก</th>
+                    <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">จำนวน</th>
+                    <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ราคาต่อหน่วย</th>
+                    <th className="px-3 py-2 font-medium text-gray-700 dark:text-gray-200 text-left whitespace-nowrap">ราคารวม</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selected.products.map((product, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white dark:bg-neutral-900" : "bg-gray-50 dark:bg-neutral-800"}>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{product.name || '-'}</td>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{product.weight || '-'}</td>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{product.quantity || '-'}</td>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{formatMoney(product.pricePerItem) || '-'}</td>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white whitespace-nowrap">{formatMoney(product.price) || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-right">
         อัปโหลดเมื่อ: {selected.uploadedAt ? new Date(selected.uploadedAt).toLocaleString() : "-"}

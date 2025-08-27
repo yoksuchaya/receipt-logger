@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import IssueSaleReceiptForm from './IssueSaleReceiptForm';
 import IssuePurchaseReceiptForm from './IssuePurchaseReceiptForm';
+import JournalVoucher from './JournalVoucher';
 
 const documentTypes = [
   { key: 'financial', label: 'เอกสารการเงิน' },
@@ -62,7 +63,7 @@ const IssueDocumentMenu: React.FC = () => {
           </select>
         </div>
       </div>
-      {/* Show form for selected financial document */}
+      {/* Show form for selected document */}
       {selectedType === 'financial' && selectedDoc === 'issue-receipt' && (
         <div className="w-full">
           <IssueSaleReceiptForm />
@@ -71,6 +72,11 @@ const IssueDocumentMenu: React.FC = () => {
       {selectedType === 'financial' && selectedDoc === 'payment-voucher' && (
         <div className="w-full">
           <IssuePurchaseReceiptForm />
+        </div>
+      )}
+      {selectedType === 'accounting' && selectedDoc === 'journal-voucher' && (
+        <div className="w-full">
+          <JournalVoucher />
         </div>
       )}
     </div>
