@@ -3,7 +3,7 @@ import { formatMoney } from "../utils/utils";
 import ReceiptDetail from "../receipt/ReceiptDetail";
 import ReceiptEditForm, { type ReceiptEditFormData } from "../receipt/ReceiptEditForm";
 
-interface Purchase {
+export interface VatPurchase {
     date: string;
     receipt_no: string;
     vendor: string;
@@ -16,11 +16,11 @@ interface Purchase {
 }
 
 interface Props {
-    data: Purchase[];
+    data: VatPurchase[];
     sumAmount: number;
     sumVat: number;
     sumTotal: number;
-    onRowAction?: (row: Purchase, isEdit: boolean) => void;
+    onRowAction?: (row: VatPurchase, isEdit: boolean) => void;
 }
 
 const th = "font-bold bg-gray-100 text-gray-800 text-center border border-gray-300 px-2 py-1";
@@ -51,7 +51,7 @@ export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTot
                         {data.map((row, i) => (
                             <tr key={i}>
                                 <td className={td + " text-center"}>{i + 1}</td>
-                                <td className={td + " text-center"}>{row.date || "-"}</td>
+                                <td className={td + " text-center"}>{new Date(row.date).toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" })}</td>
                                 <td className={td + " text-center"}>{row.receipt_no || "-"}</td>
                                 <td className={td}>{row.vendor || "-"}</td>
                                 <td className={td + " text-center"}>{row.vendor_tax_id || "-"}</td>

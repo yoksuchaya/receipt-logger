@@ -38,7 +38,20 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({
             .catch(() => setLoading(false));
     }, []);
 
+    const companyAddress = companyProfile?.address;
+    const addressParts = [
+        companyAddress?.house_number ? `เลขที่ ${companyAddress.house_number}` : '',
+        companyAddress?.moo ? `หมู่ ${companyAddress.moo}` : '',
+        companyAddress?.soi ? `ซอย ${companyAddress.soi}` : '',
+        companyAddress?.road ? `ถนน ${companyAddress.road}` : '',
+        companyAddress?.district ? `ตำบล${companyAddress.district}` : '',
+        companyAddress?.state ? `อำเภอ${companyAddress.state}` : '',
+        companyAddress?.province ? `จังหวัด${companyAddress.province}` : '',
+        companyAddress?.postal_code ? `รหัสไปรษณีย์ ${companyAddress.postal_code}` : ''
+    ].filter(Boolean).join(' ');
+    const address = addressParts;
     return (
+        
         <div className="mb-4 text-center">
             {loading || !companyProfile ? (
                 <div className="text-gray-400">Loading company info...</div>
@@ -46,7 +59,7 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({
                 <>
                     <div className="font-bold text-lg">{companyProfile.company_name}</div>
                     <div>เลขประจำตัวผู้เสียภาษี: {companyProfile.tax_id}</div>
-                    <div>ที่อยู่: {companyProfile.address}</div>
+                    <div>ที่อยู่: {address}</div>
                     <div>โทรศัพท์ : {Array.isArray(companyProfile.phones) ? companyProfile.phones.join(', ') : companyProfile.phones}</div>
                 </>
             )}

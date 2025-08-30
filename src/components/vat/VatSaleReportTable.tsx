@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { formatMoney } from "../utils/utils";
 
-interface VatSale {
+export interface VatSale {
     date: string;
     receipt_no: string;
     buyer_name: string;
@@ -13,7 +13,7 @@ interface VatSale {
     notes?: string;
 }
 
-interface VatSaleReportTableProps {
+export interface VatSaleReportTableProps {
     data: VatSale[];
     sumExVat: number;
     sumVat: number;

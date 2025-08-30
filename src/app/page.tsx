@@ -4,6 +4,7 @@ import Image from "next/image";
 import ReceiptLogger from "@/components/receipt/ReceiptLogger";
 import ReceiptLogList from "@/components/receipt/ReceiptLogList";
 import VatReport from "@/components/vat/VatReport";
+import VatSummary from "@/components/vat/VatSummary";
 import AccountChart from "@/components/account/AccountChart";
 import StockMovementReport from "@/components/stock/StockMovementReport";
 import JournalReport from "@/components/journal/JournalReport";
@@ -100,8 +101,8 @@ export default function Home() {
             {selectedMenu === 'vat-purchase' && <VatReport key={resetList} type="purchase" />}
             {selectedMenu === 'vat-sales' && <VatReport key={resetList} type="sale" />}
             {selectedMenu === 'vat-summary' && (
-              <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
-                <p>ยังไม่มีหน้าสรุปภาษีมูลค่าเพิ่ม (VAT Summary)</p>
+              <div className="w-full flex justify-center py-8">
+                <VatSummary />
               </div>
             )}
             {selectedMenu === 'trial-balance' && (
