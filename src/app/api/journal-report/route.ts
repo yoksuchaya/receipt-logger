@@ -33,17 +33,27 @@ export async function GET(req: NextRequest) {
     let receipts: Receipt[] = [];
     const params = new URLSearchParams();
     if (month && year) {
-      // Compose a date range for the month
-      const y = parseInt(year, 10);
-      const m = parseInt(month, 10);
-      const from = new Date(y, m - 1, 1).toISOString().slice(0, 10);
-      const to = new Date(y, m, 0).toISOString().slice(0, 10);
+      // Compose a date range for the month using string formatting (no timezone issues)
+      const y = String(year).padStart(4, '0');
+      const m = String(month).padStart(2, '0');
+      const lastDay = new Date(Number(y), Number(m), 0).getDate();
+      const from = `${y}-${m}-01`;
+      const to = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
       params.append('from', from);
       params.append('to', to);
     }
     const receiptsRes = await fetch(`${req.nextUrl.origin}/api/receipt-log?${params.toString()}`);
     if (!receiptsRes.ok) throw new Error('Failed to fetch receipts');
     receipts = await receiptsRes.json();
+    // Robust string-based month filter (like ledger API)
+    if (month && year) {
+      const monthStr = String(month).padStart(2, '0');
+      const yearStr = String(year).padStart(4, '0');
+      receipts = receipts.filter(r => {
+        if (!r.date || typeof r.date !== 'string') return false;
+        return r.date.slice(0, 7) === `${yearStr}-${monthStr}`;
+      });
+    }
 
     // Fetch accounts and rules from API (no file fallback)
     const accountChartRes = await fetch(`${req.nextUrl.origin}/api/account-chart`);
