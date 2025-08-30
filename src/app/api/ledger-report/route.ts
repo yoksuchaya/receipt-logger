@@ -48,17 +48,41 @@ function findAccountNumber(accounts: Account[], keyword: string): string | undef
 
 
 // Rules-based logic for ledger entries
-function getAccountsForReceipt(receipt: Receipt, accounts: Account[], rules: any, stockMovements: StockMovement[]) {
+function getAccountsForReceipt(
+  receipt: Receipt,
+  accounts: Account[],
+  rules: any,
+  stockMovements: StockMovement[],
+  journalTypeLabels: Record<string, string> = {}
+) {
   let ruleType: string | null = null;
-  if (isPurchaseType(receipt.type)) ruleType = "purchase";
-  else if (isSaleType(receipt.type)) ruleType = "sale";
-  else if (isCapitalType(receipt.type)) ruleType = "capital";
+  if (journalTypeLabels && typeof receipt.type === 'string') {
+    if (Object.keys(journalTypeLabels).includes(receipt.type)) {
+      ruleType = receipt.type;
+    }
+  }
+  // DEBUG: log ruleType and receipt.type
+  // @ts-ignore
+  if (process.env.NODE_ENV !== 'production') console.log('Rule Type:', ruleType, 'for receipt.type:', receipt.type);
   if (!ruleType || !rules[ruleType]) return [];
+
+  // Extract values for VAT closing and custom fields from receipt.entries if present
+  let vatOutput = 0, vatInput = 0, vatPayable = 0, vatCredit = 0;
+  if ((ruleType === "vat_closing_payable" || ruleType === "vat_closing_credit") && Array.isArray(receipt.entries)) {
+    for (const e of receipt.entries) {
+      if (e.account && typeof e.account === 'string') {
+        const accNum = e.account.split('-')[0].trim();
+        if (accNum === '2200') vatOutput = e.debit || e.credit || 0;
+        if (accNum === '1200') vatInput = e.debit || e.credit || 0;
+        if (accNum === '2190') vatPayable = e.debit || e.credit || 0;
+        if (accNum === '1201') vatCredit = e.debit || e.credit || 0;
+      }
+    }
+  }
 
   const grandTotal = parseFloat(receipt.grand_total);
   const vat = parseFloat(receipt.vat);
   const net = grandTotal - vat;
-  // Calculate cost for sale (COGS)
   let cost = 0;
   if (ruleType === "sale") {
     if (receipt.receipt_no && stockMovements.length > 0) {
@@ -79,7 +103,6 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[], rules: any
   }
 
   const entries: { accountNumber: string; debit: number; credit: number; description?: string }[] = [];
-  // Infer payment_type if missing
   let paymentType = receipt.payment_type;
   if (!paymentType && receipt.payment) {
     if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
@@ -87,7 +110,6 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[], rules: any
     else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
   }
   for (const rule of rules[ruleType]) {
-    // Determine account number (handle payment type for cash/bank using paymentTypeMap)
     let accountNumber = rule.debit || rule.credit || "";
     if (accountNumber.includes("|")) {
       const paymentTypeMap = rules.paymentTypeMap || {};
@@ -101,14 +123,16 @@ function getAccountsForReceipt(receipt: Receipt, accounts: Account[], rules: any
         accountNumber = accountNumber.split("|")[0];
       }
     }
-    // Determine amount
     let amount = 0;
     if (rule.amount === "grandTotal") amount = grandTotal;
     else if (rule.amount === "vat") amount = vat;
     else if (rule.amount === "net") amount = net;
     else if (rule.amount === "cost") amount = cost;
+    else if (rule.amount === "vatOutput") amount = vatOutput;
+    else if (rule.amount === "vatInput") amount = vatInput;
+    else if (rule.amount === "vatPayable") amount = vatPayable;
+    else if (rule.amount === "vatCredit") amount = vatCredit;
     else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
-    // Only add entry if amount > 0 and not NaN
     if (amount && amount > 0 && !isNaN(amount)) {
       entries.push({
         accountNumber,
@@ -145,12 +169,14 @@ export async function GET(req: NextRequest) {
   // Fetch accounts from API
   let accounts: Account[] = [];
   let rules: any = {};
+  let journalTypeLabels: Record<string, string> = {};
   try {
     const accountChartRes = await fetch(`${req.nextUrl.origin}/api/account-chart`);
     if (!accountChartRes.ok) throw new Error('Failed to fetch account chart');
     const accountChart = await accountChartRes.json();
     accounts = Array.isArray(accountChart) ? accountChart : accountChart.accounts;
     rules = Array.isArray(accountChart) ? {} : accountChart.rules;
+    journalTypeLabels = Array.isArray(accountChart) ? {} : accountChart.journalTypeLabels || {};
   } catch (e) {
     return NextResponse.json({ error: 'Cannot read account chart' }, { status: 500 });
   }
@@ -181,8 +207,7 @@ export async function GET(req: NextRequest) {
   for (const receipt of receipts) {
     const rMonth = parseMonth(receipt.date);
     if (rMonth >= monthParam) continue;
-    // Patch: inject weighted avg COGS for sales
-    const accs = getAccountsForReceipt(receipt, accounts, rules, stockMovements);
+    const accs = getAccountsForReceipt(receipt, accounts, rules, stockMovements, journalTypeLabels);
     for (const acc of accs) {
       if (!ledger[acc.accountNumber]) continue;
       const accType = accountMap[acc.accountNumber]?.type;
@@ -198,8 +223,7 @@ export async function GET(req: NextRequest) {
   for (const receipt of receipts) {
     const rMonth = parseMonth(receipt.date);
     if (rMonth !== monthParam) continue;
-    // Patch: inject weighted avg COGS for sales
-    const accs2 = getAccountsForReceipt(receipt, accounts, rules, stockMovements);
+    const accs2 = getAccountsForReceipt(receipt, accounts, rules, stockMovements, journalTypeLabels);
     for (const acc of accs2) {
       if (!ledger[acc.accountNumber]) continue;
       ledger[acc.accountNumber].entries.push({

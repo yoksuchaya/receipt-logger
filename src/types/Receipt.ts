@@ -24,4 +24,10 @@ export type Receipt = {
     pricePerItem?: string;
     price?: string;
   }>;
+  entries?: Array<{
+    account: string;
+    description?: string;
+    debit?: number;
+    credit?: number;
+  }>;
 };

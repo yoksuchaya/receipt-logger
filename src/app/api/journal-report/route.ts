@@ -107,6 +107,20 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      // Support custom VAT closing fields
+      // Try to get from receipt.entries if present (systemGenerated receipts)
+      let vatOutput = 0, vatInput = 0, vatPayable = 0, vatCredit = 0;
+      if ((ruleType === "vat_closing_payable" || ruleType === "vat_closing_credit") && Array.isArray(receipt.entries)) {
+        for (const e of receipt.entries) {
+          if (e.account && typeof e.account === 'string') {
+            if (e.account.startsWith('2200')) vatOutput = e.debit || e.credit || 0;
+            if (e.account.startsWith('1200')) vatInput = e.debit || e.credit || 0;
+            if (e.account.startsWith('2190')) vatPayable = e.debit || e.credit || 0;
+            if (e.account.startsWith('1201')) vatCredit = e.debit || e.credit || 0;
+          }
+        }
+      }
+
       for (const rule of rules[ruleType]) {
         // Determine account number (handle payment type for cash/bank using paymentTypeMap)
         let accountNumber = rule.debit || rule.credit || "";
@@ -130,6 +144,10 @@ export async function GET(req: NextRequest) {
         else if (rule.amount === "vat") amount = vat;
         else if (rule.amount === "net") amount = net;
         else if (rule.amount === "cost") amount = cost;
+        else if (rule.amount === "vatOutput") amount = vatOutput;
+        else if (rule.amount === "vatInput") amount = vatInput;
+        else if (rule.amount === "vatPayable") amount = vatPayable;
+        else if (rule.amount === "vatCredit") amount = vatCredit;
         else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
 
         // Only add entry if amount > 0 and not NaN

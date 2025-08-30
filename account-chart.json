@@ -152,7 +152,8 @@
     "depreciation": "ค่าเสื่อมราคา",
     "accrual_salary": "เงินเดือนค้างจ่าย",
     "social_security": "ประกันสังคม",
-    "vat_closing": "ปิดบัญชีภาษีมูลค่าเพิ่ม",
+    "vat_closing_payable": "ปิดบัญชีภาษีมูลค่าเพิ่ม",
+    "vat_closing_credit": "ปิดบัญชีภาษีมูลค่าเพิ่ม",
     "sale": "ขายสินค้า",
     "purchase": "ซื้อสินค้า"
   },
@@ -283,28 +284,54 @@
         "description": "ค่าใช้จ่ายสำนักงาน"
       }
     ],
-    "vat_closing": [
-      {
-        "debit": "2200",
-        "credit": "1200",
-        "amount": "min(vatOutput, vatInput)",
-        "description": "เคลียร์ภาษีซื้อ-ขาย"
-      },
-      {
-        "debit": "2200",
-        "credit": "2190",
-        "amount": "amount",
-        "description": "บันทึกภาษีค้างจ่าย"
-      }
-    ],
-    "vat_payment": [
-      {
-        "debit": "2190",
-        "credit": "1010",
-        "amount": "amount",
-        "description": "ชำระภาษีมูลค่าเพิ่ม"
-      }
-    ],
+    "vat_closing_payable": [
+    {
+      "debit": "2200",
+      "credit": null,
+      "amount": "vatOutput",
+      "description": "หักลบภาษีซื้อกับภาษีขาย"
+    },
+    {
+      "debit": null,
+      "credit": "1200",
+      "amount": "vatInput",
+      "description": "หักลบภาษีซื้อกับภาษีขาย"
+    },
+    {
+      "debit": null,
+      "credit": "2190",
+      "amount": "vatPayable",
+      "description": "ตั้งหนี้ภาษีมูลค่าเพิ่มค้างจ่าย"
+    }
+  ],
+  "vat_closing_credit": [
+    {
+      "debit": "2200",
+      "credit": null,
+      "amount": "vatOutput",
+      "description": "หักลบภาษีขายกับภาษีซื้อ"
+    },
+    {
+      "debit": "1201",
+      "credit": null,
+      "amount": "vatCredit",
+      "description": "โอนภาษีซื้อคงเหลือไปเครดิตภาษี"
+    },
+    {
+      "debit": null,
+      "credit": "1200",
+      "amount": "vatInput",
+      "description": "หักลบภาษีขายกับภาษีซื้อ"
+    }
+  ],
+  "vat_payment": [
+    {
+      "debit": "2190",
+      "credit": "1010",
+      "amount": "amount",
+      "description": "ชำระภาษีมูลค่าเพิ่ม"
+    }
+  ],
     "closing": [
       {
         "debit": "4000",

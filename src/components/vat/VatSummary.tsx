@@ -176,67 +176,67 @@ const VatSummary: React.FC = () => {
                                         rules.accounts = data.accounts || [];
                                     }
                                 } catch { }
-                                const rule = Array.isArray(rules.vat_closing) ? rules.vat_closing : [];
-                                // Map rule to entries (handle both debit and credit in same rule)
-                                const entries: any[] = [];
+                                // Helper to get account label
                                 const getAcc = (num: string | undefined) => {
                                     if (!num) return '';
                                     const acc = (rules.accounts || []).find((a: any) => a.accountNumber === num);
                                     return acc ? `${acc.accountNumber}-${acc.accountName}` : num;
                                 };
-                                // Calculate correct totals for each account
-                                // 2200: debit sumSalesVat
-                                // 1200: credit sumPurchasesVat
-                                // 2190: credit sumSalesVat - sumPurchasesVat
-                                const acc2200 = getAcc('2200');
-                                const acc1200 = getAcc('1200');
-                                const acc2190 = getAcc('2190');
-                                // If input VAT > output VAT, credit เครดิตภาษี (e.g., 1201)
-                                if (sumPurchasesVat > sumSalesVat) {
-                                    const accCreditVat = getAcc('1201');
-                                    entries.push({
-                                        account: acc2200,
-                                        description: 'ปิด VAT ขาย',
-                                        debit: sumSalesVat,
-                                        credit: 0
-                                    });
-                                    entries.push({
-                                        account: acc1200,
-                                        description: 'ปิด VAT ซื้อ',
-                                        debit: 0,
-                                        credit: sumPurchasesVat
-                                    });
-                                    entries.push({
-                                        account: accCreditVat,
-                                        description: 'เครดิตภาษี (VAT ขาย < VAT ซื้อ)',
-                                        debit: 0,
-                                        credit: sumPurchasesVat - sumSalesVat
-                                    });
+
+                                // Select rule based on VAT situation
+                                let closingRule: any[] = [];
+                                let closingType = '';
+                                let closingLabel = '';
+                                if (netVat > 0) {
+                                    closingRule = Array.isArray(rules.vat_closing_payable) ? rules.vat_closing_payable : [];
+                                    closingType = 'vat_closing_payable';
+                                    closingLabel = journalTypeLabels["vat_closing_payable"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ต้องชำระ)";
+                                } else if (netVat < 0) {
+                                    closingRule = Array.isArray(rules.vat_closing_credit) ? rules.vat_closing_credit : [];
+                                    closingType = 'vat_closing_credit';
+                                    closingLabel = journalTypeLabels["vat_closing_credit"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ขอคืน/ยกยอด)";
                                 } else {
-                                    entries.push({
-                                        account: acc2200,
-                                        description: 'ปิด VAT ขาย',
-                                        debit: sumSalesVat,
-                                        credit: 0
-                                    });
-                                    entries.push({
-                                        account: acc1200,
-                                        description: 'ปิด VAT ซื้อ',
-                                        debit: 0,
-                                        credit: sumPurchasesVat
-                                    });
-                                    entries.push({
-                                        account: acc2190,
-                                        description: 'ภาษีมูลค่าเพิ่มค้างจ่าย',
-                                        debit: 0,
-                                        credit: sumSalesVat - sumPurchasesVat
-                                    });
+                                    closingRule = Array.isArray(rules.vat_closing_payable) ? rules.vat_closing_payable : [];
+                                    closingType = 'vat_closing_payable';
+                                    closingLabel = journalTypeLabels["vat_closing_payable"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ศูนย์)";
                                 }
-                                // Show journalTypeLabel for vat_closing (optional: you can display this in UI as needed)
-                                const vatClosingLabel = journalTypeLabels["vat_closing"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม";
+
+                                // Prepare values for rule mapping
+                                const vatInput = sumPurchasesVat;
+                                const vatOutput = sumSalesVat;
+                                const payable = Math.max(0, netVat);
+                                const credit = Math.max(0, -netVat);
+
+                                // Map rule to entries
+                                const entries: any[] = closingRule.map((rule: any) => {
+                                    // Determine account
+                                    let account = rule.debit || rule.credit || '';
+                                    if (account.includes("|")) {
+                                        account = account.split("|")[0];
+                                    }
+                                    const accLabel = getAcc(account);
+                                    // Determine amount
+                                    let amount = 0;
+                                    if (rule.amount === "vatInput") amount = vatInput;
+                                    else if (rule.amount === "vatOutput") amount = vatOutput;
+                                    else if (rule.amount === "payable") amount = payable;
+                                    else if (rule.amount === "credit") amount = credit;
+                                    else if (rule.amount === "min(vatOutput,vatInput)") amount = Math.min(vatOutput, vatInput);
+                                    else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
+                                    // fallback: if rule.amount is not recognized, use Math.abs(netVat)
+                                    if (!amount && netVat !== 0) amount = Math.abs(netVat);
+                                    return {
+                                        account: accLabel,
+                                        description: rule.description,
+                                        debit: rule.debit ? amount : 0,
+                                        credit: rule.credit ? amount : 0
+                                    };
+                                });
+
+                                // Compose document
                                 const doc = {
-                                    type: 'vat_closing',
-                                    category: vatClosingLabel,
+                                    type: closingType,
+                                    category: closingLabel,
                                     date: now.toISOString().slice(0, 10),
                                     issuedAt: now.toISOString(),
                                     uploadedAt: now.toISOString(),
@@ -245,7 +245,7 @@ const VatSummary: React.FC = () => {
                                     vendor_tax_id: companyProfile?.tax_id || '',
                                     buyer_name: '',
                                     buyer_tax_id: '',
-                                    notes: vatClosingLabel,
+                                    notes: closingLabel,
                                     systemGenerated: true,
                                     products: entries.map((e: any) => ({
                                         name: e.account,

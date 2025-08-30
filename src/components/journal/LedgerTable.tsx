@@ -64,7 +64,7 @@ const LedgerTable: React.FC<LedgerTableProps> = ({ acc, month, year }) => {
               <td className="border border-gray-300 px-2 py-1">{entry.description}</td>
               <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(entry.debit === 0 ? '' : entry.debit)}</td>
               <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(entry.credit === 0 ? '' : entry.credit)}</td>
-              <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(entry.runningBalance === 0 ? '' : entry.runningBalance)}</td>
+              <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(entry.runningBalance)}</td>
             </tr>
           ))}
         </tbody>
@@ -80,7 +80,7 @@ const LedgerTable: React.FC<LedgerTableProps> = ({ acc, month, year }) => {
             <td className="border border-gray-300 px-2 py-1 text-right">
               {(() => {
                 const last = acc.entries.length > 0 ? acc.entries[acc.entries.length - 1].runningBalance : acc.openingBalance;
-                return formatMoney(last === 0 ? '' : last);
+                return formatMoney(last);
               })()}
             </td>
           </tr>
