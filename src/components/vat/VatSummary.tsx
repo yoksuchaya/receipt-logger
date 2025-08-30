@@ -281,7 +281,11 @@ const VatSummary: React.FC = () => {
                             ชำระภาษีแล้ว
                         </button>
                     </div>
-                ) : null))}
+                ) : (pp30Log.amount <= 0 ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                        <div className="text-green-800 font-medium">ยื่นแบบแล้ว ไม่มีภาษีต้องชำระ</div>
+                    </div>
+                ) : null)))}
             </div>
             {/* Print-only header and summary */}
             <div className="w-full mx-auto hidden print:block">
