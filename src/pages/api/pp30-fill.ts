@@ -73,13 +73,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
             // Find all radio groups named 'Months'
             const monthsRadioGroups = fields.filter(field => field.constructor.name === 'PDFRadioGroup' && field.getName() === 'Radio Button3.Months');
-            console.log('Found Months radio groups:', monthsRadioGroups.length);
-            if (monthsRadioGroups.length >= monthNum) {
+            const monthExportValues = ['1', '4', '7', '10', '2', '5', '8', '11', '3', '6', '9', '12'];
+            const idx = monthExportValues.findIndex(v => v === String(monthNum));
+            if (monthsRadioGroups.length >= idx) {
                 try {
-                    const radioField = monthsRadioGroups[monthNum - 1];
+                    const radioField = monthsRadioGroups[idx];
                     if (radioField) {
-                        console.log(`Selecting month radio button: ${monthNum - 1}`);
-                        (radioField as any).select(`${monthNum - 1}`);
+                        console.log(`Selecting month radio button: ${monthNum}`);
+                        (radioField as any).select(`${idx}`);
                     }
                 } catch (e) {
                     console.log('Error selecting month radio button:', e);
