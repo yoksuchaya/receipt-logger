@@ -14,6 +14,7 @@ import { VatSale } from "./VatSaleReportTable";
 import { VatPurchase } from "./VatPurchaseReportTable";
 import { getPP30Log } from "./pp30logApi";
 import { PP30Log } from "../types/PP30Log";
+import { sum } from "pdf-lib";
 
 const getCurrentMonthYear = () => {
     const now = new Date();
@@ -216,15 +217,17 @@ const VatSummary: React.FC = () => {
                                     }
                                     const accLabel = getAcc(account);
                                     // Determine amount
-                                    let amount = 0;
+                                    let amount: number | undefined = undefined;
                                     if (rule.amount === "vatInput") amount = vatInput;
                                     else if (rule.amount === "vatOutput") amount = vatOutput;
                                     else if (rule.amount === "payable") amount = payable;
                                     else if (rule.amount === "credit") amount = credit;
                                     else if (rule.amount === "min(vatOutput,vatInput)") amount = Math.min(vatOutput, vatInput);
                                     else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
-                                    // fallback: if rule.amount is not recognized, use Math.abs(netVat)
-                                    if (!amount && netVat !== 0) amount = Math.abs(netVat);
+                                    // fallback: if rule.amount is not recognized at all (amount is still undefined), use Math.abs(netVat)
+                                    if (typeof amount === 'undefined' && netVat !== 0) amount = Math.abs(netVat);
+                                    // If amount is still undefined, set to 0
+                                    if (typeof amount === 'undefined') amount = 0;
                                     return {
                                         account: accLabel,
                                         description: rule.description,

@@ -152,8 +152,8 @@
     "depreciation": "ค่าเสื่อมราคา",
     "accrual_salary": "เงินเดือนค้างจ่าย",
     "social_security": "ประกันสังคม",
-    "vat_closing_payable": "ปิดบัญชีภาษีมูลค่าเพิ่ม",
-    "vat_closing_credit": "ปิดบัญชีภาษีมูลค่าเพิ่ม",
+    "vat_closing_payable": "ปิดบัญชีภาษีมูลค่าเพิ่ม (ค้างจ่าย)",
+    "vat_closing_credit": "ปิดบัญชีภาษีมูลค่าเพิ่ม (เครดิต)",
     "sale": "ขายสินค้า",
     "purchase": "ซื้อสินค้า"
   },

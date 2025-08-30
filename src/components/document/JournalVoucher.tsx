@@ -226,7 +226,8 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
             if (!entry.account) err.account = 'กรุณาเลือกบัญชี';
             if (Number(entry.debit) < 0) err.debit = 'เดบิตต้องไม่ติดลบ';
             if (Number(entry.credit) < 0) err.credit = 'เครดิตต้องไม่ติดลบ';
-            if (Number(entry.debit) === 0 && Number(entry.credit) === 0) {
+            // Only check for missing debit/credit if total of both sides is 0
+            if (totalDebit === 0 && totalCredit === 0 && Number(entry.debit) === 0 && Number(entry.credit) === 0) {
                 err.debit = 'ต้องระบุเดบิตหรือเครดิต';
                 err.credit = 'ต้องระบุเดบิตหรือเครดิต';
             }
@@ -324,20 +325,39 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                 receipt_no = initialValues.receipt_no;
             }
 
-            const formData = {
-                date,
-                type: category,
-                products,
-                category: categoryOptions.find(opt => opt.value === category)?.label || '',
-                vendor,
-                vendor_tax_id,
-                receipt_no,
-                grand_total: entries.reduce((sum, entry) => sum + Number(entry.debit), 0),
-                notes: notes,
-                payment,
-                systemGenerated: true,
-                entries,
-            };
+                        // In edit mode, preserve the original type unless the user changes category
+                                    let typeToSend = category;
+                                    // Allow initialValues to have a 'type' property for edit mode
+                                    const initialType = (initialValues as any).type;
+                                    if (mode === 'edit' && initialValues && typeof initialType === 'string') {
+                                            // If category is unchanged from initial load, use original type
+                                            const originalCategory = (() => {
+                                                if (categoryOptions.some(opt => opt.value === initialType)) {
+                                                    return initialType;
+                                                }
+                                                if (categoryOptions.some(opt => opt.value === initialValues.category)) {
+                                                    return initialValues.category;
+                                                }
+                                                return '';
+                                            })();
+                                            if (category === originalCategory) {
+                                                typeToSend = initialType;
+                                            }
+                                    }
+                        const formData = {
+                                date,
+                                type: typeToSend,
+                                products,
+                                category: categoryOptions.find(opt => opt.value === category)?.label || '',
+                                vendor,
+                                vendor_tax_id,
+                                receipt_no,
+                                grand_total: entries.reduce((sum, entry) => sum + Number(entry.debit), 0),
+                                notes: notes,
+                                payment,
+                                systemGenerated: true,
+                                entries,
+                        };
 
             if (onSubmit) {
                 onSubmit(formData);
