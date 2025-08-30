@@ -74,9 +74,12 @@ export async function GET(req: NextRequest) {
         else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
       }
       let ruleType: string | null = null;
-      if (isPurchaseType(receipt.type)) ruleType = "purchase";
-      else if (isSaleType(receipt.type)) ruleType = "sale";
-      else if (isCapitalType(receipt.type)) ruleType = "capital";
+      // Use only journalTypeLabels from account chart for ruleType detection
+      if (accountChart && accountChart.journalTypeLabels && typeof receipt.type === 'string') {
+        if (Object.keys(accountChart.journalTypeLabels).includes(receipt.type)) {
+          ruleType = receipt.type;
+        }
+      }
       if (!ruleType || !rules[ruleType]) continue;
 
       const grandTotal = parseFloat(receipt.grand_total);

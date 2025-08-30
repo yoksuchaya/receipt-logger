@@ -47,7 +47,17 @@ export async function POST(req: NextRequest) {
       log = await req.json();
     }
     // If type is provided in the request, use it. Otherwise, auto-detect.
-    if (typeof log.type === 'string' && (log.type === 'sale' || log.type === 'purchase' || log.type === 'capital')) {
+    // Dynamically check type using journalTypeLabels from account-chart.json
+    let validTypes: string[] = ['sale', 'purchase'];
+    try {
+      const accountChartPath = path.join(process.cwd(), 'account-chart.json');
+      const accountChartRaw = await fs.readFile(accountChartPath, 'utf8');
+      const accountChart = JSON.parse(accountChartRaw);
+      if (accountChart && typeof accountChart.journalTypeLabels === 'object') {
+        validTypes = validTypes.concat(Object.keys(accountChart.journalTypeLabels));
+      }
+    } catch {}
+    if (typeof log.type === 'string' && validTypes.includes(log.type)) {
       // Use provided type
     } else {
       // Fetch company tax ID from company profile API

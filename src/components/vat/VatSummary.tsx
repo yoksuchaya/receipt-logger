@@ -12,6 +12,8 @@ import PrintWrapper from "../layout/PrintWrapper";
 import { formatMoney } from "../utils/utils";
 import { VatSale } from "./VatSaleReportTable";
 import { VatPurchase } from "./VatPurchaseReportTable";
+import { getPP30Log } from "./pp30logApi";
+import { PP30Log } from "../types/PP30Log";
 
 const getCurrentMonthYear = () => {
     const now = new Date();
@@ -59,6 +61,8 @@ const VatSummary: React.FC = () => {
     const [selectedRow, setSelectedRow] = useState<any>(null);
     const [edit, setEdit] = useState(false);
     const [editForm, setEditForm] = useState<any>({});
+    const [pp30Log, setPP30Log] = useState<PP30Log | null>(null);
+    const [pp30Loading, setPP30Loading] = useState(false);
     // Handler for row actions (view or edit)
     const handleRowAction = (row: any, isEdit = false) => {
         setSelectedRow(row);
@@ -103,6 +107,10 @@ const VatSummary: React.FC = () => {
 
     useEffect(() => {
         fetchData();
+        setPP30Loading(true);
+        getPP30Log(month, year)
+            .then(log => setPP30Log(log))
+            .finally(() => setPP30Loading(false));
         // eslint-disable-next-line
     }, [month, year]);
 
@@ -125,6 +133,156 @@ const VatSummary: React.FC = () => {
 
     return (
         <PrintWrapper printLabel={`รายงานสรุปภาษีมูลค่าเพิ่ม (ภ.พ.30) - ${thaiMonth}/${year}`} printButtonLabel="พิมพ์รายงานสรุปภาษีมูลค่าเพิ่ม">
+            {/* PP30 Panel */}
+            <div className="w-full flex justify-end mt-2 mb-2">
+                <button
+                    onClick={handlePrintPP30}
+                    className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium shadow"
+                >
+                    พิมพ์แบบภพ.30
+                </button>
+            </div>
+            <div className="w-full mb-4 print:hidden">
+                {!pp30Loading && (!pp30Log ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                        <div className="text-yellow-800 font-medium">ยังไม่ได้ยื่นแบบ ภ.พ.30 สำหรับเดือนนี้</div>
+                        <button
+                            className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded shadow"
+                            onClick={async () => {
+                                // Log PP30
+                                const pp30Log = {
+                                    month,
+                                    year,
+                                    status: 'submitted',
+                                    amount: netVat,
+                                    created_at: new Date().toISOString(),
+                                };
+                                await fetch('/api/pp30-log', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(pp30Log),
+                                });
+                                // Issue vat_closing document
+                                const now = new Date();
+                                // Fetch account chart rules and journalTypeLabels for vat_closing
+                                let rules: any = {};
+                                let journalTypeLabels: any = {};
+                                try {
+                                    const res = await fetch('/api/account-chart');
+                                    if (res.ok) {
+                                        const data = await res.json();
+                                        rules = data.rules || {};
+                                        journalTypeLabels = data.journalTypeLabels || {};
+                                        rules.accounts = data.accounts || [];
+                                    }
+                                } catch { }
+                                const rule = Array.isArray(rules.vat_closing) ? rules.vat_closing : [];
+                                // Map rule to entries (handle both debit and credit in same rule)
+                                const entries: any[] = [];
+                                const getAcc = (num: string | undefined) => {
+                                    if (!num) return '';
+                                    const acc = (rules.accounts || []).find((a: any) => a.accountNumber === num);
+                                    return acc ? `${acc.accountNumber}-${acc.accountName}` : num;
+                                };
+                                // Calculate correct totals for each account
+                                // 2200: debit sumSalesVat
+                                // 1200: credit sumPurchasesVat
+                                // 2190: credit sumSalesVat - sumPurchasesVat
+                                const acc2200 = getAcc('2200');
+                                const acc1200 = getAcc('1200');
+                                const acc2190 = getAcc('2190');
+                                // If input VAT > output VAT, credit เครดิตภาษี (e.g., 1201)
+                                if (sumPurchasesVat > sumSalesVat) {
+                                    const accCreditVat = getAcc('1201');
+                                    entries.push({
+                                        account: acc2200,
+                                        description: 'ปิด VAT ขาย',
+                                        debit: sumSalesVat,
+                                        credit: 0
+                                    });
+                                    entries.push({
+                                        account: acc1200,
+                                        description: 'ปิด VAT ซื้อ',
+                                        debit: 0,
+                                        credit: sumPurchasesVat
+                                    });
+                                    entries.push({
+                                        account: accCreditVat,
+                                        description: 'เครดิตภาษี (VAT ขาย < VAT ซื้อ)',
+                                        debit: 0,
+                                        credit: sumPurchasesVat - sumSalesVat
+                                    });
+                                } else {
+                                    entries.push({
+                                        account: acc2200,
+                                        description: 'ปิด VAT ขาย',
+                                        debit: sumSalesVat,
+                                        credit: 0
+                                    });
+                                    entries.push({
+                                        account: acc1200,
+                                        description: 'ปิด VAT ซื้อ',
+                                        debit: 0,
+                                        credit: sumPurchasesVat
+                                    });
+                                    entries.push({
+                                        account: acc2190,
+                                        description: 'ภาษีมูลค่าเพิ่มค้างจ่าย',
+                                        debit: 0,
+                                        credit: sumSalesVat - sumPurchasesVat
+                                    });
+                                }
+                                // Show journalTypeLabel for vat_closing (optional: you can display this in UI as needed)
+                                const vatClosingLabel = journalTypeLabels["vat_closing"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม";
+                                const doc = {
+                                    type: 'vat_closing',
+                                    category: vatClosingLabel,
+                                    date: now.toISOString().slice(0, 10),
+                                    issuedAt: now.toISOString(),
+                                    uploadedAt: now.toISOString(),
+                                    receipt_no: `VATC-${year}${month}`,
+                                    vendor: companyProfile?.company_name || '',
+                                    vendor_tax_id: companyProfile?.tax_id || '',
+                                    buyer_name: '',
+                                    buyer_tax_id: '',
+                                    notes: vatClosingLabel,
+                                    systemGenerated: true,
+                                    products: entries.map((e: any) => ({
+                                        name: e.account,
+                                        quantity: "1",
+                                        pricePerItem: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                        price: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                        description: e.description,
+                                        weight: "0"
+                                    })),
+                                    entries,
+                                    grand_total: Math.abs(netVat),
+                                    vat: "0"
+                                };
+                                await fetch('/api/receipt-log', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(doc),
+                                });
+                                // Refresh log state
+                                setPP30Loading(true);
+                                getPP30Log(month, year)
+                                    .then(log => setPP30Log(log))
+                                    .finally(() => setPP30Loading(false));
+                            }}
+                        >
+                            ยื่นแบบฟอร์ม ภ.พ.30
+                        </button>
+                    </div>
+                ) : (pp30Log.status !== 'paid' && pp30Log.amount > 0 ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                        <div className="text-blue-800 font-medium">ยื่นแบบแล้ว รอชำระภาษี (ยอดสุทธิ {formatMoney(pp30Log.amount)} บาท)</div>
+                        <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow" onClick={() => {/* TODO: mark as paid */ }}>
+                            ชำระภาษีแล้ว
+                        </button>
+                    </div>
+                ) : null))}
+            </div>
             {/* Print-only header and summary */}
             <div className="w-full mx-auto hidden print:block">
                 <ReportHeader
@@ -181,14 +339,6 @@ const VatSummary: React.FC = () => {
 
             {/* Main UI (screen only) */}
             <section className="w-full mx-auto bg-white dark:bg-neutral-900 rounded-lg shadow p-4 md:p-8 flex flex-col items-center print:bg-white print:shadow-none print:p-0 print:rounded-none">
-                <div className="w-full flex justify-end mb-4 print:hidden">
-                    <button
-                        onClick={handlePrintPP30}
-                        className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded shadow"
-                    >
-                        พิมพ์แบบภพ.30
-                    </button>
-                </div>
                 {/* Screen-only header */}
                 <div className="print:hidden w-full">
                     <ReportHeader

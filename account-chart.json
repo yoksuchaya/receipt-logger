@@ -31,6 +31,12 @@
       "type": "asset"
     },
     {
+      "accountNumber": "1201",
+      "accountName": "เครดิตภาษี (VAT Credit)",
+      "note": "เครดิตภาษีมูลค่าเพิ่มขอคืน/ยกยอด",
+      "type": "asset"
+    },
+    {
       "accountNumber": "1300",
       "accountName": "ค่าเสื่อมสะสม",
       "note": "ค่าเสื่อมราคาสะสม",
@@ -46,6 +52,12 @@
       "accountNumber": "2100",
       "accountName": "เจ้าหนี้ประกันสังคม",
       "note": "หนี้ประกันสังคม",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "2190",
+      "accountName": "ภาษีมูลค่าเพิ่มค้างจ่าย",
+      "note": "VAT ที่ต้องจ่ายกรมสรรพากร",
       "type": "liability"
     },
     {
@@ -136,10 +148,13 @@
     "expense": "ค่าใช้จ่าย"
   },
   "journalTypeLabels": {
-    "capital": "เงินลงทุน (Capital)",
-    "depreciation": "ค่าเสื่อมราคา (Depreciation)",
-    "accrual_salary": "เงินเดือนค้างจ่าย (Accrual Salary)",
-    "social_security": "ประกันสังคม (Social Security)"
+    "capital": "เงินลงทุน",
+    "depreciation": "ค่าเสื่อมราคา",
+    "accrual_salary": "เงินเดือนค้างจ่าย",
+    "social_security": "ประกันสังคม",
+    "vat_closing": "ปิดบัญชีภาษีมูลค่าเพิ่ม",
+    "sale": "ขายสินค้า",
+    "purchase": "ซื้อสินค้า"
   },
   "rules": {
     "paymentTypeMap": {
@@ -266,6 +281,28 @@
         "debit": "5400",
         "amount": "amount",
         "description": "ค่าใช้จ่ายสำนักงาน"
+      }
+    ],
+    "vat_closing": [
+      {
+        "debit": "2200",
+        "credit": "1200",
+        "amount": "min(vatOutput, vatInput)",
+        "description": "เคลียร์ภาษีซื้อ-ขาย"
+      },
+      {
+        "debit": "2200",
+        "credit": "2190",
+        "amount": "amount",
+        "description": "บันทึกภาษีค้างจ่าย"
+      }
+    ],
+    "vat_payment": [
+      {
+        "debit": "2190",
+        "credit": "1010",
+        "amount": "amount",
+        "description": "ชำระภาษีมูลค่าเพิ่ม"
       }
     ],
     "closing": [
