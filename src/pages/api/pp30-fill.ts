@@ -97,6 +97,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.warn('Could not select Radio Button4.BranchTypes:', e);
     }
 
+    // Select Radio Button8.DeadlineTypes with option '0' - สำนักงานใหญ่
+    try {
+        const deadlineTypesRadio = fields.filter(field => field.constructor.name === 'PDFRadioGroup' && field.getName() === 'Radio Button8.DeadlineTypes');
+        (deadlineTypesRadio[0] as any).select('0');
+    } catch (e) {
+        console.warn('Could not select Radio Button8.DeadlineTypes:', e);
+    }
+
     // Select Radio Button5.SeparateBranch with option '0' - สำนักงานใหญ่
     try {
         const separateBranchRadio = fields.filter(field => field.constructor.name === 'PDFRadioGroup' && field.getName() === 'Radio Button5.SeparateBranch');
