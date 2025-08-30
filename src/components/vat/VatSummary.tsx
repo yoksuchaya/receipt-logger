@@ -1,6 +1,9 @@
 
 
 import { useState, useEffect } from "react";
+import VatBreadcrumb from "./VatBreadcrumb";
+import ReceiptEditForm from "../receipt/ReceiptEditForm";
+import ReceiptDetail from "../receipt/ReceiptDetail";
 import ReportHeader from "../common/ReportHeader";
 import { monthOptions, getMonthLabel } from "../utils/monthLabels";
 import VatSaleReportTable from "./VatSaleReportTable";
@@ -53,6 +56,19 @@ const VatSummary: React.FC = () => {
     const [sales, setSales] = useState<VatSale[]>([]);
     const [purchases, setPurchases] = useState<VatPurchase[]>([]);
     const [tab, setTab] = useState<'sales' | 'purchases'>('sales');
+    const [selectedRow, setSelectedRow] = useState<any>(null);
+    const [edit, setEdit] = useState(false);
+    const [editForm, setEditForm] = useState<any>({});
+    // Handler for row actions (view or edit)
+    const handleRowAction = (row: any, isEdit = false) => {
+        setSelectedRow(row);
+        setEdit(isEdit);
+        setEditForm(row);
+    };
+    const handleBack = () => {
+        setSelectedRow(null);
+        setEdit(false);
+    };
 
     // Fetch data
     const fetchData = async () => {
@@ -219,7 +235,36 @@ const VatSummary: React.FC = () => {
                 </div>
                 {/* Screen: tabbed table */}
                 <div className="w-full print:hidden">
-                    {loading ? (
+                    {selectedRow ? (
+                        <div className="w-full max-w-full">
+                            <VatBreadcrumb
+                                type={tab === 'sales' ? 'sale' : 'purchase'}
+                                edit={edit}
+                                onBack={handleBack}
+                            />
+                            <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 w-full">
+                                {edit ? (
+                                    <ReceiptEditForm
+                                        systemGenerated={!!editForm?.systemGenerated}
+                                        initialValues={editForm}
+                                        onSubmit={async () => { setSelectedRow(null); setEdit(false); }}
+                                        onCancel={handleBack}
+                                    />
+                                ) : (
+                                    <ReceiptDetail
+                                        selected={selectedRow}
+                                        onEdit={() => { setEdit(true); setEditForm(selectedRow); }}
+                                        onDelete={async () => {
+                                            if (window.confirm('Delete this receipt?')) {
+                                                setSelectedRow(null);
+                                                setEdit(false);
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    ) : loading ? (
                         <div className="text-center text-gray-400 py-8">กำลังโหลดข้อมูล...</div>
                     ) : error ? (
                         <div className="text-center text-red-500 py-8">{error}</div>
@@ -229,6 +274,7 @@ const VatSummary: React.FC = () => {
                             sumExVat={sumSalesExVat}
                             sumVat={sumSalesVat}
                             sumTotal={sumSalesTotal}
+                            onRowAction={handleRowAction}
                         />
                     ) : (
                         <VatPurchaseReportTable
@@ -236,6 +282,7 @@ const VatSummary: React.FC = () => {
                             sumAmount={sumPurchasesExVat}
                             sumVat={sumPurchasesVat}
                             sumTotal={sumPurchasesTotal}
+                            onRowAction={handleRowAction}
                         />
                     )}
                 </div>

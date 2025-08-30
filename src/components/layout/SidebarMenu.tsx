@@ -89,19 +89,19 @@ const menuGroups = [
     label: 'รายงาน (Reports)',
     icon: ChartBarIcon,
     items: [
-      {
-        key: 'vat-purchase',
-        label: 'รายงานภาษีซื้อ (VAT Purchase Report)',
-        icon: ArrowTrendingDownIcon, // Purchase = expense
-      },
-      {
-        key: 'vat-sales',
-        label: 'รายงานภาษีขาย (VAT Sales Report)',
-        icon: ArrowTrendingUpIcon, // Sales = income
-      },
+      // {
+      //   key: 'vat-purchase',
+      //   label: 'รายงานภาษีซื้อ (VAT Purchase Report)',
+      //   icon: ArrowTrendingDownIcon, // Purchase = expense
+      // },
+      // {
+      //   key: 'vat-sales',
+      //   label: 'รายงานภาษีขาย (VAT Sales Report)',
+      //   icon: ArrowTrendingUpIcon, // Sales = income
+      // },
       {
         key: 'vat-summary',
-        label: 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)',
+        label: 'สรุปภาษีมูลค่าเพิ่มประจำเดือน',
         icon: ClipboardDocumentCheckIcon, // Summary/report
       },
       {
@@ -152,7 +152,8 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ open, onSelectMenu, selectedM
       className={`fixed sm:static z-20 top-0 left-0 h-full bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 flex flex-col py-8 px-2 gap-4 shadow-sm transition-all duration-200 ease-in-out
         ${open ? 'translate-x-0' : '-translate-x-full'} sm:translate-x-0
         ${collapsed ? 'sm:w-16 w-64' : 'sm:w-64 w-64'}
-      `}
+        flex-1 overflow-y-auto`
+      }
       style={{ minWidth: collapsed ? '4rem' : '14rem', maxWidth: collapsed ? '4rem' : '16rem' }}
     >
       <div className="flex items-center justify-between mb-6">

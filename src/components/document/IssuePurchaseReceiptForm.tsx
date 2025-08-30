@@ -89,7 +89,7 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
             setForm(f => ({
                 ...f,
                 buyer_name: data.company_name || '',
-                buyer_address: data.address || '',
+                buyer_address: data.address_line || '',
                 buyer_tax_id: data.tax_id || '',
             }));
         }
@@ -341,7 +341,7 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
                 </div>
                 <div>
                     <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_address">ที่อยู่ผู้ซื้อ</label>
-                    <input id="buyer_address" name="buyer_address" value={companyProfile?.address || ''} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" disabled />
+                    <input id="buyer_address" name="buyer_address" value={companyProfile?.address_line || ''} className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" disabled />
                 </div>
                 <div className="sm:col-span-2">
                     <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="buyer_tax_id">เลขประจำตัวผู้เสียภาษีผู้ซื้อ</label>

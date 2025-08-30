@@ -1,7 +1,9 @@
 
+
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { formatAddress } from '@/components/utils/formatAddress';
 
 const filePath = path.join(process.cwd(), 'company-profile.json');
 
@@ -11,6 +13,12 @@ export async function GET() {
   // Ensure productCategoryShorts is always present in the API response
   if (!profile.productCategoryShorts) {
     profile.productCategoryShorts = {};
+  }
+  // Add address_line field formatted from address object if present
+  if (profile.address && typeof profile.address === 'object') {
+    profile.address_line = formatAddress(profile.address);
+  } else {
+    profile.address_line = '';
   }
   return NextResponse.json(profile);
 }

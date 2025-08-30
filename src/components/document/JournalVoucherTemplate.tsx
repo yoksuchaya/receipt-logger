@@ -51,7 +51,7 @@ const JournalVoucherTemplate: React.FC<JournalVoucherTemplateProps> = ({ data, c
             <div className="flex flex-row justify-between items-start md:items-center border-b border-gray-200 dark:border-neutral-700 p-4 md:p-6 gap-4 w-full">
                 <div className="max-w-xs break-words whitespace-pre-line">
                     <div className="font-bold text-lg md:text-xl text-gray-800 dark:text-gray-100">{company?.company_name || 'ชื่อร้าน'}</div>
-                    {company?.address && <div className="text-xs text-gray-500 dark:text-gray-400">{company.address}</div>}
+                    {company?.address_line && <div className="text-xs text-gray-500 dark:text-gray-400">{company.address_line}</div>}
                     <div className="text-xs text-gray-500 dark:text-gray-400">เลขประจำตัวผู้เสียภาษีอากร: {company?.tax_id || '-'}</div>
                 </div>
                 <div className="text-right">

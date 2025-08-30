@@ -26,9 +26,21 @@ export interface PaymentType {
   label: string;
 }
 
+export interface CompanyProfileAddress {
+  house_number?: string;
+  moo?: string;
+  soi?: string;
+  road?: string;
+  district?: string;
+  state?: string;
+  province?: string;
+  postal_code?: string;
+}
+
 export interface CompanyProfileData {
   company_name: string;
-  address: string;
+  address: string | CompanyProfileAddress;
+  address_line?: string;
   tax_id: string;
   phones: string[];
   productOptions?: Record<string, string[]>;
