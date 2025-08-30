@@ -217,16 +217,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (vatPaymentAmount > 0) {
             try {
-                const paymentRadio = form.getRadioGroup('Payment');
-                paymentRadio.select('1');
+                const paymentRadio = fields.filter(field => field.constructor.name === 'PDFRadioGroup' && field.getName() === 'Payment');
+                (paymentRadio[0] as any).select('0');
             } catch (e) {
                 console.warn('Could not select Payment radio button:', e);
             }
             vatPaymentAmountField.setText(formatMoney(vatPaymentAmount));
         } else {
             try {
-                const paymentRadio = form.getRadioGroup('Payment');
-                paymentRadio.select('2');
+                const paymentRadio = fields.filter(field => field.constructor.name === 'PDFRadioGroup' && field.getName() === 'Payment');
+                (paymentRadio[1] as any).select('1');
             } catch (e) {
                 console.warn('Could not select Payment radio button:', e);
             }
