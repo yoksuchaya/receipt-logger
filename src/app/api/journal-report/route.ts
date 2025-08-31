@@ -158,9 +158,17 @@ export async function GET(req: NextRequest) {
         else if (rule.amount === "vatInput") amount = vatInput;
         else if (rule.amount === "vatPayable") amount = vatPayable;
         else if (rule.amount === "vatCredit") amount = vatCredit;
+        else if (rule.amount === "amount") {
+          // For systemGenerated receipts (like vat_payment), use grand_total or entries sum
+          if (typeof receipt.grand_total === 'number') amount = receipt.grand_total;
+          else if (typeof receipt.grand_total === 'string') amount = parseFloat(receipt.grand_total);
+          else if (Array.isArray(receipt.entries)) {
+            amount = receipt.entries.reduce((sum, e) => sum + (e.debit || e.credit || 0), 0);
+          }
+        }
         else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
 
-        // Only add entry if amount > 0 and not NaN
+        // Only add entry if amount > 0 and !isNaN(amount)
         if (amount && amount > 0 && !isNaN(amount)) {
           entries.push({
             date: receipt.date,
