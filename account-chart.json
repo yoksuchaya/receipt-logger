@@ -157,6 +157,12 @@
     "sale": "ขายสินค้า",
     "purchase": "ซื้อสินค้า"
   },
+  "issuableJournalType": [
+    "capital",
+    "depreciation",
+    "accrual_salary",
+    "social_security"
+  ],
   "rules": {
     "paymentTypeMap": {
       "cash": "1000",

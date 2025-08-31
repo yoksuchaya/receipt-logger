@@ -259,7 +259,7 @@ const VatSummary: React.FC = () => {
                                         weight: "0"
                                     })),
                                     entries,
-                                    grand_total: Math.abs(netVat),
+                                    grand_total: entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0),
                                     vat: "0"
                                 };
                                 await fetch('/api/receipt-log', {

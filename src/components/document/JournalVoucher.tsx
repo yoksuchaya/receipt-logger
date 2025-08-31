@@ -35,8 +35,10 @@ interface JournalVoucherProps {
 
 const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create', onSubmit, onCancel }) => {
     const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([
-    { value: '', label: 'เลือกหมวดหมู่' }
-]);
+        { value: '', label: 'เลือกหมวดหมู่' }
+    ]);
+    const [issuableTypes, setIssuableTypes] = useState<string[]>([]);
+    const [journalTypeLabels, setJournalTypeLabels] = useState<Record<string, string>>({});
     const getToday = () => {
         const d = new Date();
         const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -77,9 +79,18 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                 } else {
                     setRules({});
                 }
-                // Set category options from journalTypeLabels
+                if (Array.isArray(data.issuableJournalType)) {
+                    setIssuableTypes(data.issuableJournalType);
+                }
                 if (data.journalTypeLabels && typeof data.journalTypeLabels === 'object') {
-                    const opts = Object.entries(data.journalTypeLabels).map(([value, label]) => ({ value, label: String(label) }));
+                    setJournalTypeLabels(data.journalTypeLabels);
+                }
+                // Set category options from issuableJournalType, use journalTypeLabels for display
+                if (Array.isArray(data.issuableJournalType) && data.journalTypeLabels && typeof data.journalTypeLabels === 'object') {
+                    const opts = data.issuableJournalType.map((type: string) => ({
+                        value: type,
+                        label: data.journalTypeLabels[type] || type
+                    }));
                     setCategoryOptions([{ value: '', label: 'เลือกหมวดหมู่' }, ...opts]);
                 }
             })
@@ -128,8 +139,11 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
             if (!catValue && typeof (initialValues as any).type === 'string') {
                 catValue = getCategoryValue((initialValues as any).type);
             }
-            // Debug log for category value and options
-            console.log('Setting category dropdown value:', catValue, 'from', initialValues.category, 'options:', categoryOptions.map(o => o.value));
+            const initialType = (initialValues as any).type;
+            // If still not found and type is not in issuableTypes, set category to the original label for display and saving
+            if (!catValue && initialType && !issuableTypes.includes(initialType) && typeof (initialValues as any).category === 'string') {
+                catValue = (initialValues as any).category;
+            }
             setCategory(typeof catValue === 'string' ? catValue : '');
             // Prefer entries, else map from products
             let entriesToSet: JournalEntry[] = [];
@@ -147,7 +161,7 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
             setCategory('');
             setEntries([{ ...emptyEntry }]);
         }
-    }, [initialValues, mode, accountOptions]);
+    }, [initialValues, mode, accountOptions, issuableTypes]);
 
     // Patch: Normalize initial entries to always use accountNumber-accountName for dropdown value
     function normalizeEntries(entries: JournalEntry[], accountOptions: AccountOption[]): JournalEntry[] {
@@ -344,19 +358,29 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                                                 typeToSend = initialType;
                                             }
                                     }
+                        // Preserve original category label for non-issuable types in edit mode
+                        let categoryLabel = categoryOptions.find(opt => opt.value === category)?.label || '';
+                        if (
+                            mode === 'edit' &&
+                            typeof (initialValues as any)?.type === 'string' &&
+                            !issuableTypes.includes((initialValues as any).type) &&
+                            typeof (initialValues as any)?.category === 'string'
+                        ) {
+                            categoryLabel = (initialValues as any).category;
+                        }
                         const formData = {
-                                date,
-                                type: typeToSend,
-                                products,
-                                category: categoryOptions.find(opt => opt.value === category)?.label || '',
-                                vendor,
-                                vendor_tax_id,
-                                receipt_no,
-                                grand_total: entries.reduce((sum, entry) => sum + Number(entry.debit), 0),
-                                notes: notes,
-                                payment,
-                                systemGenerated: true,
-                                entries,
+                            date,
+                            type: typeToSend,
+                            products,
+                            category: categoryLabel,
+                            vendor,
+                            vendor_tax_id,
+                            receipt_no,
+                            grand_total: entries.reduce((sum, entry) => sum + Number(entry.debit), 0),
+                            notes: notes,
+                            payment,
+                            systemGenerated: true,
+                            entries,
                         };
 
             if (onSubmit) {
@@ -393,6 +417,12 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
         }
     };
 
+    // Determine if category should be disabled in edit mode
+    const initialType = (initialValues as any)?.type;
+    const isEditMode = mode === 'edit';
+    const disableCategory = isEditMode && initialType && !issuableTypes.includes(initialType);
+    const displayCategoryLabel = disableCategory ? (journalTypeLabels[initialType] || initialType || '') : '';
+
     return (
         <section className="w-full border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 rounded-xl p-6 mt-2">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Journal Voucher</h2>
@@ -413,15 +443,21 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                     </div>
                     <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">หมวดหมู่</label>
-                        <select
-                            className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${submitAttempted && (!category || errors.category) ? 'border-red-500' : 'border-gray-300 dark:border-neutral-700'}`}
-                            value={category}
-                            onChange={handleCategoryChange}
-                        >
-                            {categoryOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
+                        {disableCategory ? (
+                            <div className="w-full rounded-lg border px-3 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white opacity-60 cursor-not-allowed flex items-center min-h-[40px]">
+                                {displayCategoryLabel}
+                            </div>
+                        ) : (
+                            <select
+                                className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${submitAttempted && (!category || errors.category) ? 'border-red-500' : 'border-gray-300 dark:border-neutral-700'}`}
+                                value={category}
+                                onChange={handleCategoryChange}
+                            >
+                                {categoryOptions.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        )}
                         {submitAttempted && errors.category && (
                             <div className="text-red-600 text-xs mt-1">{errors.category}</div>
                         )}

@@ -1,5 +1,5 @@
 "use client";
-import { formatMoney, isCapitalType, isPurchaseType, isSaleType } from "../utils/utils";
+import { formatMoney } from "../utils/utils";
 import React, { useEffect, useState } from "react";
 import ReceiptBreadcrumb from "./ReceiptBreadcrumb";
 import ReceiptDetail from "./ReceiptDetail";
@@ -54,8 +54,20 @@ const ReceiptLogList: React.FC = () => {
   const initialRange = getInitialDateRange();
   const [fromDate, setFromDate] = useState<string>(initialRange.from);
   const [toDate, setToDate] = useState<string>(initialRange.to);
-  // sale/purchase filter: 'all', 'sale', 'purchase'
-  const [typeFilter, setTypeFilter] = useState<'all' | 'sale' | 'purchase'>('all');
+  // Use string for typeFilter to allow dynamic types
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+
+  // journalTypeLabels from account-chart
+  const [journalTypeLabels, setJournalTypeLabels] = useState<Record<string, string>>({});
+  useEffect(() => {
+    fetch('/api/account-chart')
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.journalTypeLabels === 'object') {
+          setJournalTypeLabels(data.journalTypeLabels);
+        }
+      });
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -148,13 +160,13 @@ const ReceiptLogList: React.FC = () => {
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ประเภทเอกสาร</label>
           <select
             value={typeFilter}
-            onChange={e => setTypeFilter(e.target.value as 'all' | 'sale' | 'purchase')}
+            onChange={e => setTypeFilter(e.target.value)}
             className="rounded border px-2 py-1 text-sm"
           >
             <option value="all">ทั้งหมด</option>
-            <option value="sale">ขาย</option>
-            <option value="purchase">ซื้อ</option>
-            <option value="capital">เงินลงทุน</option>
+            {Object.entries(journalTypeLabels).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
           </select>
         </div>
         {(fromDate || toDate || typeFilter !== 'all') && (
@@ -179,9 +191,9 @@ const ReceiptLogList: React.FC = () => {
             <tbody>
               {filteredLogs.map((log, i) => {
                 let typeLabel = '-';
-                if (isSaleType(log.type)) typeLabel = 'ขาย';
-                else if (isPurchaseType(log.type)) typeLabel = 'ซื้อ';
-                else if (isCapitalType(log.type)) typeLabel = 'เงินลงทุน';
+                if (log.type && journalTypeLabels[log.type]) {
+                  typeLabel = journalTypeLabels[log.type];
+                }
                 return (
                   <tr key={i} className="border-t border-gray-200 dark:border-neutral-700">
                     <td className="px-3 py-2">{log.date ? log.date : '-'}</td>
