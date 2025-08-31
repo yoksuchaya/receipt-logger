@@ -154,7 +154,7 @@ const VatSummary: React.FC = () => {
                                 const pp30Log = {
                                     month,
                                     year,
-                                    status: 'submitted',
+                                    status: netVat < 0 ? 'paid' : 'submitted',
                                     amount: netVat,
                                     created_at: new Date().toISOString(),
                                 };
@@ -277,18 +277,33 @@ const VatSummary: React.FC = () => {
                             ยื่นแบบฟอร์ม ภ.พ.30
                         </button>
                     </div>
-                ) : (pp30Log.status !== 'paid' && pp30Log.amount > 0 ? (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-                        <div className="text-blue-800 font-medium">ยื่นแบบแล้ว รอชำระภาษี (ยอดสุทธิ {formatMoney(pp30Log.amount)} บาท)</div>
-                        <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow" onClick={() => {/* TODO: mark as paid */ }}>
-                            ชำระภาษีแล้ว
-                        </button>
-                    </div>
-                ) : (pp30Log.amount <= 0 ? (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-                        <div className="text-green-800 font-medium">ยื่นแบบแล้ว ไม่มีภาษีต้องชำระ</div>
-                    </div>
-                ) : null)))}
+                ) : (
+                    <>
+                        {(sumSalesVat - sumPurchasesVat !== pp30Log.amount) ? (
+                            <div className="bg-orange-100 border border-orange-300 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                                <div className="text-orange-800 font-medium">มีการบันทึกเอกสารขายหรือซื้อเพิ่มเติมหลังยื่นแบบ ภ.พ.30 กรุณายื่นภาษีเพิ่ม</div>
+                                <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded shadow" onClick={() => {/* TODO: open additional filing modal */ }}>
+                                    ยื่นแบบเพิ่มเติม
+                                </button>
+                            </div>
+                        ) : (
+                            pp30Log.status !== 'paid' && pp30Log.amount > 0 ? (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                                    <div className="text-blue-800 font-medium">ยื่นแบบแล้ว รอชำระภาษี (ยอดสุทธิ {formatMoney(pp30Log.amount)} บาท)</div>
+                                    <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow" onClick={() => {/* TODO: mark as paid */ }}>
+                                        ชำระภาษีแล้ว
+                                    </button>
+                                </div>
+                            ) : (
+                                pp30Log.amount <= 0 && (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                                        <div className="text-green-800 font-medium">ยื่นแบบแล้ว ไม่มีภาษีต้องชำระ</div>
+                                    </div>
+                                )
+                            )
+                        )}
+                    </>
+                ))}
             </div>
             {/* Print-only header and summary */}
             <div className="w-full mx-auto hidden print:block">
