@@ -3,13 +3,14 @@ import React from "react";
 interface AccountRuleInfoProps {
   accountNumber: string;
   rules: any;
+  journalTypeLabels: Record<string, string>;
 }
 
-const AccountRuleInfo: React.FC<AccountRuleInfoProps> = ({ accountNumber, rules }) => {
+const AccountRuleInfo: React.FC<AccountRuleInfoProps> = ({ accountNumber, rules, journalTypeLabels }) => {
   if (!rules) return <div className="text-xs text-gray-400">ไม่พบข้อมูลกฎสำหรับบัญชีนี้</div>;
 
   // Find all rules that reference this account number, but always show both sides for context
-  const sections = ["purchase", "sale", "capital"];
+  const sections = Object.keys(journalTypeLabels || {});
   const usedIn: { section: string; idx: number; rule: any }[] = [];
   sections.forEach((section) => {
     if (Array.isArray(rules[section])) {
@@ -28,12 +29,8 @@ const AccountRuleInfo: React.FC<AccountRuleInfoProps> = ({ accountNumber, rules 
     return <div className="text-xs text-gray-400">บัญชีนี้ยังไม่ได้ถูกใช้ในกฎการบันทึกบัญชี</div>;
   }
 
-  // Section names in Thai
-  const sectionNames: Record<string, string> = {
-    purchase: "ซื้อสินค้า/บริการ",
-    sale: "ขายสินค้า/บริการ",
-    capital: "เงินลงทุน/ทุน"
-  };
+  // Section names from prop
+  const sectionNames = journalTypeLabels || {};
 
   // Helper to show all accounts, highlighting the current one
   const showAccounts = (side: string | undefined, accountNumber: string) => {

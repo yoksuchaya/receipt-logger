@@ -13,6 +13,7 @@ const AccountChart: React.FC = () => {
   const [data, setData] = useState<AccountChartItem[]>([]);
   const [typeLabels, setTypeLabels] = useState<Record<string, string>>({});
   const [rules, setRules] = useState<any>(null);
+  const [journalTypeLabels, setJournalTypeLabels] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editIdx, setEditIdx] = useState<{ type: string; idx: number } | null>(null);
@@ -38,6 +39,11 @@ const AccountChart: React.FC = () => {
           setTypeLabels(json.typeLabels);
         } else {
           setTypeLabels({});
+        }
+        if (json && typeof json.journalTypeLabels === 'object' && json.journalTypeLabels !== null) {
+          setJournalTypeLabels(json.journalTypeLabels);
+        } else {
+          setJournalTypeLabels({});
         }
         setRules(json && json.rules ? json.rules : null);
         setError(null);
@@ -209,7 +215,7 @@ const AccountChart: React.FC = () => {
                     {grouped[sectionInfo.type]?.map((item) => (
                       <div key={item.accountNumber} className="mb-6 last:mb-0">
                         <div className="font-medium text-base text-gray-800 dark:text-gray-100 mb-2">{item.accountNumber} {item.accountName}</div>
-                        <AccountRuleInfo accountNumber={item.accountNumber} rules={rules} />
+                        <AccountRuleInfo accountNumber={item.accountNumber} rules={rules} journalTypeLabels={journalTypeLabels || {}} />
                       </div>
                     ))}
                   </div>
