@@ -361,12 +361,19 @@ const StockOverview: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {movements
-                                .filter(m =>
+                            {(() => {
+                                const filtered = movements.filter(m =>
                                     (printProducts.length === 0 || printProducts.includes(m.product)) &&
                                     (activeTab === "sale" ? m.type === "sale" : activeTab === "purchase" ? m.type === "purchase" : true)
-                                )
-                                .map((m, i) => (
+                                );
+                                if (filtered.length === 0) {
+                                    return (
+                                        <tr>
+                                            <td className="border border-gray-300 px-2 py-1 text-center" colSpan={5}>ยังไม่มีรายการ</td>
+                                        </tr>
+                                    );
+                                }
+                                return filtered.map((m, i) => (
                                     <tr key={i}>
                                         <td className="border border-gray-300 px-2 py-1">{m.date}</td>
                                         <td className="border border-gray-300 px-2 py-1">{m.product}</td>
@@ -374,7 +381,8 @@ const StockOverview: React.FC = () => {
                                         <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(m.balanceAvgCost)}</td>
                                         <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(m.balanceTotal)}</td>
                                     </tr>
-                                ))}
+                                ));
+                            })()}
                         </tbody>
                         {/* Footer for sum qty and sum balanceTotal */}
                         <tfoot>
