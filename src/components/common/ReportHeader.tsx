@@ -11,6 +11,7 @@ interface ReportHeaderProps {
     onMonthChange: (m: string) => void;
     onYearChange: (y: string) => void;
     title: string;
+    subtitle?: string;
 }
 
 const defaultYearOptions = Array.from({ length: 6 }, (_, i) => (2020 + i).toString());
@@ -23,7 +24,8 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({
     yearOptions = defaultYearOptions,
     onMonthChange,
     onYearChange,
-    title
+    title,
+    subtitle
 }) => {
     const [companyProfile, setCompanyProfile] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(true);
@@ -51,7 +53,6 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({
     ].filter(Boolean).join(' ');
     const address = addressParts;
     return (
-        
         <div className="mb-4 text-center">
             {loading || !companyProfile ? (
                 <div className="text-gray-400">Loading company info...</div>
@@ -64,6 +65,7 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({
                 </>
             )}
             <div className="font-semibold mt-2">{title}</div>
+            {subtitle && <div className="mt-1">{subtitle}</div>}
             <div className="flex flex-wrap justify-center gap-2 mt-2 items-center no-print">
                 <MonthYearSelector
                     month={month}
