@@ -12,7 +12,7 @@ interface StockMovement {
     type: string;
     balanceQty: number;
     balanceAvgCost: number;
-    balanceTotal: number;
+    total: number;
     qty: number;
 }
 
@@ -95,7 +95,7 @@ const StockOverview: React.FC = () => {
                         product,
                         balanceQty: last.balanceQty,
                         balanceAvgCost: last.balanceAvgCost,
-                        balanceTotal: last.balanceTotal,
+                        balanceTotal: last.total,
                         salesQty,
                         purchaseQty,
                         openingQty,
@@ -379,7 +379,7 @@ const StockOverview: React.FC = () => {
                                         <td className="border border-gray-300 px-2 py-1">{m.product}</td>
                                         <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(m.qty)}</td>
                                         <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(m.balanceAvgCost)}</td>
-                                        <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(m.balanceTotal)}</td>
+                                        <td className="border border-gray-300 px-2 py-1 text-right">{formatMoney(m.total)}</td>
                                     </tr>
                                 ));
                             })()}
@@ -406,7 +406,7 @@ const StockOverview: React.FC = () => {
                                                 (printProducts.length === 0 || printProducts.includes(m.product)) &&
                                                 (activeTab === "sale" ? m.type === "sale" : activeTab === "purchase" ? m.type === "purchase" : true)
                                             )
-                                            .reduce((sum, m) => sum + Number(m.balanceTotal), 0)
+                                            .reduce((sum, m) => sum + Number(m.total), 0)
                                     )}
                                 </td>
                             </tr>

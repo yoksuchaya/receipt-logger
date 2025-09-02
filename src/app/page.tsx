@@ -6,6 +6,7 @@ import ReceiptLogList from "@/components/receipt/ReceiptLogList";
 import VatReport from "@/components/vat/VatReport";
 import VatSummary from "@/components/vat/VatSummary";
 import AccountChart from "@/components/account/AccountChart";
+import TrialBalance from "@/components/report/TrialBalance";
 import StockMovementReport from "@/components/stock/StockMovementReport";
 import StockOverview from "@/components/stock/StockOverview";
 import JournalReport from "@/components/journal/JournalReport";
@@ -78,7 +79,7 @@ export default function Home() {
               {selectedMenu === 'vat-purchase' && 'รายงานภาษีซื้อ'}
               {selectedMenu === 'vat-sales' && 'รายงานภาษีขาย'}
               {selectedMenu === 'vat-summary' && 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)'}
-              {selectedMenu === 'trial-balance' && 'Trial Balance (ประจำเดือน)'}
+              {selectedMenu === 'trial-balance' && 'งบทดลอง (ประจำเดือน)'}
               {selectedMenu === 'company-profile' && 'ตั้งค่าข้อมูลบริษัท'}
               {selectedMenu === 'account-chart' && 'ผังบัญชี'}
             </h2>
@@ -102,11 +103,7 @@ export default function Home() {
                 <VatSummary />
               </div>
             )}
-            {selectedMenu === 'trial-balance' && (
-              <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
-                <p>ยังไม่มีหน้างบทดลอง (ประจำเดือน)</p>
-              </div>
-            )}
+            {selectedMenu === 'trial-balance' && <TrialBalance />}
             {selectedMenu === 'company-profile' && <CompanyProfile />}
             {selectedMenu === 'account-chart' && <AccountChart />}
           </div>

@@ -216,7 +216,7 @@
     ],
     "capital": [
       {
-        "debit": "1010",
+        "debit": "1000|1010",
         "amount": "grandTotal",
         "description": "เงินเข้าธนาคาร"
       },
