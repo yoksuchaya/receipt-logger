@@ -109,6 +109,8 @@ const menuGroups = [
         label: 'งบทดลอง (ประจำเดือน)',
         icon: CalculatorIcon, // Calculation/balance
       },
+      { key: 'profit-loss', label: 'รายงานกำไรขาดทุน (Profit & Loss)', icon: ArrowTrendingUpIcon },
+      { key: 'graphical-summary', label: 'สรุปภาพรวมทางการเงิน (Graphical Summary)', icon: ChartBarIcon },
     ],
   },
   {

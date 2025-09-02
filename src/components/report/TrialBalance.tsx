@@ -128,7 +128,7 @@ const TrialBalance: React.FC<Props> = ({ month: propMonth, year: propYear, data:
       />
       <PrintWrapper printLabel="รายงานงบทดลอง (ประจำเดือน)" printButtonLabel="พิมพ์รายงานงบทดลอง (ประจำเดือน)">
         <div className="w-full flex flex-col items-center py-8">
-          <div className="mb-4 w-full flex justify-center hidden print-block">
+          <div className="mb-4 w-full flex justify-center hidden print:block vat-header">
             <ReportHeader
               month={month}
               year={year}
