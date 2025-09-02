@@ -59,12 +59,7 @@ const menuGroups = [
         key: 'stock-overview',
         label: 'ภาพรวมสต็อก (Stock Overview)',
         icon: Squares2X2Icon,
-      },
-      {
-        key: 'stock-movement',
-        label: 'ความเคลื่อนไหวสต็อก (Stock Movement)',
-        icon: ArrowPathIcon,
-      },
+      }
     ],
   },
   {
@@ -103,6 +98,11 @@ const menuGroups = [
         key: 'vat-summary',
         label: 'สรุปภาษีมูลค่าเพิ่มประจำเดือน',
         icon: ClipboardDocumentCheckIcon, // Summary/report
+      },
+      {
+        key: 'stock-movement',
+        label: 'ความเคลื่อนไหวสต็อก (Stock Movement)',
+        icon: ArrowPathIcon,
       },
       {
         key: 'trial-balance',

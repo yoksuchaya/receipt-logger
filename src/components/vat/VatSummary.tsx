@@ -135,7 +135,7 @@ const VatSummary: React.FC = () => {
     return (
         <PrintWrapper printLabel={`รายงานสรุปภาษีมูลค่าเพิ่ม (ภ.พ.30) - ${thaiMonth}/${year}`} printButtonLabel="พิมพ์รายงานสรุปภาษีมูลค่าเพิ่ม">
             {/* PP30 Panel */}
-            <div className="w-full flex justify-end mt-2 mb-2">
+            <div className="w-full flex justify-end mt-2 mb-2 print:hidden">
                 <button
                     onClick={handlePrintPP30}
                     className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium shadow"
@@ -149,258 +149,258 @@ const VatSummary: React.FC = () => {
                         <div className="text-green-800 font-medium">ไม่มีภาษีต้องชำระ</div>
                     </div>
                 ) :
-                (!pp30Loading && !pp30Log) ? (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-                        <div className="text-yellow-800 font-medium">ยังไม่ได้ยื่นแบบ ภ.พ.30 สำหรับเดือนนี้</div>
-                        <button
-                            className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded shadow"
-                            onClick={async () => {
-                                // Log PP30
-                                const pp30Log = {
-                                    month,
-                                    year,
-                                    status: netVat < 0 ? 'paid' : 'submitted',
-                                    amount: netVat,
-                                    created_at: new Date().toISOString(),
-                                };
-                                await fetch('/api/pp30-log', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(pp30Log),
-                                });
-                                // Issue vat_closing document
-                                const now = new Date();
-                                // Fetch account chart rules and journalTypeLabels for vat_closing
-                                let rules: any = {};
-                                let journalTypeLabels: any = {};
-                                try {
-                                    const res = await fetch('/api/account-chart');
-                                    if (res.ok) {
-                                        const data = await res.json();
-                                        rules = data.rules || {};
-                                        journalTypeLabels = data.journalTypeLabels || {};
-                                        rules.accounts = data.accounts || [];
-                                    }
-                                } catch { }
-                                // Helper to get account label
-                                const getAcc = (num: string | undefined) => {
-                                    if (!num) return '';
-                                    const acc = (rules.accounts || []).find((a: any) => a.accountNumber === num);
-                                    return acc ? `${acc.accountNumber}-${acc.accountName}` : num;
-                                };
-
-                                // Select rule based on VAT situation
-                                let closingRule: any[] = [];
-                                let closingType = '';
-                                let closingLabel = '';
-                                if (netVat > 0) {
-                                    closingRule = Array.isArray(rules.vat_closing_payable) ? rules.vat_closing_payable : [];
-                                    closingType = 'vat_closing_payable';
-                                    closingLabel = journalTypeLabels["vat_closing_payable"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ต้องชำระ)";
-                                } else if (netVat < 0) {
-                                    closingRule = Array.isArray(rules.vat_closing_credit) ? rules.vat_closing_credit : [];
-                                    closingType = 'vat_closing_credit';
-                                    closingLabel = journalTypeLabels["vat_closing_credit"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ขอคืน/ยกยอด)";
-                                } else {
-                                    closingRule = Array.isArray(rules.vat_closing_payable) ? rules.vat_closing_payable : [];
-                                    closingType = 'vat_closing_payable';
-                                    closingLabel = journalTypeLabels["vat_closing_payable"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ศูนย์)";
-                                }
-
-                                // Prepare values for rule mapping
-                                const vatInput = sumPurchasesVat;
-                                const vatOutput = sumSalesVat;
-                                const payable = Math.max(0, netVat);
-                                const credit = Math.max(0, -netVat);
-
-                                // Map rule to entries
-                                const entries: any[] = closingRule.map((rule: any) => {
-                                    // Determine account
-                                    let account = rule.debit || rule.credit || '';
-                                    if (account.includes("|")) {
-                                        account = account.split("|")[0];
-                                    }
-                                    const accLabel = getAcc(account);
-                                    // Determine amount
-                                    let amount: number | undefined = undefined;
-                                    if (rule.amount === "vatInput") amount = vatInput;
-                                    else if (rule.amount === "vatOutput") amount = vatOutput;
-                                    else if (rule.amount === "payable") amount = payable;
-                                    else if (rule.amount === "credit") amount = credit;
-                                    else if (rule.amount === "min(vatOutput,vatInput)") amount = Math.min(vatOutput, vatInput);
-                                    else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
-                                    // fallback: if rule.amount is not recognized at all (amount is still undefined), use Math.abs(netVat)
-                                    if (typeof amount === 'undefined' && netVat !== 0) amount = Math.abs(netVat);
-                                    // If amount is still undefined, set to 0
-                                    if (typeof amount === 'undefined') amount = 0;
-                                    return {
-                                        account: accLabel,
-                                        description: rule.description,
-                                        debit: rule.debit ? amount : 0,
-                                        credit: rule.credit ? amount : 0
+                    (!pp30Loading && !pp30Log) ? (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                            <div className="text-yellow-800 font-medium">ยังไม่ได้ยื่นแบบ ภ.พ.30 สำหรับเดือนนี้</div>
+                            <button
+                                className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                onClick={async () => {
+                                    // Log PP30
+                                    const pp30Log = {
+                                        month,
+                                        year,
+                                        status: netVat < 0 ? 'paid' : 'submitted',
+                                        amount: netVat,
+                                        created_at: new Date().toISOString(),
                                     };
-                                });
+                                    await fetch('/api/pp30-log', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(pp30Log),
+                                    });
+                                    // Issue vat_closing document
+                                    const now = new Date();
+                                    // Fetch account chart rules and journalTypeLabels for vat_closing
+                                    let rules: any = {};
+                                    let journalTypeLabels: any = {};
+                                    try {
+                                        const res = await fetch('/api/account-chart');
+                                        if (res.ok) {
+                                            const data = await res.json();
+                                            rules = data.rules || {};
+                                            journalTypeLabels = data.journalTypeLabels || {};
+                                            rules.accounts = data.accounts || [];
+                                        }
+                                    } catch { }
+                                    // Helper to get account label
+                                    const getAcc = (num: string | undefined) => {
+                                        if (!num) return '';
+                                        const acc = (rules.accounts || []).find((a: any) => a.accountNumber === num);
+                                        return acc ? `${acc.accountNumber}-${acc.accountName}` : num;
+                                    };
 
-                                // Compose document
-                                const doc = {
-                                    type: closingType,
-                                    category: closingLabel,
-                                    date: now.toISOString().slice(0, 10),
-                                    issuedAt: now.toISOString(),
-                                    uploadedAt: now.toISOString(),
-                                    receipt_no: `VATC-${year}${month}`,
-                                    vendor: companyProfile?.company_name || '',
-                                    vendor_tax_id: companyProfile?.tax_id || '',
-                                    buyer_name: '',
-                                    buyer_tax_id: '',
-                                    notes: closingLabel,
-                                    systemGenerated: true,
-                                    products: entries.map((e: any) => ({
-                                        name: e.account,
-                                        quantity: "1",
-                                        pricePerItem: (e.debit > 0 ? e.debit : e.credit).toString(),
-                                        price: (e.debit > 0 ? e.debit : e.credit).toString(),
-                                        description: e.description,
-                                        weight: "0"
-                                    })),
-                                    entries,
-                                    grand_total: entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0),
-                                    vat: "0"
-                                };
-                                await fetch('/api/receipt-log', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(doc),
-                                });
-                                // Refresh log state
-                                setPP30Loading(true);
-                                getPP30Log(month, year)
-                                    .then(log => setPP30Log(log))
-                                    .finally(() => setPP30Loading(false));
-                            }}
-                        >
-                            ยื่นแบบฟอร์ม ภ.พ.30
-                        </button>
-                    </div>
-                ) : (
-                    (pp30Log && (sumSalesVat - sumPurchasesVat !== pp30Log.amount)) ? (
-                        <div className="bg-orange-100 border border-orange-300 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-                            <div className="text-orange-800 font-medium">มีการบันทึกเอกสารขายหรือซื้อเพิ่มเติมหลังยื่นแบบ ภ.พ.30 กรุณายื่นภาษีเพิ่ม</div>
-                            <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded shadow" onClick={() => {/* TODO: open additional filing modal */ }}>
-                                ยื่นแบบเพิ่มเติม
+                                    // Select rule based on VAT situation
+                                    let closingRule: any[] = [];
+                                    let closingType = '';
+                                    let closingLabel = '';
+                                    if (netVat > 0) {
+                                        closingRule = Array.isArray(rules.vat_closing_payable) ? rules.vat_closing_payable : [];
+                                        closingType = 'vat_closing_payable';
+                                        closingLabel = journalTypeLabels["vat_closing_payable"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ต้องชำระ)";
+                                    } else if (netVat < 0) {
+                                        closingRule = Array.isArray(rules.vat_closing_credit) ? rules.vat_closing_credit : [];
+                                        closingType = 'vat_closing_credit';
+                                        closingLabel = journalTypeLabels["vat_closing_credit"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ขอคืน/ยกยอด)";
+                                    } else {
+                                        closingRule = Array.isArray(rules.vat_closing_payable) ? rules.vat_closing_payable : [];
+                                        closingType = 'vat_closing_payable';
+                                        closingLabel = journalTypeLabels["vat_closing_payable"] || "ปิดบัญชีภาษีมูลค่าเพิ่ม (ศูนย์)";
+                                    }
+
+                                    // Prepare values for rule mapping
+                                    const vatInput = sumPurchasesVat;
+                                    const vatOutput = sumSalesVat;
+                                    const payable = Math.max(0, netVat);
+                                    const credit = Math.max(0, -netVat);
+
+                                    // Map rule to entries
+                                    const entries: any[] = closingRule.map((rule: any) => {
+                                        // Determine account
+                                        let account = rule.debit || rule.credit || '';
+                                        if (account.includes("|")) {
+                                            account = account.split("|")[0];
+                                        }
+                                        const accLabel = getAcc(account);
+                                        // Determine amount
+                                        let amount: number | undefined = undefined;
+                                        if (rule.amount === "vatInput") amount = vatInput;
+                                        else if (rule.amount === "vatOutput") amount = vatOutput;
+                                        else if (rule.amount === "payable") amount = payable;
+                                        else if (rule.amount === "credit") amount = credit;
+                                        else if (rule.amount === "min(vatOutput,vatInput)") amount = Math.min(vatOutput, vatInput);
+                                        else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
+                                        // fallback: if rule.amount is not recognized at all (amount is still undefined), use Math.abs(netVat)
+                                        if (typeof amount === 'undefined' && netVat !== 0) amount = Math.abs(netVat);
+                                        // If amount is still undefined, set to 0
+                                        if (typeof amount === 'undefined') amount = 0;
+                                        return {
+                                            account: accLabel,
+                                            description: rule.description,
+                                            debit: rule.debit ? amount : 0,
+                                            credit: rule.credit ? amount : 0
+                                        };
+                                    });
+
+                                    // Compose document
+                                    const doc = {
+                                        type: closingType,
+                                        category: closingLabel,
+                                        date: now.toISOString().slice(0, 10),
+                                        issuedAt: now.toISOString(),
+                                        uploadedAt: now.toISOString(),
+                                        receipt_no: `VATC-${year}${month}`,
+                                        vendor: companyProfile?.company_name || '',
+                                        vendor_tax_id: companyProfile?.tax_id || '',
+                                        buyer_name: '',
+                                        buyer_tax_id: '',
+                                        notes: closingLabel,
+                                        systemGenerated: true,
+                                        products: entries.map((e: any) => ({
+                                            name: e.account,
+                                            quantity: "1",
+                                            pricePerItem: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                            price: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                            description: e.description,
+                                            weight: "0"
+                                        })),
+                                        entries,
+                                        grand_total: entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0),
+                                        vat: "0"
+                                    };
+                                    await fetch('/api/receipt-log', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(doc),
+                                    });
+                                    // Refresh log state
+                                    setPP30Loading(true);
+                                    getPP30Log(month, year)
+                                        .then(log => setPP30Log(log))
+                                        .finally(() => setPP30Loading(false));
+                                }}
+                            >
+                                ยื่นแบบฟอร์ม ภ.พ.30
                             </button>
                         </div>
                     ) : (
-                        pp30Log && pp30Log.status !== 'paid' && pp30Log.amount > 0 ? (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-                                <div className="text-blue-800 font-medium">ยื่นแบบแล้ว รอชำระภาษี (ยอดสุทธิ {formatMoney(pp30Log.amount)} บาท)</div>
-                                <button
-                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
-                                    onClick={async () => {
-                                        if (!pp30Log) return;
-                                        // 1. Update PP30 log status to 'paid'
-                                        await fetch('/api/pp30-log', {
-                                            method: 'PUT',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                                ...pp30Log,
-                                                status: 'paid',
-                                                paid_at: new Date().toISOString(),
-                                            }),
-                                        });
-                                        // 2. Fetch account chart rules and journalTypeLabels for vat_payment
-                                        let rules: any = {};
-                                        let journalTypeLabels: any = {};
-                                        try {
-                                            const res = await fetch('/api/account-chart');
-                                            if (res.ok) {
-                                                const data = await res.json();
-                                                rules = data.rules || {};
-                                                journalTypeLabels = data.journalTypeLabels || {};
-                                                rules.accounts = data.accounts || [];
-                                            }
-                                        } catch { }
-                                        // Helper to get account label
-                                        const getAcc = (num: string | undefined) => {
-                                            if (!num) return '';
-                                            const acc = (rules.accounts || []).find((a: any) => a.accountNumber === num);
-                                            return acc ? `${acc.accountNumber}-${acc.accountName}` : num;
-                                        };
-                                        // 3. Prepare journal voucher for VAT payment
-                                        const paymentRule = Array.isArray(rules.vat_payment) ? rules.vat_payment : [];
-                                        const paymentType = 'vat_payment';
-                                        const paymentLabel = journalTypeLabels["vat_payment"] || "ชำระภาษีมูลค่าเพิ่ม";
-                                        const amount = pp30Log.amount;
-                                        const entries: any[] = paymentRule.map((rule: any) => {
-                                            let account = rule.debit || rule.credit || '';
-                                            if (account.includes("|")) {
-                                                account = account.split("|")[0];
-                                            }
-                                            const accLabel = getAcc(account);
-                                            let entryAmount: number | undefined = undefined;
-                                            if (rule.amount === "payable") entryAmount = amount;
-                                            else if (!isNaN(Number(rule.amount))) entryAmount = Number(rule.amount);
-                                            if (typeof entryAmount === 'undefined') entryAmount = amount;
-                                            return {
-                                                account: accLabel,
-                                                description: rule.description,
-                                                debit: rule.debit ? entryAmount : 0,
-                                                credit: rule.credit ? entryAmount : 0
-                                            };
-                                        });
-                                        // Compose document
-                                        const now = new Date();
-                                        const doc = {
-                                            type: paymentType,
-                                            category: paymentLabel,
-                                            date: now.toISOString().slice(0, 10),
-                                            issuedAt: now.toISOString(),
-                                            uploadedAt: now.toISOString(),
-                                            receipt_no: `VATP-${year}${month}`,
-                                            vendor: companyProfile?.company_name || '',
-                                            vendor_tax_id: companyProfile?.tax_id || '',
-                                            buyer_name: '',
-                                            buyer_tax_id: '',
-                                            notes: paymentLabel,
-                                            systemGenerated: true,
-                                            products: entries.map((e: any) => ({
-                                                name: e.account,
-                                                quantity: "1",
-                                                pricePerItem: (e.debit > 0 ? e.debit : e.credit).toString(),
-                                                price: (e.debit > 0 ? e.debit : e.credit).toString(),
-                                                description: e.description,
-                                                weight: "0"
-                                            })),
-                                            entries,
-                                            grand_total: entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0),
-                                            vat: "0"
-                                        };
-                                        await fetch('/api/receipt-log', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify(doc),
-                                        });
-                                        // 4. Refresh log state
-                                        setPP30Loading(true);
-                                        getPP30Log(month, year)
-                                            .then(log => setPP30Log(log))
-                                            .finally(() => setPP30Loading(false));
-                                    }}
-                                >
-                                    ชำระภาษีแล้ว
+                        (pp30Log && (sumSalesVat - sumPurchasesVat !== pp30Log.amount)) ? (
+                            <div className="bg-orange-100 border border-orange-300 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                                <div className="text-orange-800 font-medium">มีการบันทึกเอกสารขายหรือซื้อเพิ่มเติมหลังยื่นแบบ ภ.พ.30 กรุณายื่นภาษีเพิ่ม</div>
+                                <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded shadow" onClick={() => {/* TODO: open additional filing modal */ }}>
+                                    ยื่นแบบเพิ่มเติม
                                 </button>
                             </div>
                         ) : (
-                            pp30Log && (pp30Log.amount <= 0 || pp30Log.status === 'paid') && (
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-                                    <div className="text-green-800 font-medium">
-                                        {pp30Log.status === 'paid' ? 'ชำระภาษีแล้ว' : 'ยื่นแบบแล้ว ไม่มีภาษีต้องชำระ'}
-                                    </div>
+                            pp30Log && pp30Log.status !== 'paid' && pp30Log.amount > 0 ? (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                                    <div className="text-blue-800 font-medium">ยื่นแบบแล้ว รอชำระภาษี (ยอดสุทธิ {formatMoney(pp30Log.amount)} บาท)</div>
+                                    <button
+                                        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                        onClick={async () => {
+                                            if (!pp30Log) return;
+                                            // 1. Update PP30 log status to 'paid'
+                                            await fetch('/api/pp30-log', {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    ...pp30Log,
+                                                    status: 'paid',
+                                                    paid_at: new Date().toISOString(),
+                                                }),
+                                            });
+                                            // 2. Fetch account chart rules and journalTypeLabels for vat_payment
+                                            let rules: any = {};
+                                            let journalTypeLabels: any = {};
+                                            try {
+                                                const res = await fetch('/api/account-chart');
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    rules = data.rules || {};
+                                                    journalTypeLabels = data.journalTypeLabels || {};
+                                                    rules.accounts = data.accounts || [];
+                                                }
+                                            } catch { }
+                                            // Helper to get account label
+                                            const getAcc = (num: string | undefined) => {
+                                                if (!num) return '';
+                                                const acc = (rules.accounts || []).find((a: any) => a.accountNumber === num);
+                                                return acc ? `${acc.accountNumber}-${acc.accountName}` : num;
+                                            };
+                                            // 3. Prepare journal voucher for VAT payment
+                                            const paymentRule = Array.isArray(rules.vat_payment) ? rules.vat_payment : [];
+                                            const paymentType = 'vat_payment';
+                                            const paymentLabel = journalTypeLabels["vat_payment"] || "ชำระภาษีมูลค่าเพิ่ม";
+                                            const amount = pp30Log.amount;
+                                            const entries: any[] = paymentRule.map((rule: any) => {
+                                                let account = rule.debit || rule.credit || '';
+                                                if (account.includes("|")) {
+                                                    account = account.split("|")[0];
+                                                }
+                                                const accLabel = getAcc(account);
+                                                let entryAmount: number | undefined = undefined;
+                                                if (rule.amount === "payable") entryAmount = amount;
+                                                else if (!isNaN(Number(rule.amount))) entryAmount = Number(rule.amount);
+                                                if (typeof entryAmount === 'undefined') entryAmount = amount;
+                                                return {
+                                                    account: accLabel,
+                                                    description: rule.description,
+                                                    debit: rule.debit ? entryAmount : 0,
+                                                    credit: rule.credit ? entryAmount : 0
+                                                };
+                                            });
+                                            // Compose document
+                                            const now = new Date();
+                                            const doc = {
+                                                type: paymentType,
+                                                category: paymentLabel,
+                                                date: now.toISOString().slice(0, 10),
+                                                issuedAt: now.toISOString(),
+                                                uploadedAt: now.toISOString(),
+                                                receipt_no: `VATP-${year}${month}`,
+                                                vendor: companyProfile?.company_name || '',
+                                                vendor_tax_id: companyProfile?.tax_id || '',
+                                                buyer_name: '',
+                                                buyer_tax_id: '',
+                                                notes: paymentLabel,
+                                                systemGenerated: true,
+                                                products: entries.map((e: any) => ({
+                                                    name: e.account,
+                                                    quantity: "1",
+                                                    pricePerItem: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                                    price: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                                    description: e.description,
+                                                    weight: "0"
+                                                })),
+                                                entries,
+                                                grand_total: entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0),
+                                                vat: "0"
+                                            };
+                                            await fetch('/api/receipt-log', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(doc),
+                                            });
+                                            // 4. Refresh log state
+                                            setPP30Loading(true);
+                                            getPP30Log(month, year)
+                                                .then(log => setPP30Log(log))
+                                                .finally(() => setPP30Loading(false));
+                                        }}
+                                    >
+                                        ชำระภาษีแล้ว
+                                    </button>
                                 </div>
+                            ) : (
+                                pp30Log && (pp30Log.amount <= 0 || pp30Log.status === 'paid') && (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
+                                        <div className="text-green-800 font-medium">
+                                            {pp30Log.status === 'paid' ? 'ชำระภาษีแล้ว' : 'ยื่นแบบแล้ว ไม่มีภาษีต้องชำระ'}
+                                        </div>
+                                    </div>
+                                )
                             )
                         )
-                    )
-                )}
+                    )}
             </div>
             {/* Print-only header and summary */}
             <div className="w-full mx-auto hidden print:block">
@@ -431,7 +431,16 @@ const VatSummary: React.FC = () => {
                 {/* Print: Sales & Purchases Tables Stacked, Equal Width */}
                 <div className="w-full print:mb-8 print:mt-4">
                     <div className="w-full max-w-none print:w-full print:max-w-full print:overflow-x-visible">
-                        <h2 className="text-lg font-semibold mb-2">ภาษีขาย (Output VAT)</h2>
+                        <div className="print:break-before-page"></div>
+                        <div className="w-full vat-header">
+                            <ReportHeader
+                                month={month}
+                                year={year}
+                                onMonthChange={setMonth}
+                                onYearChange={setYear}
+                                title="รายงานภาษีขาย"
+                            />
+                        </div>
                         <div className="w-full print:w-full print:max-w-full print:overflow-x-visible print:table-fixed">
                             <VatSaleReportTable
                                 data={salesForTable}
@@ -443,7 +452,15 @@ const VatSummary: React.FC = () => {
                     </div>
                     <div className="w-full max-w-none mt-8 print:w-full print:max-w-full print:overflow-x-visible">
                         <div className="print:break-before-page"></div>
-                        <h2 className="text-lg font-semibold mb-2">ภาษีซื้อ (Input VAT)</h2>
+                        <div className="w-full vat-header">
+                            <ReportHeader
+                                month={month}
+                                year={year}
+                                onMonthChange={setMonth}
+                                onYearChange={setYear}
+                                title="รายงานภาษีซื้อ"
+                            />
+                        </div>
                         <div className="w-full print:w-full print:max-w-full print:overflow-x-visible print:table-fixed">
                             <VatPurchaseReportTable
                                 data={purchasesForTable}
@@ -556,7 +573,7 @@ const VatSummary: React.FC = () => {
                     )}
                 </div>
             </section>
-    </PrintWrapper>
+        </PrintWrapper>
     );
 };
 
