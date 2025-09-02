@@ -7,6 +7,7 @@ import VatReport from "@/components/vat/VatReport";
 import VatSummary from "@/components/vat/VatSummary";
 import AccountChart from "@/components/account/AccountChart";
 import StockMovementReport from "@/components/stock/StockMovementReport";
+import StockOverview from "@/components/stock/StockOverview";
 import JournalReport from "@/components/journal/JournalReport";
 import LedgerReportContainer from "@/components/journal/LedgerReportContainer";
 import { useState } from "react";
@@ -90,11 +91,7 @@ export default function Home() {
                 <IssueDocumentMenu />
               </div>
             )}
-            {selectedMenu === 'stock-overview' && (
-              <div className="w-full text-center text-gray-500 dark:text-gray-300 py-8">
-                <p>ยังไม่มีข้อมูลภาพรวมสต็อก</p>
-              </div>
-            )}
+            {selectedMenu === 'stock-overview' && <StockOverview />}
             {selectedMenu === 'stock-movement' && <StockMovementReport />}
             {selectedMenu === 'journal' && <JournalReport key={resetList} onBack={() => {}} />}
             {selectedMenu === 'ledger' && <LedgerReportContainer key={resetList} onBack={() => {}} />}

@@ -27,3 +27,7 @@ export function formatMoney(val: number | string | null | undefined, defaultValu
   if (isNaN(num)) return String(val);
   return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+export function cn(...classes: (string | undefined | null | false)[]): string {
+  return classes.filter(Boolean).join(" ");
+}
