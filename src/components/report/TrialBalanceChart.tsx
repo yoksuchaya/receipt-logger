@@ -149,13 +149,13 @@ export const TrialBalanceChart: React.FC<Props> = ({ data }) => {
           <span>เปรียบเทียบ กำไรสุทธิ กับ กระแสเงินสดจากการดำเนินงาน</span>
           <span className="inline-block text-xl">🔍</span>
         </h4>
-        <div className="flex flex-row gap-8 items-center mb-4">
-          <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-800">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center mb-4 w-full">
+          <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-800 w-full md:w-auto">
             <span className="text-xs text-gray-500 mb-1">กำไรสุทธิ</span>
             <span className="text-2xl font-bold text-blue-700 dark:text-blue-200">{formatMoney(data.netProfit)}</span>
           </div>
-          <span className="text-2xl font-bold text-gray-400">⇄</span>
-          <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-green-100 dark:bg-green-800">
+          <span className="text-2xl font-bold text-gray-400 hidden md:inline">⇄</span>
+          <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-green-100 dark:bg-green-800 w-full md:w-auto">
             <span className="text-xs text-gray-500 mb-1">กระแสเงินสดจากการดำเนินงาน</span>
             <span className="text-2xl font-bold text-green-700 dark:text-green-300">{formatMoney(operatingCashFlow)}</span>
           </div>
