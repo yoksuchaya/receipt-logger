@@ -339,49 +339,55 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                 receipt_no = initialValues.receipt_no;
             }
 
-                        // In edit mode, preserve the original type unless the user changes category
-                                    let typeToSend = category;
-                                    // Allow initialValues to have a 'type' property for edit mode
-                                    const initialType = (initialValues as any).type;
-                                    if (mode === 'edit' && initialValues && typeof initialType === 'string') {
-                                            // If category is unchanged from initial load, use original type
-                                            const originalCategory = (() => {
-                                                if (categoryOptions.some(opt => opt.value === initialType)) {
-                                                    return initialType;
-                                                }
-                                                if (categoryOptions.some(opt => opt.value === initialValues.category)) {
-                                                    return initialValues.category;
-                                                }
-                                                return '';
-                                            })();
-                                            if (category === originalCategory) {
-                                                typeToSend = initialType;
-                                            }
-                                    }
-                        // Preserve original category label for non-issuable types in edit mode
-                        let categoryLabel = categoryOptions.find(opt => opt.value === category)?.label || '';
-                        if (
-                            mode === 'edit' &&
-                            typeof (initialValues as any)?.type === 'string' &&
-                            !issuableTypes.includes((initialValues as any).type) &&
-                            typeof (initialValues as any)?.category === 'string'
-                        ) {
-                            categoryLabel = (initialValues as any).category;
-                        }
-                        const formData = {
-                            date,
-                            type: typeToSend,
-                            products,
-                            category: categoryLabel,
-                            vendor,
-                            vendor_tax_id,
-                            receipt_no,
-                            grand_total: entries.reduce((sum, entry) => sum + Number(entry.debit), 0),
-                            notes: notes,
-                            payment,
-                            systemGenerated: true,
-                            entries,
-                        };
+            // Always use code for typeToSend
+            let typeToSend = '';
+            const initialType = (initialValues as any)?.type;
+            if (mode === 'edit' && initialValues && typeof initialType === 'string') {
+                // If user did not change category, keep original type code
+                const originalCategoryValue = (() => {
+                    if (categoryOptions.some(opt => opt.value === initialType)) {
+                        return initialType;
+                    }
+                    if (categoryOptions.some(opt => opt.value === initialValues.category)) {
+                        return initialValues.category;
+                    }
+                    return '';
+                })();
+                if (categoryOptions && originalCategoryValue === '') {
+                    typeToSend = initialType;
+                } else {
+                    // User selected a new category, use its code
+                    typeToSend = category;
+                }
+                console.log('typeToSend: ' + typeToSend);
+            } else {
+                // Create mode: use selected category code
+                typeToSend = category;
+            }
+            // Preserve original category label for non-issuable types in edit mode
+            let categoryLabel = categoryOptions.find(opt => opt.value === category)?.label || '';
+            if (
+                mode === 'edit' &&
+                typeof (initialValues as any)?.type === 'string' &&
+                !issuableTypes.includes((initialValues as any).type) &&
+                typeof (initialValues as any)?.category === 'string'
+            ) {
+                categoryLabel = (initialValues as any).category;
+            }
+            const formData = {
+                date,
+                type: typeToSend,
+                products,
+                category: categoryLabel,
+                vendor,
+                vendor_tax_id,
+                receipt_no,
+                grand_total: entries.reduce((sum, entry) => sum + Number(entry.debit), 0),
+                notes: notes,
+                payment,
+                systemGenerated: true,
+                entries,
+            };
 
             if (onSubmit) {
                 onSubmit(formData);
