@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import ReceiptPreview from "./ReceiptPreview";
-import { formatMoney, isSale, isPurchase } from "../utils/utils";
+import { isSale, isPurchase } from "../utils/utils";
 
 type PaymentMap = {
   [key: string]: string;
@@ -88,10 +88,6 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
   const [file, setFile] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [form, setForm] = useState<FormState>({ ...defaultForm, ...initialValues, payment: { ...defaultForm.payment, ...(initialValues?.payment || {}) }, products: initialValues?.products || [] });
-  // Helper: determine if the receipt is purchase, sale, or capital type using utils
-  const purchaseType = isPurchase(form);
-  const saleType = isSale(form);
-  const capitalType = form.category?.toLowerCase().includes('ทุน');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [apiResult, setApiResult] = useState<ApiResult>(null);
@@ -297,13 +293,9 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
     const vat = parseFloat(form.vat);
     if (!form.vat || isNaN(vat)) newInvalid.vat = true;
 
-    // At least one product if purchaseType or saleType, but not for capitalType
-    if (!capitalType && (purchaseType || saleType) && (!form.products || form.products.length === 0)) {
-      newInvalid.products = true;
-    }
     // Sum of product prices === grand_total, skip for capitalType
     const sumProduct = form.products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
-    if (!capitalType && form.products.length > 0 && Math.abs(sumProduct - grandTotal) > 0.01) {
+    if (form.products.length > 0 && Math.abs(sumProduct - grandTotal) > 0.01) {
       newInvalid.products = true;
       form.products.forEach((p, idx) => {
         newInvalid[`product_price_${idx}`] = true;
@@ -327,7 +319,7 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
       else if (newInvalid.grand_total) setApiError("กรุณากรอกยอดรวมทั้งสิ้นให้ถูกต้อง (ต้องไม่เป็นค่าว่างหรือ 0)");
       else if (newInvalid.vat) setApiError("กรุณากรอก VAT ให้ถูกต้อง");
       else if (newInvalid.products) {
-        if ((purchaseType || saleType) && (!form.products || form.products.length === 0)) {
+        if (!form.products || form.products.length === 0) {
           setApiError("กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ");
         } else {
           setApiError("กรุณาตรวจสอบผลรวมราคารวมของสินค้าทั้งหมดให้ตรงกับยอดรวมทั้งสิ้น");
@@ -685,11 +677,16 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
           <div className="flex items-center justify-between mb-4">
             <span className="font-semibold text-gray-800 dark:text-gray-100 text-base">รายการสินค้า/บริการ</span>
             <button
-              type="button"
-              onClick={handleAddProduct}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium text-sm hover:bg-green-100 border border-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 dark:border-green-800 transition"
+                type="button"
+                onClick={handleAddProduct}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium text-sm border transition
+                    ${form.category
+                        ? 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 dark:border-green-800'
+                        : 'bg-gray-100 text-gray-400 border-gray-200 dark:bg-neutral-800 dark:text-gray-500 dark:border-neutral-700 cursor-not-allowed'}
+                `}
+                disabled={!form.category}
             >
-              <span className="text-lg leading-none">＋</span> เพิ่มสินค้า
+                <span className="text-lg leading-none">＋</span> เพิ่มสินค้า
             </button>
           </div>
           <div className="grid grid-cols-1 gap-4">

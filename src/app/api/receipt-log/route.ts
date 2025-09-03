@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { isSale, isPurchase, isSaleType, isPurchaseType, isCapitalType } from "@/components/utils/utils";
+import { isSale, isPurchase, isPurchaseMisc, formatMoney } from "@/components/utils/utils";
 
 const LOG_FILE = path.join(process.cwd(), "receipt-uploads.jsonl");
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
     } else {
       // Fetch company tax ID from company profile API
       let companyTaxId = '';
+      // todo: add company product options
+      let productOptions = undefined;
       try {
         const res = await fetch(`${process.env.COMPANY_PROFILE_API || 'http://localhost:3000'}/api/company-profile`);
         if (res.ok) {
@@ -69,16 +71,24 @@ export async function POST(req: NextRequest) {
           if (profile && typeof profile.tax_id === 'string') {
             companyTaxId = profile.tax_id;
           }
+          if (profile && typeof profile.productOptions === 'object') {
+            productOptions = profile.productOptions;
+          }
         }
       } catch {}
 
       // Add type: 'sale' | 'purchase' if possible
       const isSaleResult = isSale(log, companyTaxId);
-      const isPurchaseResult = isPurchase(log, companyTaxId);
-      const typeValue: 'sale' | 'purchase' | undefined = isSaleResult
+      const isPurchaseResult = isPurchase({
+        buyer_tax_id: typeof log.buyer_tax_id === 'string' ? log.buyer_tax_id : undefined,
+        vendor_tax_id: typeof log.vendor_tax_id === 'string' ? log.vendor_tax_id : undefined,
+        category: typeof log.category === 'string' ? log.category : undefined,
+      }, companyTaxId, productOptions);
+      const typeValue: 'sale' | 'purchase' | 'purchase_misc' | undefined = isSaleResult
         ? 'sale'
         : isPurchaseResult
         ? 'purchase'
+        : isPurchaseMisc(log, companyTaxId) ? 'purchase_misc' 
         : undefined;
       if (typeValue) {
         log.type = typeValue;

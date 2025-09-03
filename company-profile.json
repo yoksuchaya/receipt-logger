@@ -26,11 +26,13 @@
   },
   "productCategoryNames": {
     "ornament": "ทองรูปพรรณ 96.5%",
-    "bullion": "ทองแท่ง 96.5%"
+    "bullion": "ทองแท่ง 96.5%",
+    "miscellaneous": "อื่นๆ"
   },
   "productCategoryShorts": {
     "bullion": "B",
-    "ornament": "O"
+    "ornament": "O",
+    "miscellaneous": "M"
   },
   "paymentTypes": [
     {

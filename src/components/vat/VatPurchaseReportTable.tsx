@@ -15,11 +15,12 @@ export interface VatPurchase {
     notes?: string;
 }
 
-interface Props {
+export interface Props {
     data: VatPurchase[];
     sumAmount: number;
     sumVat: number;
     sumTotal: number;
+    companyProfile?: { productCategoryNames?: Record<string, string> };
     onRowAction?: (row: VatPurchase, isEdit: boolean) => void;
 }
 
@@ -27,7 +28,7 @@ const th = "font-bold bg-gray-100 text-gray-800 text-center border border-gray-3
 const td = "border border-gray-300 px-2 py-1 text-sm";
 const tdRight = td + " text-right";
 
-export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTotal, onRowAction }: Props) {
+export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTotal, onRowAction, companyProfile }: Props) {
     return (
         <div className="w-full">
             <div className="overflow-x-auto">
@@ -55,7 +56,11 @@ export default function VatPurchaseReportTable({ data, sumAmount, sumVat, sumTot
                                 <td className={td + " text-center"}>{row.receipt_no || "-"}</td>
                                 <td className={td}>{row.vendor || "-"}</td>
                                 <td className={td + " text-center"}>{row.vendor_tax_id || "-"}</td>
-                                <td className={td}>{row.category || "-"}</td>
+                                <td className={td}>{
+                                    (companyProfile?.productCategoryNames && row.category && companyProfile.productCategoryNames[row.category])
+                                        ? companyProfile.productCategoryNames[row.category]
+                                        : (row.category || "-")
+                                }</td>
                                 <td className={tdRight}>{formatMoney(Number(row.grand_total) - Number(row.vat))}</td>
                                 <td className={tdRight}>{formatMoney(row.vat)}</td>
                                 <td className={tdRight}>{formatMoney(row.grand_total)}</td>

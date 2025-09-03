@@ -157,7 +157,8 @@
     "vat_closing_credit": "ปิดบัญชีภาษีมูลค่าเพิ่ม (เครดิต)",
     "sale": "ขายสินค้า",
     "purchase": "ซื้อสินค้า",
-    "vat_payment": "ชำระภาษีมูลค่าเพิ่ม"
+    "vat_payment": "ชำระภาษีมูลค่าเพิ่ม",
+    "purchase_misc": "ซื้อสินค้า (อื่นๆ)"
   },
   "issuableJournalType": [
     "capital",
@@ -214,6 +215,23 @@
         "credit": "1100",
         "amount": "cost",
         "description": "ตัดสต๊อกทอง"
+      }
+    ],
+    "purchase_misc": [
+      {
+        "debit": "5400",
+        "amount": "net",
+        "description": "ค่าใช้จ่ายสำนักงาน"
+      },
+      {
+        "debit": "1200",
+        "amount": "vat",
+        "description": "VAT ซื้อ"
+      },
+      {
+        "credit": "1000|1010|1020",
+        "amount": "grandTotal",
+        "description": "จ่ายเงิน (เงินสด/โอน/บัตรเครดิต)"
       }
     ],
     "capital": [

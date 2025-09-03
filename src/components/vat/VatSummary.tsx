@@ -14,7 +14,6 @@ import { VatSale } from "./VatSaleReportTable";
 import { VatPurchase } from "./VatPurchaseReportTable";
 import { getPP30Log } from "./pp30logApi";
 import { PP30Log } from "../types/PP30Log";
-import { sum } from "pdf-lib";
 
 const getCurrentMonthYear = () => {
     const now = new Date();
@@ -236,8 +235,8 @@ const VatSummary: React.FC = () => {
                                         return {
                                             account: accLabel,
                                             description: rule.description,
-                                            debit: rule.debit ? amount : 0,
-                                            credit: rule.credit ? amount : 0
+                                            debit: rule.debit ? Number(formatMoney(amount)) : 0,
+                                            credit: rule.credit ? Number(formatMoney(amount)) : 0
                                         };
                                     });
 
@@ -258,13 +257,13 @@ const VatSummary: React.FC = () => {
                                         products: entries.map((e: any) => ({
                                             name: e.account,
                                             quantity: "1",
-                                            pricePerItem: (e.debit > 0 ? e.debit : e.credit).toString(),
-                                            price: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                            pricePerItem: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
+                                            price: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
                                             description: e.description,
                                             weight: "0"
                                         })),
                                         entries,
-                                        grand_total: entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0),
+                                        grand_total: Number(formatMoney(entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0))),
                                         vat: "0"
                                     };
                                     await fetch('/api/receipt-log', {
@@ -344,8 +343,8 @@ const VatSummary: React.FC = () => {
                                                 return {
                                                     account: accLabel,
                                                     description: rule.description,
-                                                    debit: rule.debit ? entryAmount : 0,
-                                                    credit: rule.credit ? entryAmount : 0
+                                                    debit: Number(formatMoney(rule.debit ? entryAmount : 0)),
+                                                    credit: Number(formatMoney(rule.credit ? entryAmount : 0))
                                                 };
                                             });
                                             // Compose document
@@ -366,13 +365,13 @@ const VatSummary: React.FC = () => {
                                                 products: entries.map((e: any) => ({
                                                     name: e.account,
                                                     quantity: "1",
-                                                    pricePerItem: (e.debit > 0 ? e.debit : e.credit).toString(),
-                                                    price: (e.debit > 0 ? e.debit : e.credit).toString(),
+                                                    pricePerItem: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
+                                                    price: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
                                                     description: e.description,
                                                     weight: "0"
                                                 })),
                                                 entries,
-                                                grand_total: entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0),
+                                                grand_total: Number(formatMoney(entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0))),
                                                 vat: "0"
                                             };
                                             await fetch('/api/receipt-log', {
@@ -467,6 +466,7 @@ const VatSummary: React.FC = () => {
                                 sumAmount={sumPurchasesExVat}
                                 sumVat={sumPurchasesVat}
                                 sumTotal={sumPurchasesTotal}
+                                companyProfile={companyProfile}
                             />
                         </div>
                     </div>
@@ -568,6 +568,7 @@ const VatSummary: React.FC = () => {
                             sumAmount={sumPurchasesExVat}
                             sumVat={sumPurchasesVat}
                             sumTotal={sumPurchasesTotal}
+                            companyProfile={companyProfile}
                             onRowAction={handleRowAction}
                         />
                     )}

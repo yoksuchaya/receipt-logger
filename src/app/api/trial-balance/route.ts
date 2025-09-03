@@ -14,13 +14,13 @@ function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, strin
     let openingDebit = 0, openingCredit = 0;
     if (accountType === "asset" || accountType === "expense") {
       openingDebit = row.openingBalance > 0 ? row.openingBalance : 0;
-      openingCredit = row.openingBalance < 0 ? Math.abs(row.openingBalance) : 0;
+      openingCredit = row.openingBalance < 0 ? row.openingBalance : 0;
     } else if (accountType === "liability" || accountType === "equity" || accountType === "revenue") {
       openingCredit = row.openingBalance > 0 ? row.openingBalance : 0;
-      openingDebit = row.openingBalance < 0 ? Math.abs(row.openingBalance) : 0;
+      openingDebit = row.openingBalance < 0 ? row.openingBalance : 0;
     } else if (accountType === "contra-asset") {
       openingCredit = row.openingBalance > 0 ? row.openingBalance : 0;
-      openingDebit = row.openingBalance < 0 ? Math.abs(row.openingBalance) : 0;
+      openingDebit = row.openingBalance < 0 ? row.openingBalance : 0;
     }
     let debit = 0, credit = 0;
     if (Array.isArray(row.entries)) {
@@ -34,23 +34,28 @@ function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, strin
     const closingBalance = (row.openingBalance || 0) + (debit - credit);
     if (accountType === "asset" || accountType === "expense") {
       closingDebit = closingBalance > 0 ? closingBalance : 0;
-      closingCredit = closingBalance < 0 ? Math.abs(closingBalance) : 0;
+      closingCredit = closingBalance < 0 ? closingBalance : 0;
     } else if (accountType === "liability" || accountType === "equity" || accountType === "revenue") {
-      closingCredit = closingBalance > 0 ? closingBalance : 0;
-      closingDebit = closingBalance < 0 ? Math.abs(closingBalance) : 0;
+      if (debit - credit !== 0) {
+        closingCredit = closingBalance < 0 ? closingBalance : 0;
+        closingDebit = closingBalance > 0 ? closingBalance : 0;
+      } else {
+        closingCredit = closingBalance > 0 ? closingBalance : 0;
+        closingDebit = closingBalance < 0 ? closingBalance : 0;
+      }
     } else if (accountType === "contra-asset") {
       closingCredit = closingBalance > 0 ? closingBalance : 0;
-      closingDebit = closingBalance < 0 ? Math.abs(closingBalance) : 0;
+      closingDebit = closingBalance < 0 ? closingBalance : 0;
     }
     return {
       accountNumber: row.accountNumber,
       accountName: row.accountName,
-      openingDebit,
-      openingCredit,
-      debit,
-      credit,
-      closingDebit,
-      closingCredit,
+      openingDebit: Math.abs(openingDebit),
+      openingCredit: Math.abs(openingCredit),
+      debit: Math.abs(debit),
+      credit: Math.abs(credit),
+      closingDebit: Math.abs(closingDebit),
+      closingCredit: Math.abs(closingCredit),
     };
   });
 }

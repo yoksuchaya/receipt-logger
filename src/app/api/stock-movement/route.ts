@@ -3,7 +3,7 @@ import type { StockMovement } from "@/types/StockMovement";
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
-import { isPurchase, isPurchaseType, isSale, isSaleType } from '@/components/utils/utils';
+import { isPurchaseType, isSaleType } from '@/components/utils/utils';
 
 const RECEIPT_LOG_FILE = path.join(process.cwd(), 'receipt-uploads.jsonl');
 
