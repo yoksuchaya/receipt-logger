@@ -250,7 +250,7 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
     }
   }
 
-  function handleProductChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+  function handleProductChange(index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm((prev) => {
       const products = prev.products.map((p, i) =>
@@ -536,14 +536,19 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
                     <label className="block font-medium mb-1 text-gray-800 dark:text-gray-100" htmlFor="category">
                       {field.label}
                     </label>
-                    <input
+                    <select
                       id="category"
                       name="category"
                       value={form.category}
                       onChange={handleFormChange}
                       className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalidFields.category ? 'border-red-500 ring-2 ring-red-400' : 'border-gray-300 dark:border-neutral-700'}`}
-                      type="text"
-                    />
+                    >
+                      <option value="">เลือกประเภท</option>
+                      {companyProfile && companyProfile.productCategoryNames &&
+                        Object.entries(companyProfile.productCategoryNames).map(([key, value]) => (
+                          <option key={key} value={key}>{String(value)}</option>
+                        ))}
+                    </select>
                     {invalidFields.category && <div className="text-red-600 text-xs mt-1">กรุณาเลือกประเภทสินค้า/บริการ</div>}
                   </div>
                 );
@@ -695,16 +700,32 @@ const ReceiptLogger: React.FC<ReceiptLoggerProps> = ({ initialValues, mode = 'cr
               <div key={idx} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 border border-gray-100 dark:border-neutral-800 relative">
                 <div className="flex flex-col">
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-name-${idx}`}>ชื่อสินค้า</label>
-                  <input
-                    id={`product-name-${idx}`}
-                    type="text"
-                    name="name"
-                    value={product.name}
-                    onChange={e => handleProductChange(idx, e)}
-                    className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="ชื่อสินค้า"
-                    required
-                  />
+                  {companyProfile && companyProfile.productOptions && companyProfile.productOptions[form.category] ? (
+                    <select
+                      id={`product-name-${idx}`}
+                      name="name"
+                      value={product.name}
+                      onChange={e => handleProductChange(idx, e)}
+                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">เลือกสินค้า</option>
+                      {companyProfile.productOptions[form.category].map((opt: string) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      id={`product-name-${idx}`}
+                      type="text"
+                      name="name"
+                      value={product.name}
+                      onChange={e => handleProductChange(idx, e)}
+                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="ชื่อสินค้า"
+                      required
+                    />
+                  )}
                 </div>
                 <div className="flex flex-col">
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={`product-weight-${idx}`}>น้ำหนัก</label>

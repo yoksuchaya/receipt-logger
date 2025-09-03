@@ -87,7 +87,11 @@ const ReceiptDetail: React.FC<ReceiptDetailProps> = ({ selected, onEdit, onDelet
           </div>
           <div className="sm:col-span-1 flex flex-col">
             <span className="font-medium text-gray-600 dark:text-gray-300 text-xs mb-0.5">ประเภทสินค้า/บริการ:</span>
-            <span className="text-gray-900 dark:text-white text-sm break-words">{selected.category || '-'}</span>
+            <span className="text-gray-900 dark:text-white text-sm break-words">
+              {(selected.type === 'sale' || selected.type === 'purchase') && companyProfile?.productCategoryNames && selected.category
+                ? companyProfile.productCategoryNames[selected.category] || selected.category
+                : selected.category || '-'}
+            </span>
           </div>
           {/* Vendor Info */}
           <div className="sm:col-span-1 flex flex-col">

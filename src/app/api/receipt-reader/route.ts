@@ -12,7 +12,8 @@ export async function POST(req: NextRequest) {
   let paymentTypeProps: Record<string, any> = {};
   let paymentTypeRequired: string[] = [];
   try {
-    const companyProfileRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/company-profile`);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const companyProfileRes = await fetch(`${baseUrl}/api/company-profile`);
     if (companyProfileRes.ok) {
       const companyProfile = await companyProfileRes.json();
       if (Array.isArray(companyProfile.paymentTypes)) {
@@ -82,8 +83,8 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify(mistralPayload)
   });
   if (!mistralRes.ok) {
-  const errorText = await mistralRes.text();
-  return NextResponse.json({ error: "Mistral OCR failed", details: errorText }, { status: 500 });
+    const errorText = await mistralRes.text();
+    return NextResponse.json({ error: "Mistral OCR failed", details: errorText }, { status: 500 });
   }
   let mistralData: unknown;
   try {
@@ -97,10 +98,6 @@ export async function POST(req: NextRequest) {
     ? ((mistralData as { pages: Array<{ markdown?: string }> }).pages?.[0]?.markdown)
     : undefined;
   if (!markdown) return NextResponse.json({ error: "No markdown from OCR" }, { status: 500 });
-
-  console.log('Mistral OCR markdown:', markdown);
-  
-
 
   // Build schema object with paymentTypeProps and paymentTypeRequired (after they are defined)
   const invoiceSchema = {
@@ -165,6 +162,28 @@ export async function POST(req: NextRequest) {
     strict: true
   };
 
+  // Fetch company profile for prompt
+  let companyProfile: any = null;
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const companyProfileRes = await fetch(`${baseUrl}/api/company-profile`);
+    if (companyProfileRes.ok) {
+      companyProfile = await companyProfileRes.json();
+    }
+  } catch (e) {
+    console.log('Error fetching company profile:', e);
+  }
+
+  // Build product categories/options string for prompt
+  let productCategoryStr = '';
+  let productOptionsStr = '';
+  if (companyProfile) {
+    productCategoryStr = Object.values(companyProfile.productCategoryNames || {}).join(', ');
+    productOptionsStr = Object.entries(companyProfile.productOptions || {})
+      .map(([cat, opts]) => `${companyProfile.productCategoryNames?.[cat] || cat}: ${Array.isArray(opts) ? opts.join(', ') : ''}`)
+      .join(' | ');
+  }
+
   // 2. Call OpenRouter for JSON extraction
   const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -178,19 +197,15 @@ export async function POST(req: NextRequest) {
         {
           role: "system",
           content: `You are the json information extractor. You need to extract the below information into a specified json format.
-
-For any required field that cannot be found, return an empty string.
-For the 'notes' field, provide a short, concise remark in Thai suitable for the remark field in a ledger. Summarize the products or purpose of the receipt in a way that is useful for accounting records.
-If the date is in the Thai Buddhist Era (พ.ศ.), convert it to the Gregorian calendar (ค.ศ., AD). For example, พ.ศ. 2566 = ค.ศ. 2023. Always return the date in YYYY-MM-DD format in AD.
-
-For the 'category' field, infer the most likely category of the purchase or expense based on the product names, vendor, or keywords found in the receipt. Return the category in Thai language, using categories commonly used for ledgers, such as: "อาหาร", "ค่าเดินทาง", "ค่าที่พัก", "ค่าสำนักงาน", "ค่าสินค้า", "ค่าบริการ", "ค่าน้ำมัน", "ค่ารักษาพยาบาล", "ค่าซ่อมแซม", "ค่าภาษี", "อื่นๆ". If you cannot determine a clear category, return "อื่นๆ" instead of an empty string.
-
-For the 'receipt_no' field, do your best to extract the receipt or invoice number from the receipt image. Look for numbers or codes near common keywords such as "เลขที่", "No.", "Receipt No.", "ใบเสร็จ", "INVOICE", "BILL", "เลขที่ใบกำกับภาษี", "Tax Invoice No.", or similar, in both Thai and English. If multiple candidates are found, choose the one closest to these keywords or most likely to be the official receipt number. If you cannot find a clearly labeled receipt number, extract any unique number string that could plausibly be the receipt or invoice number. Do not return a completely empty string unless there is truly no candidate.
-
-For the 'payment' field, always include all payment types from the company profile. If a payment type is not present on the receipt, set its value to 0.
-
-If the receipt is a purchase receipt from "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)", always set the 'buyer_name' to "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)" and the 'vendor' to the seller's name as found in the receipt (for example, "ปริญญา ภูมิเชียน"). If the markdown is ambiguous, use these values for buyer and vendor as the default for this company.
-`
+        For any required field that cannot be found, return an empty string.
+        For the 'notes' field, provide a short, concise remark in Thai suitable for the remark field in a ledger. Summarize the products or purpose of the receipt in a way that is useful for accounting records.
+        If the date is in the Thai Buddhist Era (พ.ศ.), convert it to the Gregorian calendar (ค.ศ., AD). For example, พ.ศ. 2566 = ค.ศ. 2023. Always return the date in YYYY-MM-DD format in AD.
+        For the 'category' field, infer the most likely category of the purchase or expense based on the product names, vendor, or keywords found in the receipt. Only return a category if it matches (even partially, fuzzily, or with common OCR misspellings, such as ทองแห่ง 96.5% for ทองแท่ง 96.5%, ignoring whitespace and minor variations) one of the following: ${productCategoryStr}. If no match, return an empty string.
+        For the 'products' field, only return products whose name matches (even partially, fuzzily, or with common OCR misspellings, such as ทองแห่ง 96.5% for ทองแท่ง 96.5%, ignoring whitespace and minor variations) the following options for each category: ${productOptionsStr}. If no product matches, return an empty array.
+        For the 'receipt_no' field, do your best to extract the receipt or invoice number from the receipt image. Look for numbers or codes near common keywords such as "เลขที่", "No.", "Receipt No.", "ใบเสร็จ", "INVOICE", "BILL", "เลขที่ใบกำกับภาษี", "Tax Invoice No.", or similar, in both Thai and English. If multiple candidates are found, choose the one closest to these keywords or most likely to be the official receipt number. If you cannot find a clearly labeled receipt number, extract any unique number string that could plausibly be the receipt or invoice number. Do not return a completely empty string unless there is truly no candidate.
+        For the 'payment' field, always include all payment types from the company profile. If a payment type is not present on the receipt, set its value to 0.
+        If the receipt is a purchase receipt from "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)", always set the 'buyer_name' to "บริษัท ห้างเพชรทองมุกดา จำกัด (สำนักงานใหญ่)" and the 'vendor' to the seller's name as found in the receipt (for example, "ปริญญา ภูมิเชียน"). If the markdown is ambiguous, use these values for buyer and vendor as the default for this company.
+        `
         },
         {
           role: "user",
@@ -210,11 +225,19 @@ If the receipt is a purchase receipt from "บริษัท ห้างเพ
   }
   const openRouterData = await openRouterRes.json();
   // The result is in openRouterData.choices[0].message.content (as JSON string)
-  let result: unknown;
+  let result: any;
   try {
     result = JSON.parse(openRouterData.choices[0].message.content);
   } catch {
     return NextResponse.json({ error: "Invalid JSON from OpenRouter" }, { status: 500 });
+  }
+
+  // Map category display name to internal key (bullion/ornament)
+  if (companyProfile && result.category) {
+    const catKey = Object.keys(companyProfile.productCategoryNames || {}).find(key => companyProfile.productCategoryNames[key] === result.category);
+    if (catKey) {
+      result.category = catKey;
+    }
   }
   return NextResponse.json(result);
 }
