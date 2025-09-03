@@ -152,6 +152,7 @@
     "depreciation": "ค่าเสื่อมราคา",
     "accrual_salary": "เงินเดือนค้างจ่าย",
     "social_security": "ประกันสังคม",
+    "cash_withdraw": "โอนเงินจากบัญชีธนาคารเป็นเงินสด",
     "vat_closing_payable": "ปิดบัญชีภาษีมูลค่าเพิ่ม (ค้างจ่าย)",
     "vat_closing_credit": "ปิดบัญชีภาษีมูลค่าเพิ่ม (เครดิต)",
     "sale": "ขายสินค้า",
@@ -160,6 +161,7 @@
   },
   "issuableJournalType": [
     "capital",
+    "cash_withdraw",
     "depreciation",
     "accrual_salary",
     "social_security"
@@ -216,7 +218,7 @@
     ],
     "capital": [
       {
-        "debit": "1000|1010",
+        "debit": "1010",
         "amount": "grandTotal",
         "description": "เงินเข้าธนาคาร"
       },
@@ -224,6 +226,18 @@
         "credit": "3000",
         "amount": "grandTotal",
         "description": "เงินลงทุนผู้ถือหุ้น"
+      }
+    ],
+    "cash_withdraw": [
+      {
+        "debit": "1000",
+        "amount": "amount",
+        "description": "เงินสดในร้าน"
+      },
+      {
+        "credit": "1010",
+        "amount": "amount",
+        "description": "เงินฝากธนาคาร"
       }
     ],
     "salary": [
