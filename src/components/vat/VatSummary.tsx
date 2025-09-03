@@ -235,8 +235,8 @@ const VatSummary: React.FC = () => {
                                         return {
                                             account: accLabel,
                                             description: rule.description,
-                                            debit: rule.debit ? Number(formatMoney(amount)) : 0,
-                                            credit: rule.credit ? Number(formatMoney(amount)) : 0
+                                            debit: rule.debit ? Number((amount)) : 0,
+                                            credit: rule.credit ? Number((amount)) : 0
                                         };
                                     });
 
@@ -257,13 +257,13 @@ const VatSummary: React.FC = () => {
                                         products: entries.map((e: any) => ({
                                             name: e.account,
                                             quantity: "1",
-                                            pricePerItem: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
-                                            price: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
+                                            pricePerItem: Number((e.debit > 0 ? e.debit : e.credit)),
+                                            price: Number((e.debit > 0 ? e.debit : e.credit)),
                                             description: e.description,
                                             weight: "0"
                                         })),
                                         entries,
-                                        grand_total: Number(formatMoney(entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0))),
+                                        grand_total: Number((entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0))),
                                         vat: "0"
                                     };
                                     await fetch('/api/receipt-log', {
@@ -343,8 +343,8 @@ const VatSummary: React.FC = () => {
                                                 return {
                                                     account: accLabel,
                                                     description: rule.description,
-                                                    debit: Number(formatMoney(rule.debit ? entryAmount : 0)),
-                                                    credit: Number(formatMoney(rule.credit ? entryAmount : 0))
+                                                    debit: Number((rule.debit ? entryAmount : 0)),
+                                                    credit: Number((rule.credit ? entryAmount : 0))
                                                 };
                                             });
                                             // Compose document
@@ -365,13 +365,13 @@ const VatSummary: React.FC = () => {
                                                 products: entries.map((e: any) => ({
                                                     name: e.account,
                                                     quantity: "1",
-                                                    pricePerItem: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
-                                                    price: Number(formatMoney(e.debit > 0 ? e.debit : e.credit)),
+                                                    pricePerItem: Number((e.debit > 0 ? e.debit : e.credit)),
+                                                    price: Number((e.debit > 0 ? e.debit : e.credit)),
                                                     description: e.description,
                                                     weight: "0"
                                                 })),
                                                 entries,
-                                                grand_total: Number(formatMoney(entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0))),
+                                                grand_total: Number((entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0))),
                                                 vat: "0"
                                             };
                                             await fetch('/api/receipt-log', {

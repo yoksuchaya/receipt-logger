@@ -513,7 +513,7 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                                     <td className="border border-gray-200 dark:border-neutral-700 p-1">
                                         <input
                                             type="number"
-                                            step="0.01"
+                                            step="any"
                                             className={`w-full rounded-lg border px-2 py-1 text-right bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${submitAttempted && errors.entryErrors && errors.entryErrors[idx]?.debit ? 'border-red-500' : 'border-gray-300 dark:border-neutral-700'}`}
                                             value={entry.debit}
                                             min={0}
@@ -527,7 +527,7 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                                     <td className="border border-gray-200 dark:border-neutral-700 p-1">
                                         <input
                                             type="number"
-                                            step="0.01"
+                                            step="any"
                                             className={`w-full rounded-lg border px-2 py-1 text-right bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${submitAttempted && errors.entryErrors && errors.entryErrors[idx]?.credit ? 'border-red-500' : 'border-gray-300 dark:border-neutral-700'}`}
                                             value={entry.credit}
                                             min={0}
