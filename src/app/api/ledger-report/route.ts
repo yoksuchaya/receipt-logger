@@ -61,9 +61,7 @@ function getAccountsForReceipt(
       ruleType = receipt.type;
     }
   }
-  // DEBUG: log ruleType and receipt.type
-  // @ts-ignore
-  if (process.env.NODE_ENV !== 'production') console.log('Rule Type:', ruleType, 'for receipt.type:', receipt.type);
+
   if (!ruleType || !rules[ruleType]) return [];
 
   // Extract values for VAT closing and custom fields from receipt.entries if present
