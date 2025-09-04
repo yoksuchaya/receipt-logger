@@ -162,14 +162,29 @@ export async function GET(req: NextRequest) {
 
   // Fetch stock-movement for the month for COGS calculation
   let stockMovements: StockMovement[] = [];
+  let stockMovementsForOpening: StockMovement[] = [];
   let y = 0, m = 0;
   [y, m] = monthParam.split('-').map(Number);
   if (y && m) {
+    // For current month
     const stockMovementUrl = `${req.nextUrl.origin}/api/stock-movement?month=${m}&year=${y}`;
     const res = await fetch(stockMovementUrl);
     if (res.ok) {
       stockMovements = await res.json();
     }
+    // For opening balance: aggregate all stock movements from Jan of the selected year up to the selected month
+    let allMovements: StockMovement[] = [];
+    for (let mm = 1; mm < m; mm++) {
+      const stockMovementUrlPrev = `${req.nextUrl.origin}/api/stock-movement?month=${mm}&year=${y}`;
+      try {
+        const resPrev = await fetch(stockMovementUrlPrev);
+        if (resPrev.ok) {
+          const data = await resPrev.json();
+          if (Array.isArray(data)) allMovements.push(...data);
+        }
+      } catch {}
+    }
+    stockMovementsForOpening = allMovements;
   }
 
   // Fetch accounts from API
@@ -213,7 +228,8 @@ export async function GET(req: NextRequest) {
   for (const receipt of receipts) {
     const rMonth = parseMonth(receipt.date);
     if (rMonth >= monthParam) continue;
-    const accs = getAccountsForReceipt(receipt, accounts, rules, stockMovements, journalTypeLabels);
+    // Use stockMovementsForOpening for receipts before the month
+    const accs = getAccountsForReceipt(receipt, accounts, rules, stockMovementsForOpening, journalTypeLabels);
     for (const acc of accs) {
       if (!ledger[acc.accountNumber]) continue;
       const accType = accountMap[acc.accountNumber]?.type;
