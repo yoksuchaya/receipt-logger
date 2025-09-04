@@ -46,7 +46,6 @@ function findAccountNumber(accounts: Account[], keyword: string): string | undef
   return acc?.accountNumber;
 }
 
-
 // Rules-based logic for ledger entries
 function getAccountsForReceipt(
   receipt: Receipt,
@@ -153,36 +152,59 @@ function getAccountsForReceipt(
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const monthParam = searchParams.get('month');
+  const periodParam = searchParams.get('period');
   const accountNumber = searchParams.get('accountNumber');
 
-  if (!monthParam || !/^\d{4}-\d{2}$/.test(monthParam)) {
-    return NextResponse.json({ error: 'Invalid or missing month' }, { status: 400 });
+  if (!periodParam || !/^\d{4}(-\d{2})?$/.test(periodParam)) {
+    return NextResponse.json({ error: 'Invalid or missing period' }, { status: 400 });
   }
 
-  // Fetch stock-movement for the month for COGS calculation
+  // Determine if period is year or month
+  let year = 0, month = 0;
+  let isYear = false;
+  if (/^\d{4}$/.test(periodParam)) {
+    year = Number(periodParam);
+    isYear = true;
+  } else {
+    [year, month] = periodParam.split('-').map(Number);
+  }
+
+  // Fetch stock-movement for the period for COGS calculation
   let stockMovements: StockMovement[] = [];
   let stockMovementsForOpening: StockMovement[] = [];
-  let y = 0, m = 0;
-  [y, m] = monthParam.split('-').map(Number);
-  if (y && m) {
+  if (isYear) {
+    // Aggregate all months in the year
+    let allMovements: StockMovement[] = [];
+    for (let mm = 1; mm <= 12; mm++) {
+      const stockMovementUrl = `${req.nextUrl.origin}/api/stock-movement?month=${mm}&year=${year}`;
+      try {
+        const res = await fetch(stockMovementUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) allMovements.push(...data);
+        }
+      } catch { }
+    }
+    stockMovements = allMovements;
+    stockMovementsForOpening = [];
+  } else if (year && month) {
     // For current month
-    const stockMovementUrl = `${req.nextUrl.origin}/api/stock-movement?month=${m}&year=${y}`;
+    const stockMovementUrl = `${req.nextUrl.origin}/api/stock-movement?month=${month}&year=${year}`;
     const res = await fetch(stockMovementUrl);
     if (res.ok) {
       stockMovements = await res.json();
     }
     // For opening balance: aggregate all stock movements from Jan of the selected year up to the selected month
     let allMovements: StockMovement[] = [];
-    for (let mm = 1; mm < m; mm++) {
-      const stockMovementUrlPrev = `${req.nextUrl.origin}/api/stock-movement?month=${mm}&year=${y}`;
+    for (let mm = 1; mm < month; mm++) {
+      const stockMovementUrlPrev = `${req.nextUrl.origin}/api/stock-movement?month=${mm}&year=${year}`;
       try {
         const resPrev = await fetch(stockMovementUrlPrev);
         if (resPrev.ok) {
           const data = await resPrev.json();
           if (Array.isArray(data)) allMovements.push(...data);
         }
-      } catch {}
+      } catch { }
     }
     stockMovementsForOpening = allMovements;
   }
@@ -201,6 +223,7 @@ export async function GET(req: NextRequest) {
   } catch (e) {
     return NextResponse.json({ error: 'Cannot read account chart' }, { status: 500 });
   }
+  // Build account map for type lookups
   const accountMap = getAccountMap(accounts);
 
   // Fetch receipts from API
@@ -224,11 +247,19 @@ export async function GET(req: NextRequest) {
     };
   }
 
-  // Calculate opening balances (sum of all transactions before the month), using account type
+  // Calculate opening balances (sum of all transactions before the period), using account type
   for (const receipt of receipts) {
     const rMonth = parseMonth(receipt.date);
-    if (rMonth >= monthParam) continue;
-    // Use stockMovementsForOpening for receipts before the month
+    let isBeforePeriod = false;
+    if (isYear) {
+      // For year, opening is always 0 (or could sum before year if needed)
+      // Optionally, sum all before the year
+      if (rMonth < String(year)) isBeforePeriod = true;
+    } else {
+      if (rMonth < periodParam) isBeforePeriod = true;
+    }
+    if (!isBeforePeriod) continue;
+    // Use stockMovementsForOpening for receipts before the period
     const accs = getAccountsForReceipt(receipt, accounts, rules, stockMovementsForOpening, journalTypeLabels);
     for (const acc of accs) {
       if (!ledger[acc.accountNumber]) continue;
@@ -241,10 +272,16 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Add transactions for the month
+  // Add transactions for the period
   for (const receipt of receipts) {
     const rMonth = parseMonth(receipt.date);
-    if (rMonth !== monthParam) continue;
+    let inPeriod = false;
+    if (isYear) {
+      if (rMonth.startsWith(String(year))) inPeriod = true;
+    } else {
+      if (rMonth === periodParam) inPeriod = true;
+    }
+    if (!inPeriod) continue;
     const accs2 = getAccountsForReceipt(receipt, accounts, rules, stockMovements, journalTypeLabels);
     for (const acc of accs2) {
       if (!ledger[acc.accountNumber]) continue;
@@ -287,5 +324,5 @@ export async function GET(req: NextRequest) {
   // Remove accounts with no activity and zero opening balance
   result = result.filter(acc => acc.openingBalance !== 0 || acc.entries.length > 0);
 
-  return NextResponse.json({ month: monthParam, ledger: result });
+  return NextResponse.json({ period: periodParam, ledger: result });
 }

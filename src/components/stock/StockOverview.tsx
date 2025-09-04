@@ -122,14 +122,29 @@ const StockOverview: React.FC = () => {
     // Top 5 products by sales
     const topProducts = [...summaries].sort((a, b) => b.salesQty - a.salesQty).slice(0, 5);
     const top3 = topProducts.slice(0, 3);
-    const firstDay = `${year}-${month}-01`;
     // Get all product names for filter
     const allProductNames = Array.from(new Set(summaries.map(s => s.product)));
 
-    // Collect all dates from top3 products
-    const allDatesSet = new Set<string>([firstDay]);
-    top3.forEach(prod => prod.dailyTrend.forEach(d => allDatesSet.add(d.date)));
-    const allDates = Array.from(allDatesSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    // Generate all days in the month
+    const getAllDaysInMonth = (year: string, month: string) => {
+        const y = Number(year);
+        const m = Number(month) - 1; // JS months are 0-based
+        const today = new Date();
+        let lastDay: number;
+        if (y === today.getFullYear() && m === today.getMonth()) {
+            lastDay = today.getDate();
+        } else {
+            lastDay = new Date(y, m + 1, 0).getDate();
+        }
+        const days: string[] = [];
+        for (let d = 1; d <= lastDay; d++) {
+            const dayStr = `${y}-${(m + 1).toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
+            days.push(dayStr);
+        }
+        return days;
+    };
+
+    const allDates = getAllDaysInMonth(year, month);
 
     // Use openingQty for each product to initialize prevQtys
     const prevQtys: number[] = top3.map(prod => prod.openingQty);
@@ -247,6 +262,8 @@ const StockOverview: React.FC = () => {
                                         }
                                         return String(date);
                                     }}
+                                    interval={mergedTrend.length > 20 ? Math.ceil(mergedTrend.length / 7) : 0}
+                                    minTickGap={8}
                                 />
                                 <YAxis />
                                 <Tooltip />

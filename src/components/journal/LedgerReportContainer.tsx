@@ -52,7 +52,7 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
     setLoading(true);
     setError(null);
     const params = new URLSearchParams();
-    params.append("month", `${year}-${month}`);
+    params.append("period", `${year}-${month}`);
     if (accountNumber) params.append("accountNumber", accountNumber);
     fetch(`/api/ledger-report?${params.toString()}`)
       .then((res) => res.json())
@@ -72,7 +72,7 @@ const LedgerReportContainer: React.FC<LedgerReportContainerProps> = ({ onBack })
     <div className="w-full">
       <PrintWrapper printLabel="สมุดบัญชีแยกประเภท" printButtonLabel="พิมพ์สมุดบัญชีแยกประเภท">
         <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-full">
-          <h2 className="text-xl font-bold mb-4">สมุดบัญชีแยกประเภท</h2>
+          <h2 className="text-xl font-bold mb-4 print:hidden">สมุดบัญชีแยกประเภท</h2>
           <form className="mb-4 no-print">
             <div className="flex flex-col gap-2 items-center justify-center mt-2">
               <div className="w-full flex flex-col items-center justify-center">

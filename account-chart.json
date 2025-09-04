@@ -80,8 +80,8 @@
     },
     {
       "accountNumber": "3100",
-      "accountName": "กำไรสะสม",
-      "note": "กำไรสะสมหลังปิดบัญชี",
+      "accountName": "กำไร (ขาดทุน) สะสม",
+      "note": "กำไร (ขาดทุน) สะสมหลังปิดบัญชี",
       "type": "equity"
     },
     {
@@ -324,57 +324,57 @@
       }
     ],
     "vat_closing_payable": [
-    {
-      "debit": "2200",
-      "credit": null,
-      "amount": "vatOutput",
-      "description": "หักลบภาษีซื้อกับภาษีขาย"
-    },
-    {
-      "debit": null,
-      "credit": "1200",
-      "amount": "vatInput",
-      "description": "หักลบภาษีซื้อกับภาษีขาย"
-    },
-    {
-      "debit": null,
-      "credit": "2190",
-      "amount": "vatPayable",
-      "description": "ตั้งหนี้ภาษีมูลค่าเพิ่มค้างจ่าย"
-    }
-  ],
-  "vat_closing_credit": [
-    {
-      "debit": "2200",
-      "credit": null,
-      "amount": "vatOutput",
-      "description": "หักลบภาษีขายกับภาษีซื้อ"
-    },
-    {
-      "debit": "1201",
-      "credit": null,
-      "amount": "vatCredit",
-      "description": "โอนภาษีซื้อคงเหลือไปเครดิตภาษี"
-    },
-    {
-      "debit": null,
-      "credit": "1200",
-      "amount": "vatInput",
-      "description": "หักลบภาษีขายกับภาษีซื้อ"
-    }
-  ],
-  "vat_payment": [
-    {
-      "debit": "2190",
-      "amount": "amount",
-      "description": "ชำระภาษีมูลค่าเพิ่ม"
-    },
-    {
-      "credit": "1010",
-      "amount": "amount",
-      "description": "ชำระภาษีมูลค่าเพิ่ม"
-    }
-  ],
+      {
+        "debit": "2200",
+        "credit": null,
+        "amount": "vatOutput",
+        "description": "หักลบภาษีซื้อกับภาษีขาย"
+      },
+      {
+        "debit": null,
+        "credit": "1200",
+        "amount": "vatInput",
+        "description": "หักลบภาษีซื้อกับภาษีขาย"
+      },
+      {
+        "debit": null,
+        "credit": "2190",
+        "amount": "vatPayable",
+        "description": "ตั้งหนี้ภาษีมูลค่าเพิ่มค้างจ่าย"
+      }
+    ],
+    "vat_closing_credit": [
+      {
+        "debit": "2200",
+        "credit": null,
+        "amount": "vatOutput",
+        "description": "หักลบภาษีขายกับภาษีซื้อ"
+      },
+      {
+        "debit": "1201",
+        "credit": null,
+        "amount": "vatCredit",
+        "description": "โอนภาษีซื้อคงเหลือไปเครดิตภาษี"
+      },
+      {
+        "debit": null,
+        "credit": "1200",
+        "amount": "vatInput",
+        "description": "หักลบภาษีขายกับภาษีซื้อ"
+      }
+    ],
+    "vat_payment": [
+      {
+        "debit": "2190",
+        "amount": "amount",
+        "description": "ชำระภาษีมูลค่าเพิ่ม"
+      },
+      {
+        "credit": "1010",
+        "amount": "amount",
+        "description": "ชำระภาษีมูลค่าเพิ่ม"
+      }
+    ],
     "closing": [
       {
         "debit": "4000",

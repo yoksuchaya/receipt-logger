@@ -122,8 +122,8 @@ Returns ledger entries for each account, including opening balance and running b
 
 **Example:**
 ```http
-GET /api/ledger-report?month=2025-08
-GET /api/ledger-report?month=2025-08&accountNumber=1000
+GET /api/ledger-report?period=2025-08
+GET /api/ledger-report?period=2025-08&accountNumber=1000
 ```
 
 ---

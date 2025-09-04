@@ -7,6 +7,7 @@ import VatReport from "@/components/vat/VatReport";
 import VatSummary from "@/components/vat/VatSummary";
 import AccountChart from "@/components/account/AccountChart";
 import TrialBalance from "@/components/report/TrialBalance";
+import AccountingReport from "@/components/report/AccountingReport";
 import StockMovementReport from "@/components/stock/StockMovementReport";
 import StockOverview from "@/components/stock/StockOverview";
 import JournalReport from "@/components/journal/JournalReport";
@@ -32,6 +33,7 @@ type MenuKey =
   | 'vat-sales'
   | 'vat-summary'
   | 'trial-balance'
+  | 'accounting-report'
   | 'company-profile'
   | 'account-chart';
 
@@ -80,6 +82,7 @@ export default function Home() {
               {selectedMenu === 'vat-sales' && 'รายงานภาษีขาย'}
               {selectedMenu === 'vat-summary' && 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)'}
               {selectedMenu === 'trial-balance' && 'งบทดลอง (ประจำเดือน)'}
+              {selectedMenu === 'accounting-report' && 'รายงานทางบัญชี'}
               {selectedMenu === 'company-profile' && 'ตั้งค่าข้อมูลบริษัท'}
               {selectedMenu === 'account-chart' && 'ผังบัญชี'}
             </h2>
@@ -104,6 +107,7 @@ export default function Home() {
               </div>
             )}
             {selectedMenu === 'trial-balance' && <TrialBalance />}
+            {selectedMenu === 'accounting-report' && <AccountingReport />}
             {selectedMenu === 'company-profile' && <CompanyProfile />}
             {selectedMenu === 'account-chart' && <AccountChart />}
           </div>

@@ -44,7 +44,7 @@ const TrialBalance: React.FC<Props> = ({ month: propMonth, year: propYear, data:
   useEffect(() => {
     setLoading(true);
     setError("");
-    fetch(`/api/trial-balance?month=${year}-${month}`)
+    fetch(`/api/trial-balance?period=${year}-${month}`)
       .then(res => {
         if (!res.ok) throw new Error("โหลดข้อมูลงบทดลองล้มเหลว");
         return res.json();

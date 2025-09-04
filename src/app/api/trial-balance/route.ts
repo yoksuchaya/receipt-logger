@@ -10,6 +10,7 @@ async function fetchJson(url: string) {
 // Map ledger and account chart to trial balance rows
 function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, string>) {
   return ledger.map((row: any) => {
+    console.log('Processing row:', row);
     const accountType = accountTypeMap[row.accountNumber] || "asset";
     let openingDebit = 0, openingCredit = 0;
     if (accountType === "asset" || accountType === "expense") {
@@ -33,6 +34,7 @@ function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, strin
     let closingDebit = 0, closingCredit = 0;
     const closingBalance = (row.openingBalance || 0) + (debit - credit);
     if (accountType === "asset" || accountType === "expense") {
+      console.log('Asset/Expense closing balance calculation:', JSON.stringify(row), row.debit, debit);
       closingDebit = closingBalance > 0 ? closingBalance : 0;
       closingCredit = closingBalance < 0 ? closingBalance : 0;
     } else if (accountType === "liability" || accountType === "equity" || accountType === "revenue") {
@@ -63,16 +65,13 @@ function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, strin
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const month = searchParams.get("month");
-  if (!month) {
-    return new Response(JSON.stringify({ error: "Missing month parameter" }), { status: 400 });
+  const periodParam = searchParams.get("period");
+  if (!periodParam) {
+    return new Response(JSON.stringify({ error: "Missing period parameter" }), { status: 400 });
   }
   try {
-    // Fetch ledger and account chart using relative paths
-    const [ledgerRes, chartRes] = await Promise.all([
-      fetchJson(`${req.nextUrl.origin}/api/ledger-report?month=${month}`),
-      fetchJson(`${req.nextUrl.origin}/api/account-chart`)
-    ]);
+    // Fetch account chart
+    const chartRes = await fetchJson(`${req.nextUrl.origin}/api/account-chart`);
     // Build account type map
     const accountTypeMap: Record<string, string> = {};
     if (Array.isArray(chartRes.accounts)) {
@@ -80,10 +79,20 @@ export async function GET(req: NextRequest) {
         accountTypeMap[acc.accountNumber] = acc.type;
       });
     }
-    // Map ledger to trial balance rows
-    const ledger = Array.isArray(ledgerRes.ledger) ? ledgerRes.ledger : [];
+    let ledger: any[] = [];
+    let resultPeriod = periodParam;
+    if (/^\d{4}$/.test(periodParam)) {
+      // If only year is provided, fetch the whole year in one call
+      const ledgerRes = await fetchJson(`${req.nextUrl.origin}/api/ledger-report?period=${resultPeriod}`);
+      ledger = Array.isArray(ledgerRes.ledger) ? ledgerRes.ledger : [];
+      resultPeriod = periodParam;
+    } else {
+      // Single month
+      const ledgerRes = await fetchJson(`${req.nextUrl.origin}/api/ledger-report?period=${resultPeriod}`);
+      ledger = Array.isArray(ledgerRes.ledger) ? ledgerRes.ledger : [];
+    }
     const trialBalance = mapTrialBalanceRows(ledger, accountTypeMap);
-    return new Response(JSON.stringify({ month, trialBalance }), { status: 200 });
+    return new Response(JSON.stringify({ period: resultPeriod, trialBalance }), { status: 200 });
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500 });
   }
