@@ -6,30 +6,16 @@ import ReportHeader from "../common/ReportHeader";
 
 interface BalanceSheetReportProps {
     year: string;
+    trialBalance: TrialBalanceItem[];
+    loading: boolean;
+    error: string | null;
 }
 
-const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year }) => {
-    const [data, setData] = useState<TrialBalanceItem[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        setLoading(true);
-        setError(null);
-        fetch(`/api/trial-balance?period=${year}`)
-            .then(async (res) => {
-                if (!res.ok) throw new Error("Failed to fetch");
-                const json = await res.json();
-                setData(json.trialBalance || []);
-            })
-            .catch((e) => setError(e.message))
-            .finally(() => setLoading(false));
-    }, [year]);
-
+const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year, trialBalance, loading, error }) => {
     // Group accounts by asset, liability, equity (example logic)
-    const assets = data.filter(a => a.accountNumber.startsWith("1"));
-    const liabilities = data.filter(a => a.accountNumber.startsWith("2"));
-    const equity = data.filter(a => a.accountNumber.startsWith("3"));
+    const assets = trialBalance.filter(a => a.accountNumber.startsWith("1"));
+    const liabilities = trialBalance.filter(a => a.accountNumber.startsWith("2"));
+    const equity = trialBalance.filter(a => a.accountNumber.startsWith("3"));
 
     const sum = (arr: TrialBalanceItem[]) => arr.reduce((acc, a) => acc + (a.debit - a.credit), 0);
 
@@ -59,14 +45,7 @@ const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year }) => {
                     <div className="text-center py-16 text-destructive">{error}</div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full text-sm border-separate border-spacing-y-1">
-                            <thead>
-                                <tr className="bg-muted font-semibold">
-                                    <th className="px-4 py-2 text-left">Account</th>
-                                    <th className="px-4 py-2 text-left">Name</th>
-                                    <th className="px-4 py-2 text-right">Amount</th>
-                                </tr>
-                            </thead>
+                        <table className="w-full text-xs sm:text-sm border-separate border-spacing-y-1">
                             <tbody>
                                 {/* Assets */}
                                 <tr className="font-bold bg-muted">
@@ -112,8 +91,8 @@ const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year }) => {
                                 </tr>
                                 {/* Retained Earnings row */}
                                 {retainedEarnings !== 0 && (
-                                    <tr className="bg-muted font-bold">
-                                        <td className="border-t px-4 py-2">กำไรขาดทุนสะสมยังไม่ปิดบัญชี (Retained Earnings)</td>
+                                    <tr className="bg-muted font-bold text-lg">
+                                        <td className="border-t px-4 py-2">กำไรขาดทุนสะสมยังไม่ปิดบัญชี</td>
                                         <td className="border-t px-4 py-2"></td>
                                         <td className="border-t text-right px-4 py-2">{formatMoney(retainedEarnings)}</td>
                                     </tr>

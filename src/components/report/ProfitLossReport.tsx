@@ -47,48 +47,34 @@ function groupAccounts(trialBalance: TrialBalanceItem[]) {
 
 interface ProfitLossReportProps {
   year: string;
+  trialBalance: TrialBalanceItem[];
+  loading: boolean;
+  error: string | null;
 }
 
-const ProfitLossReport: React.FC<ProfitLossReportProps> = ({ year }) => {
-  const [data, setData] = useState<TrialBalanceItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch(`/api/trial-balance?period=${year}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json = await res.json();
-        setData(json.trialBalance || []);
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [year]);
-
-  const sections = groupAccounts(data);
+const ProfitLossReport: React.FC<ProfitLossReportProps> = ({ year, trialBalance, loading, error }) => {
+  const sections = groupAccounts(trialBalance);
 
   return (
     <>
       <div className="w-full max-w-5xl mx-auto py-8 mt-8 px-8 bg-white rounded-lg shadow-lg border border-gray-100 print:bg-transparent print:shadow-none print:border-0 print:rounded-none">
-        {loading ? (
-          <div className="text-center py-16 text-muted-foreground">Loading...</div>
-        ) : error ? (
-          <div className="text-center py-16 text-destructive">{error}</div>
-        ) : (
-          <PrintWrapper printLabel="รายงานกำไรขาดทุน (Profit & Loss)">
-            <h2 className="text-xl font-bold mb-4 print:hidden">รายงานกำไรขาดทุน (Profit & Loss)</h2>
-            {/* Print-only header */}
-            <div className="hidden print:block">
-              <ReportHeader
-                month={"01"}
-                year={year}
-                onMonthChange={() => { }}
-                onYearChange={() => { }}
-                title="งบกำไรขาดทุน (Profit & Loss Statement)"
-              />
-            </div>
+        <PrintWrapper printLabel="รายงานกำไรขาดทุน (Profit & Loss)">
+          <h2 className="text-xl font-bold mb-4 print:hidden">รายงานกำไรขาดทุน (Profit & Loss)</h2>
+          {/* Print-only header */}
+          <div className="hidden print:block">
+            <ReportHeader
+              month={"01"}
+              year={year}
+              onMonthChange={() => { }}
+              onYearChange={() => { }}
+              title="งบกำไรขาดทุน (Profit & Loss Statement)"
+            />
+          </div>
+          {loading ? (
+            <div className="text-center py-16 text-muted-foreground">Loading...</div>
+          ) : error ? (
+            <div className="text-center py-16 text-destructive">{error}</div>
+          ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm border-separate border-spacing-y-1">
                 <tbody>
@@ -178,9 +164,8 @@ const ProfitLossReport: React.FC<ProfitLossReportProps> = ({ year }) => {
                 </tbody>
               </table>
             </div>
-          </PrintWrapper>
-
-        )}
+          )}
+        </PrintWrapper>
       </div>
     </>
   );
