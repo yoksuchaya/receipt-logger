@@ -57,7 +57,7 @@ const ProfitLossReport: React.FC<ProfitLossReportProps> = ({ year, trialBalance,
 
   return (
     <>
-      <div className="w-full max-w-5xl mx-auto py-8 mt-8 px-8 bg-white rounded-lg shadow-lg border border-gray-100 print:bg-transparent print:shadow-none print:border-0 print:rounded-none">
+      <div className="w-full mx-auto py-8 mt-8 px-8 bg-white rounded-lg shadow-lg border border-gray-100 print:bg-transparent print:shadow-none print:border-0 print:rounded-none">
         <PrintWrapper printLabel="รายงานกำไรขาดทุน (Profit & Loss)">
           <h2 className="text-xl font-bold mb-4 print:hidden">รายงานกำไรขาดทุน (Profit & Loss)</h2>
           {/* Print-only header */}
@@ -76,7 +76,7 @@ const ProfitLossReport: React.FC<ProfitLossReportProps> = ({ year, trialBalance,
             <div className="text-center py-16 text-destructive">{error}</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm border-separate border-spacing-y-1">
+              <table className="min-w-[600px] w-full text-sm border-separate border-spacing-y-1">
                 <tbody>
                   {/* Revenue */}
                   <tr className="font-semibold text-primary bg-muted">

@@ -26,7 +26,7 @@ const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year, trialBala
     const retainedEarnings = totalAssets + (totalLiabilities + totalEquity);
 
     return (
-        <div className="w-full max-w-5xl mx-auto py-8 mt-8 px-8 bg-white rounded-lg shadow-lg border border-gray-100">
+        <div className="w-full mx-auto py-8 mt-8 px-8 bg-white rounded-lg shadow-lg border border-gray-100">
             <PrintWrapper printLabel="งบแสดงฐานะการเงิน (Balance Sheet)">
                 <h2 className="text-xl font-bold mb-4 print:hidden">งบแสดงฐานะการเงิน (Balance Sheet)</h2>
                 {/* Print-only header */}
@@ -45,7 +45,7 @@ const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year, trialBala
                     <div className="text-center py-16 text-destructive">{error}</div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-xs sm:text-sm border-separate border-spacing-y-1">
+                            <table className="min-w-[600px] w-full text-sm border-separate border-spacing-y-1">
                             <tbody>
                                 {/* Assets */}
                                 <tr className="font-bold bg-muted">

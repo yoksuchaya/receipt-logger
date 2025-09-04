@@ -24,7 +24,7 @@ const AccountingReport: React.FC = () => {
       .finally(() => setLoading(false));
   }, [year]);
   return (
-  <div className="w-full max-w-5xl mx-auto py-8 mt-8 px-8">
+  <div className="w-full mx-auto py-8 mt-8 px-8">
     <div className="flex justify-center items-center mb-6">
       <YearSelector year={year} onYearChange={setYear} />
     </div>
