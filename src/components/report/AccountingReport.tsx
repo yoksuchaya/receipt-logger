@@ -24,10 +24,11 @@ const AccountingReport: React.FC = () => {
       .finally(() => setLoading(false));
   }, [year]);
   return (
-  <div className="w-full mx-auto py-8 mt-8 px-8">
-    <div className="flex justify-center items-center mb-6">
-      <YearSelector year={year} onYearChange={setYear} />
-    </div>
+    <div className="w-full mx-auto py-8 px-8">
+      <div className="flex items-center gap-4 mb-6 justify-center">
+        <span className="font-semibold text-lg">ปีงบประมาณ:</span>
+        <YearSelector year={year} onYearChange={setYear} />
+      </div>
       <section>
         <ProfitLossReport year={year} trialBalance={trialBalance} loading={loading} error={error} />
       </section>

@@ -313,24 +313,28 @@ const JournalVoucher: FC<JournalVoucherProps> = ({ initialValues, mode = 'create
                     const res = await fetch('/api/receipt-log');
                     if (res.ok) {
                         const data = await res.json();
-                        // Find all JV receipt_no
+                        // Find all JV receipt_no for current month
+                        const d = new Date(date);
+                        const mon = String(d.getMonth() + 1).padStart(2, '0');
                         const jvNos = Array.isArray(data)
                             ? data
-                                .map((obj: any) => obj && obj.receipt_no && typeof obj.receipt_no === 'string' && obj.receipt_no.startsWith('JV-') ? obj.receipt_no : null)
+                                .map((obj: any) => obj && obj.receipt_no && typeof obj.receipt_no === 'string' && obj.receipt_no.startsWith(`JV-${mon}`) ? obj.receipt_no : null)
                                 .filter(Boolean)
                             : [];
                         let maxNum = 0;
                         jvNos.forEach(no => {
-                            const match = typeof no === 'string' && no.match(/^JV-(\d{4})$/);
+                            const match = typeof no === 'string' && no.match(new RegExp(`^JV-${mon}(\d{4})$`));
                             if (match) {
                                 const num = parseInt(match[1], 10);
                                 if (num > maxNum) maxNum = num;
                             }
                         });
                         const nextNum = (maxNum + 1).toString().padStart(4, '0');
-                        receipt_no = `JV-${nextNum}`;
+                        receipt_no = `JV-${mon}${nextNum}`;
                     } else {
-                        receipt_no = 'JV-0001';
+                        const d = new Date(date);
+                        const mon = String(d.getMonth() + 1).padStart(2, '0');
+                        receipt_no = `JV-${mon}0001`;
                     }
                 } catch {
                     receipt_no = 'JV-0001';

@@ -19,6 +19,7 @@ import SidebarMenu from "@/components/layout/SidebarMenu";
 import MenuOverlay from "@/components/layout/MenuOverlay";
 import MobileCloseButton from "@/components/layout/MobileCloseButton";
 import IssueDocumentMenu from "@/components/document/IssueDocumentMenu";
+import FinancialSummary from "@/components/report/FinancialSummary";
 
 
 type MenuKey =
@@ -34,6 +35,7 @@ type MenuKey =
   | 'vat-summary'
   | 'trial-balance'
   | 'accounting-report'
+  | 'financial-summary'
   | 'company-profile'
   | 'account-chart';
 
@@ -83,6 +85,7 @@ export default function Home() {
               {selectedMenu === 'vat-summary' && 'สรุปภาษีมูลค่าเพิ่ม (VAT Summary)'}
               {selectedMenu === 'trial-balance' && 'งบทดลอง (ประจำเดือน)'}
               {selectedMenu === 'accounting-report' && 'รายงานทางบัญชี'}
+              {selectedMenu === 'financial-summary' && 'สรุปภาพรวมทางการเงิน'}
               {selectedMenu === 'company-profile' && 'ตั้งค่าข้อมูลบริษัท'}
               {selectedMenu === 'account-chart' && 'ผังบัญชี'}
             </h2>
@@ -108,6 +111,7 @@ export default function Home() {
             )}
             {selectedMenu === 'trial-balance' && <TrialBalance />}
             {selectedMenu === 'accounting-report' && <AccountingReport />}
+            {selectedMenu === 'financial-summary' && <FinancialSummary />}
             {selectedMenu === 'company-profile' && <CompanyProfile />}
             {selectedMenu === 'account-chart' && <AccountChart />}
           </div>

@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import VatBreadcrumb from "./VatBreadcrumb";
 import ReceiptEditForm from "../receipt/ReceiptEditForm";
@@ -24,6 +22,34 @@ const getCurrentMonthYear = () => {
 };
 
 const yearOptions = Array.from({ length: 6 }, (_, i) => (2020 + i).toString());
+
+// Utility to generate VAT receipt number
+async function getVatReceiptNo(prefix: string, year: string, month: string): Promise<string> {
+    // Fetch all receipts with the given prefix, year, and month
+    try {
+        const res = await fetch('/api/receipt-log');
+        if (!res.ok) throw new Error('Failed to fetch receipt log');
+        const data = await res.json();
+        // Filter receipts with matching prefix, year, and month
+        const matchPrefix = `${prefix}-${year}${month}`;
+        const filtered = Array.isArray(data)
+            ? data.filter((r: any) => r && r.receipt_no && r.receipt_no.startsWith(matchPrefix))
+            : [];
+        // Find max running number
+        let maxNum = 0;
+        filtered.forEach((r: any) => {
+            const match = typeof r.receipt_no === 'string' && r.receipt_no.match(new RegExp(`^${prefix}-${year}${month}(\d{2})$`));
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxNum) maxNum = num;
+            }
+        });
+        const nextNum = (maxNum + 1).toString().padStart(2, '0');
+        return `${prefix}-${year}${month}${nextNum}`;
+    } catch {
+        return `${prefix}-${year}${month}01`;
+    }
+}
 
 const VatSummary: React.FC = () => {
     // Handler to print PP30 form (must be inside component to access state)
@@ -247,7 +273,7 @@ const VatSummary: React.FC = () => {
                                         date: now.toISOString().slice(0, 10),
                                         issuedAt: now.toISOString(),
                                         uploadedAt: now.toISOString(),
-                                        receipt_no: `VATC-${year}${month}`,
+                                        receipt_no: await getVatReceiptNo('VATC', year, month),
                                         vendor: companyProfile?.company_name || '',
                                         vendor_tax_id: companyProfile?.tax_id || '',
                                         buyer_name: '',
@@ -355,7 +381,7 @@ const VatSummary: React.FC = () => {
                                                 date: now.toISOString().slice(0, 10),
                                                 issuedAt: now.toISOString(),
                                                 uploadedAt: now.toISOString(),
-                                                receipt_no: `VATP-${year}${month}`,
+                                                receipt_no: await getVatReceiptNo('VATP', year, month),
                                                 vendor: companyProfile?.company_name || '',
                                                 vendor_tax_id: companyProfile?.tax_id || '',
                                                 buyer_name: '',

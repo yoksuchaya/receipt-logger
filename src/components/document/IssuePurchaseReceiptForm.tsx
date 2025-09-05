@@ -166,10 +166,12 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
             const sortedDates = Array.from(new Set(sameComboDates)).sort();
             running = sortedDates.indexOf(date) + 2;
         } catch { }
-        setForm((prev) => ({
-            ...prev,
-            receipt_no: `B${catCode}-${String(running).padStart(5, '0')}`,
-        }));
+            // Format: B${catCode}-${month number}${String(running).padStart(4, '0')}
+            // month number: mon (e.g. '01', '12')
+            setForm((prev) => ({
+                ...prev,
+                receipt_no: `B${catCode}-${mon}${String(running).padStart(4, '0')}`,
+            }));
     }
 
     function handleProductChange(index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {

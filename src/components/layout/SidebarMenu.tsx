@@ -110,7 +110,7 @@ const menuGroups = [
         icon: CalculatorIcon, // Calculation/balance
       },
       { key: 'accounting-report', label: 'รายงานทางบัญชี', icon: ArrowTrendingUpIcon },
-      { key: 'graphical-summary', label: 'สรุปภาพรวมทางการเงิน (Graphical Summary)', icon: ChartBarIcon },
+      { key: 'financial-summary', label: 'สรุปภาพรวมทางการเงิน (Financial Summary)', icon: ChartBarIcon },
     ],
   },
   {

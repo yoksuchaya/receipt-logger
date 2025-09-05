@@ -10,7 +10,6 @@ async function fetchJson(url: string) {
 // Map ledger and account chart to trial balance rows
 function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, string>) {
   return ledger.map((row: any) => {
-    console.log('Processing row:', row);
     const accountType = accountTypeMap[row.accountNumber] || "asset";
     let openingDebit = 0, openingCredit = 0;
     if (accountType === "asset" || accountType === "expense") {
@@ -34,7 +33,6 @@ function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, strin
     let closingDebit = 0, closingCredit = 0;
     const closingBalance = (row.openingBalance || 0) + (debit - credit);
     if (accountType === "asset" || accountType === "expense") {
-      console.log('Asset/Expense closing balance calculation:', JSON.stringify(row), row.debit, debit);
       closingDebit = closingBalance > 0 ? closingBalance : 0;
       closingCredit = closingBalance < 0 ? closingBalance : 0;
     } else if (accountType === "liability" || accountType === "equity" || accountType === "revenue") {
