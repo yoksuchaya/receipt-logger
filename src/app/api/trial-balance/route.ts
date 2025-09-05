@@ -39,7 +39,7 @@ function mapTrialBalanceRows(ledger: any[], accountTypeMap: Record<string, strin
       const runningBalance = debit - credit
       if (runningBalance !== 0) {
         closingCredit = runningBalance < 0 ? (row.openingBalance || 0) + Math.abs(runningBalance) : 0;
-        closingDebit = runningBalance > 0 ? (row.openingBalance || 0) + runningBalance : 0;
+        closingDebit = runningBalance > 0 ? (row.openingBalance || 0) - runningBalance : 0;
       } else {
         closingCredit = closingBalance > 0 ? closingBalance : 0;
         closingDebit = closingBalance < 0 ? closingBalance : 0;
