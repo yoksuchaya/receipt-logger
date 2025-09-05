@@ -78,7 +78,7 @@ function getAccountsForReceipt(
   }
 
   const grandTotal = parseFloat(receipt.grand_total);
-  const vat = parseFloat(receipt.vat);
+  const vat = parseFloat(receipt.vat) || 0;
   const net = grandTotal - vat;
   let cost = 0;
   if (ruleType === "sale") {
@@ -100,51 +100,88 @@ function getAccountsForReceipt(
   }
 
   const entries: { accountNumber: string; debit: number; credit: number; description?: string }[] = [];
-  let paymentType = receipt.payment_type;
-  if (!paymentType && receipt.payment) {
-    if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
-    else if (receipt.payment.cash && receipt.payment.cash !== "") paymentType = "cash";
-    else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
+  // Collect payment types and amounts for splitting grandTotal
+  let paymentEntries: { type: string; amount: number }[] = [];
+  if (receipt.payment) {
+    if (receipt.payment.cash && !isNaN(Number(receipt.payment.cash)) && Number(receipt.payment.cash) > 0) {
+      paymentEntries.push({ type: "cash", amount: Number(receipt.payment.cash) });
+    }
+    if (receipt.payment.transfer && !isNaN(Number(receipt.payment.transfer)) && Number(receipt.payment.transfer) > 0) {
+      paymentEntries.push({ type: "transfer", amount: Number(receipt.payment.transfer) });
+    }
+    if (receipt.payment.credit_card && !isNaN(Number(receipt.payment.credit_card)) && Number(receipt.payment.credit_card) > 0) {
+      paymentEntries.push({ type: "credit_card", amount: Number(receipt.payment.credit_card) });
+    }
   }
+  // Fallback: if no split, use payment_type or default to grandTotal
+  if (paymentEntries.length === 0) {
+    let paymentType = receipt.payment_type;
+    if (!paymentType && receipt.payment) {
+      if (receipt.payment.transfer && receipt.payment.transfer !== "") paymentType = "transfer";
+      else if (receipt.payment.cash && receipt.payment.cash !== "") paymentType = "cash";
+      else if (receipt.payment.credit_card && receipt.payment.credit_card !== "") paymentType = "cash";
+    }
+    paymentEntries.push({ type: paymentType || "cash", amount: grandTotal });
+  }
+
   for (const rule of rules[ruleType]) {
-    let accountNumber = rule.debit || rule.credit || "";
-    if (accountNumber.includes("|")) {
-      const paymentTypeMap = rules.paymentTypeMap || {};
-      let mapped: string | undefined = undefined;
-      if (paymentType) {
-        mapped = paymentTypeMap[paymentType];
+    // For rules with grandTotal and paymentTypeMap, split by paymentEntries
+    if (rule.amount === "grandTotal" && (rule.debit && (rule.debit === "1000|1010|1020"))) {
+      for (const payment of paymentEntries) {
+        const paymentTypeMap = rules.paymentTypeMap || {};
+        let mapped = paymentTypeMap[payment.type] || paymentTypeMap["cash"];
+        let accountNumber = mapped || rule.debit.split("|")[0];
+        let amount = payment.amount;
+        if (amount && amount > 0 && !isNaN(amount)) {
+          entries.push({
+            accountNumber,
+            debit: rule.debit ? amount : 0,
+            credit: rule.credit ? amount : 0,
+            description: rule.description
+          });
+        }
       }
-      if (mapped && accountNumber.split("|").includes(mapped)) {
-        accountNumber = mapped;
-      } else {
-        accountNumber = accountNumber.split("|")[0];
+    } else {
+      // Original logic for other rules
+      let accountNumber = rule.debit || rule.credit || "";
+      if (accountNumber.includes("|")) {
+        const paymentTypeMap = rules.paymentTypeMap || {};
+        let mapped: string | undefined = undefined;
+        if (paymentEntries.length > 0) {
+          mapped = paymentTypeMap[paymentEntries[0].type];
+        }
+        if (mapped && accountNumber.split("|").includes(mapped)) {
+          accountNumber = mapped;
+        } else {
+          accountNumber = accountNumber.split("|")[0];
+        }
       }
-    }
-    let amount = 0;
-    if (rule.amount === "grandTotal") amount = grandTotal;
-    else if (rule.amount === "vat") amount = vat;
-    else if (rule.amount === "net") amount = net;
-    else if (rule.amount === "cost") amount = cost;
-    else if (rule.amount === "vatOutput") amount = vatOutput;
-    else if (rule.amount === "vatInput") amount = vatInput;
-    else if (rule.amount === "vatPayable") amount = vatPayable;
-    else if (rule.amount === "vatCredit") amount = vatCredit;
-    else if (rule.amount === "amount") {
-      // For systemGenerated receipts (like vat_payment), use grand_total or entries sum
-      if (typeof receipt.grand_total === 'number') amount = receipt.grand_total;
-      else if (typeof receipt.grand_total === 'string') amount = parseFloat(receipt.grand_total);
-      else if (Array.isArray(receipt.entries)) {
-        amount = receipt.entries.reduce((sum, e) => sum + (e.debit || e.credit || 0), 0);
+      let amount = 0;
+      if (rule.amount === "grandTotal") amount = grandTotal;
+      else if (rule.amount === "vat") amount = vat;
+      else if (rule.amount === "net") amount = net;
+      else if (rule.amount === "cost") amount = cost;
+      else if (rule.amount === "vatOutput") amount = vatOutput;
+      else if (rule.amount === "vatInput") amount = vatInput;
+      else if (rule.amount === "vatPayable") amount = vatPayable;
+      else if (rule.amount === "vatCredit") amount = vatCredit;
+      else if (rule.amount === "amount") {
+        // For systemGenerated receipts (like vat_payment), use grand_total or entries sum
+        if (typeof receipt.grand_total === 'number') amount = receipt.grand_total;
+        else if (typeof receipt.grand_total === 'string') amount = parseFloat(receipt.grand_total);
+        else if (Array.isArray(receipt.entries)) {
+          amount = receipt.entries.reduce((sum, e) => sum + (e.debit || e.credit || 0), 0);
+        }
       }
-    }
-    else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
-    if (amount && amount > 0 && !isNaN(amount)) {
-      entries.push({
-        accountNumber,
-        debit: rule.debit ? amount : 0,
-        credit: rule.credit ? amount : 0,
-        description: rule.description
-      });
+      else if (!isNaN(Number(rule.amount))) amount = Number(rule.amount);
+      if (amount && amount > 0 && !isNaN(amount)) {
+        entries.push({
+          accountNumber,
+          debit: rule.debit ? amount : 0,
+          credit: rule.credit ? amount : 0,
+          description: rule.description
+        });
+      }
     }
   }
   return entries;
