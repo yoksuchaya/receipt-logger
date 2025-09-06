@@ -209,6 +209,12 @@
       "accountName": "ภาษีเงินได้",
       "note": "ค่าใช้จ่ายภาษีเงินได้",
       "type": "expense"
+    },
+    {
+      "accountNumber": "6991",
+      "accountName": "ค่าใช้จ่ายภาษีมูลค่าเพิ่ม",
+      "note": "ค่าใช้จ่ายภาษีมูลค่าเพิ่ม",
+      "type": "expense"
     }
   ],
   "typeLabels": {
@@ -433,6 +439,18 @@
         "credit": "1200",
         "amount": "vatInput",
         "description": "หักลบภาษีขายกับภาษีซื้อ"
+      },
+      {
+        "debit": "6991",
+        "credit": null,
+        "amount": "vatCredit",
+        "description": "ปิดเครดิตภาษีซื้อที่ไม่ใช้"
+      },
+      {
+        "debit": null,
+        "credit": "1201",
+        "amount": "vatCredit",
+        "description": "ลดยอดเครดิตภาษีซื้อ"
       }
     ],
     "vat_payment": [
@@ -440,11 +458,6 @@
         "debit": "2190",
         "amount": "amount",
         "description": "ชำระภาษีมูลค่าเพิ่ม"
-      },
-      {
-        "credit": "1201",
-        "amount": "amount",
-        "description": "ใช้เครดิตภาษีซื้อสะสม"
       },
       {
         "credit": "1010",

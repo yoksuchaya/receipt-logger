@@ -18,7 +18,7 @@ function groupAccounts(trialBalance: TrialBalanceItem[]) {
   const revenue = trialBalance.filter(a => a.accountNumber.startsWith("4"));
   const cogs = trialBalance.filter(a => a.accountNumber.startsWith("5") && !a.accountNumber.startsWith("54"));
   const opExp = trialBalance.filter(a => a.accountNumber.startsWith("54"));
-  const other = trialBalance.filter(a => a.accountNumber.startsWith("6") || a.accountNumber.startsWith("7"));
+  const other = trialBalance.filter(a => a.accountNumber !== "6990" && a.accountNumber.startsWith("6") || a.accountNumber.startsWith("7"));
   const tax = trialBalance.filter(a => a.accountNumber === "6990");
 
   const sum = (arr: TrialBalanceItem[]) => arr.reduce((acc, a) => acc + (a.credit - a.debit), 0);
@@ -27,8 +27,8 @@ function groupAccounts(trialBalance: TrialBalanceItem[]) {
   const revenueTotal = sum(revenue);
   const cogsTotal = sum(cogs);
   const grossProfit = revenueTotal + cogsTotal;
-  const opExpTotal = sumAbs(opExp);
-  const opProfit = grossProfit - opExpTotal;
+  const opExpTotal = sum(opExp);
+  const opProfit = grossProfit - Math.abs(opExpTotal);
   const otherTotal = sum(other);
   const taxTotal = sumAbs(tax);
   const netProfit = opProfit + otherTotal - taxTotal;
@@ -116,7 +116,7 @@ const ProfitLossReport: React.FC<ProfitLossReportProps> = ({ year, trialBalance,
                     <tr key={a.accountNumber} className="text-muted-foreground bg-white">
                       <td className="pl-4 text-xs py-1 align-top whitespace-nowrap">{a.accountNumber}</td>
                       <td className="py-1 align-top">{a.accountName}</td>
-                      <td className="text-right px-4 py-1 align-top">{formatNumber(Math.abs(a.credit - a.debit))}</td>
+                      <td className="text-right px-4 py-1 align-top">{formatNumber((a.credit - a.debit))}</td>
                     </tr>
                   ))}
                   {/* Operating Profit */}
