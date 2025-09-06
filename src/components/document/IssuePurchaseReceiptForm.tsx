@@ -269,7 +269,7 @@ const IssuePurchaseReceiptForm: React.FC<IssuePurchaseReceiptFormProps> = ({ ini
                 categoryDisplay = companyProfile.productCategoryNames[logData.category];
             }
             logData.notes = `ซื้อ${categoryDisplay} น้ำหนักรวม ${sumWeight} กรัม`;
-            logData.category = categoryDisplay;
+            logData.category = logData.category;
         }
         try {
             const res = await fetch('/api/receipt-log', {

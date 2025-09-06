@@ -275,7 +275,7 @@ const IssueSaleReceiptForm: React.FC<IssueSaleReceiptFormProps> = ({ initialValu
                 categoryDisplay = companyProfile.productCategoryNames[logData.category];
             }
             logData.notes = `ขาย${categoryDisplay} น้ำหนักรวม ${sumWeight} กรัม`;
-            logData.category = categoryDisplay;
+            logData.category = logData.category;
         }
         try {
             const res = await fetch('/api/receipt-log', {
