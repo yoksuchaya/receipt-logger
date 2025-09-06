@@ -23,7 +23,7 @@ const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year, trialBala
     const totalAssets = sum(assets);
     const totalLiabilities = sum(liabilities);
     const totalEquity = sum(equity);
-    const retainedEarnings = totalAssets + (totalLiabilities + totalEquity);
+    const retainedEarnings = totalAssets + totalEquity + totalLiabilities;
 
     return (
         <div className="w-full mx-auto py-8 mt-8 px-8 bg-white rounded-lg shadow-lg border border-gray-100">
@@ -65,7 +65,7 @@ const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year, trialBala
                                     <tr key={a.accountNumber} className="bg-white">
                                         <td className="pl-4 text-xs py-1 align-top whitespace-nowrap">{a.accountNumber}</td>
                                         <td className="py-1 align-top">{a.accountName}</td>
-                                        <td className="text-right px-4 py-1 align-top">{formatMoney(a.debit - a.credit)}</td>
+                                        <td className="text-right px-4 py-1 align-top">{formatMoney(Math.abs(a.debit - a.credit))}</td>
                                     </tr>
                                 ))}
                                 <tr className="font-bold bg-muted">
@@ -87,7 +87,7 @@ const BalanceSheetReport: React.FC<BalanceSheetReportProps> = ({ year, trialBala
                                 <tr className="bg-primary text-primary-foreground font-bold text-lg">
                                     <td className="border-t border-b px-4 py-2">รวมหนี้สินและทุน</td>
                                     <td className="border-t border-b px-4 py-2"></td>
-                                    <td className="border-t border-b text-right px-4 py-2">{formatMoney(-totalEquity)}</td>
+                                    <td className="border-t border-b text-right px-4 py-2">{formatMoney(-totalEquity - totalLiabilities)}</td>
                                 </tr>
                                 {/* Retained Earnings row */}
                                 {retainedEarnings !== 0 && (

@@ -19,7 +19,7 @@ function groupAccounts(trialBalance: TrialBalanceItem[]) {
   const cogs = trialBalance.filter(a => a.accountNumber.startsWith("5") && !a.accountNumber.startsWith("54"));
   const opExp = trialBalance.filter(a => a.accountNumber.startsWith("54"));
   const other = trialBalance.filter(a => a.accountNumber.startsWith("6") || a.accountNumber.startsWith("7"));
-  const tax = trialBalance.filter(a => a.accountNumber.startsWith("22") || a.accountNumber === "2190");
+  const tax = trialBalance.filter(a => a.accountNumber === "6990");
 
   const sum = (arr: TrialBalanceItem[]) => arr.reduce((acc, a) => acc + (a.credit - a.debit), 0);
   const sumAbs = (arr: TrialBalanceItem[]) => arr.reduce((acc, a) => acc + Math.abs(a.credit - a.debit), 0);

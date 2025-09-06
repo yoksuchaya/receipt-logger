@@ -15,7 +15,7 @@ export const config = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Get VAT summary data from query or body
     // Add companyAddress part
-    const { month, year, salesVat, purchasesVat, netVat, companyName, taxId, totalSales, salesAmountExcludeVat, totalPurchases, companyAddress, phoneNo } = req.body;
+    const { month, year, salesVat, purchasesVat, netVat, companyName, taxId, totalSales, salesAmountExcludeVat, totalPurchases, companyAddress, phoneNo, isDeadlinePassed } = req.body;
 
     // Load the PDF template
     const pdfPath = path.join(process.cwd(), 'public', 'pp30_300160.pdf');
@@ -98,10 +98,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.warn('Could not select Radio Button4.BranchTypes:', e);
     }
 
-    // Select Radio Button8.DeadlineTypes with option '0' - สำนักงานใหญ่
+    // Select Radio Button8.DeadlineTypes with option '0' - ในกำหนดเวลา, '1' - เกินกำหนดเวลา
     try {
         const deadlineTypesRadio = fields.filter(field => field.constructor.name === 'PDFRadioGroup' && field.getName() === 'Radio Button8.DeadlineTypes');
-        (deadlineTypesRadio[0] as any).select('0');
+        if (isDeadlinePassed) {
+            (deadlineTypesRadio[1] as any).select('1');
+        } else {
+            (deadlineTypesRadio[0] as any).select('0');
+        }
     } catch (e) {
         console.warn('Could not select Radio Button8.DeadlineTypes:', e);
     }

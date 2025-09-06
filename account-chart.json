@@ -43,6 +43,18 @@
       "type": "contra-asset"
     },
     {
+      "accountNumber": "1400",
+      "accountName": "สินทรัพย์ถาวร - อาคาร/อุปกรณ์",
+      "note": "เช่น อาคาร อุปกรณ์สำนักงาน",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "1410",
+      "accountName": "สินทรัพย์ถาวร - เครื่องใช้สำนักงาน",
+      "note": "คอมพิวเตอร์ เฟอร์นิเจอร์",
+      "type": "asset"
+    },
+    {
       "accountNumber": "2000",
       "accountName": "เจ้าหนี้การค้า",
       "note": "ร้านทองที่ซื้อสินค้า",
@@ -55,9 +67,27 @@
       "type": "liability"
     },
     {
+      "accountNumber": "2110",
+      "accountName": "เจ้าหนี้เงินกู้ยืม",
+      "note": "เงินกู้ยืมจากธนาคาร/บุคคล",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "2120",
+      "accountName": "เจ้าหนี้สถาบันการเงินอื่น",
+      "note": "สินเชื่อหรือหนี้สถาบันการเงินอื่น",
+      "type": "liability"
+    },
+    {
       "accountNumber": "2190",
       "accountName": "ภาษีมูลค่าเพิ่มค้างจ่าย",
       "note": "VAT ที่ต้องจ่ายกรมสรรพากร",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "2199",
+      "accountName": "ภาษีเงินได้ค้างจ่าย",
+      "note": "หนี้สินภาษีเงินได้",
       "type": "liability"
     },
     {
@@ -85,6 +115,18 @@
       "type": "equity"
     },
     {
+      "accountNumber": "3200",
+      "accountName": "เงินปันผลค้างจ่าย",
+      "note": "เงินปันผลที่ประกาศแล้วยังไม่จ่าย",
+      "type": "equity"
+    },
+    {
+      "accountNumber": "3300",
+      "accountName": "กำไร (ขาดทุน) ปีปัจจุบัน",
+      "note": "กำไรหรือขาดทุนระหว่างปี",
+      "type": "equity"
+    },
+    {
       "accountNumber": "4000",
       "accountName": "ขายสินค้า",
       "note": "รายได้จากการขายทอง",
@@ -94,6 +136,12 @@
       "accountNumber": "4010",
       "accountName": "รายได้ค่าบริการ",
       "note": "ค่ากำเหน็จ / ค่าบริการ (ถ้ามี)",
+      "type": "revenue"
+    },
+    {
+      "accountNumber": "4020",
+      "accountName": "รายได้อื่น",
+      "note": "ดอกเบี้ยรับ ขายเศษทอง ขายสินทรัพย์",
       "type": "revenue"
     },
     {
@@ -137,8 +185,33 @@
       "accountName": "ค่าใช้จ่ายสำนักงาน",
       "note": "ค่าใช้จ่ายสำนักงานทั่วไป",
       "type": "expense"
+    },
+    {
+      "accountNumber": "5500",
+      "accountName": "ดอกเบี้ยจ่าย",
+      "note": "ค่าใช้จ่ายดอกเบี้ยเงินกู้",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "5600",
+      "accountName": "ค่าธรรมเนียมธนาคาร",
+      "note": "ค่าธรรมเนียมและค่าบริการธนาคาร",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "5700",
+      "accountName": "ค่าขนส่งและบริการภายนอก",
+      "note": "ค่าขนส่ง ค่าจ้างบริการจากภายนอก",
+      "type": "expense"
+    },
+    {
+      "accountNumber": "6990",
+      "accountName": "ภาษีเงินได้",
+      "note": "ค่าใช้จ่ายภาษีเงินได้",
+      "type": "expense"
     }
-  ],
+  ]
+,
   "typeLabels": {
     "asset": "สินทรัพย์",
     "contra-asset": "สินทรัพย์ลดค่า",
