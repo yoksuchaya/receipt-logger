@@ -7,7 +7,7 @@ interface SaleReceiptTemplateProps {
 }
 
 const SaleReceiptTemplate: React.FC<SaleReceiptTemplateProps> = ({ data, className }) => {
-  const [company, setCompany] = useState<{ company_name?: string; tax_id?: string; address?: string } | null>(null);
+  const [company, setCompany] = useState<{ company_name?: string; tax_id?: string; address_line?: string } | null>(null);
 
   useEffect(() => {
     fetch('/api/company-profile')

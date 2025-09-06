@@ -147,21 +147,34 @@ const ReceiptLogList: React.FC = () => {
   // Default: show table
   return (
     <div className="w-full max-w-full">
-      <div className="flex flex-wrap gap-4 mb-4 items-end">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">จากวันที่</label>
-          <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="rounded border px-2 py-1 text-sm" />
+  <div className="flex flex-wrap gap-3 mb-4 items-end bg-white dark:bg-neutral-900 rounded-lg p-3">
+        <div className="flex flex-col min-w-[140px]">
+          <label htmlFor="fromDate" className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">จากวันที่</label>
+          <input
+            id="fromDate"
+            type="date"
+            value={fromDate}
+            onChange={e => setFromDate(e.target.value)}
+            className="rounded-lg border border-gray-300 dark:border-neutral-700 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-neutral-800 dark:text-gray-100 transition"
+          />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ถึงวันที่</label>
-          <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="rounded border px-2 py-1 text-sm" />
+        <div className="flex flex-col min-w-[140px]">
+          <label htmlFor="toDate" className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ถึงวันที่</label>
+          <input
+            id="toDate"
+            type="date"
+            value={toDate}
+            onChange={e => setToDate(e.target.value)}
+            className="rounded-lg border border-gray-300 dark:border-neutral-700 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-neutral-800 dark:text-gray-100 transition"
+          />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ประเภทเอกสาร</label>
+        <div className="flex flex-col min-w-[160px]">
+          <label htmlFor="typeFilter" className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">ประเภทเอกสาร</label>
           <select
+            id="typeFilter"
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value)}
-            className="rounded border px-2 py-1 text-sm"
+            className="rounded-lg border border-gray-300 dark:border-neutral-700 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-neutral-800 dark:text-gray-100 transition"
           >
             <option value="all">ทั้งหมด</option>
             {Object.entries(journalTypeLabels).map(([key, label]) => (
