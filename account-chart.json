@@ -26,7 +26,7 @@
     },
     {
       "accountNumber": "1200",
-      "accountName": "ภาษีซื้อรอคืน (VAT Input)",
+      "accountName": "ภาษีซื้อ (VAT Input)",
       "note": "VAT ที่จ่ายในการซื้อสินค้า",
       "type": "asset"
     },
@@ -92,7 +92,7 @@
     },
     {
       "accountNumber": "2200",
-      "accountName": "ภาษีขายค้างชำระ (VAT Output)",
+      "accountName": "ภาษีขาย (VAT Output)",
       "note": "VAT ที่เก็บจากขาย",
       "type": "liability"
     },
@@ -210,8 +210,7 @@
       "note": "ค่าใช้จ่ายภาษีเงินได้",
       "type": "expense"
     }
-  ]
-,
+  ],
   "typeLabels": {
     "asset": "สินทรัพย์",
     "contra-asset": "สินทรัพย์ลดค่า",
@@ -441,6 +440,11 @@
         "debit": "2190",
         "amount": "amount",
         "description": "ชำระภาษีมูลค่าเพิ่ม"
+      },
+      {
+        "credit": "1201",
+        "amount": "amount",
+        "description": "ใช้เครดิตภาษีซื้อสะสม"
       },
       {
         "credit": "1010",
